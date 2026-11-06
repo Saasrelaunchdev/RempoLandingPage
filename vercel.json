@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/lead.mjs": {
+      "maxDuration": 30
+    }
+  }
+}
