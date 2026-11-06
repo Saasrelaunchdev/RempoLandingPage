@@ -1879,7 +1879,7 @@ li{text-wrap:pretty}
   const params = new URLSearchParams(location.search);
   // Words and data the script needs, from src/content/copy.json (rendered in by tools/build.mjs)
   const T = {"kicker":{"partner":"Recommended to you by {name}.","event":"Good to meet you at {name}.","article":"Read the article? Here is the whole picture.","sms":"As promised on the phone."},"form":{"trade":"Please choose your trade.","techs":"Please choose how many technicians.","loc":"Please choose how many locations.","name":"Please enter your first name.","company":"Please enter your business name.","city":"Please enter your city or town.","phone":"Please enter a 10-digit phone number.","email":"Please check the email address.","consent":"We need your permission to call you."}};
-  const SITE = {"name":"Rempo","url":null,"phone":null,"phoneHref":null,"signinUrl":null,"callUrl":null,"trialUrl":null,"formEndpoint":null,"appStore":null,"googlePlay":null,"privacyUrl":null,"termsUrl":null,"company":"Rempo","noindex":true,"platforms":"Web"};
+  const SITE = {"name":"Rempo","url":null,"phone":null,"phoneHref":null,"signinUrl":null,"callUrl":null,"trialUrl":null,"formEndpoint":"/api/lead","appStore":null,"googlePlay":null,"privacyUrl":null,"termsUrl":null,"company":"Rempo","noindex":true,"platforms":"Web"};
   const FORM = {"title":"Get started","lead":"Three quick questions about your business, then the best number to reach you. We call you to set it up.","step1":"Your business","step2":"How to reach you","count1":"Step 1 of 2","count2":"Step 2 of 2","trade":"What is your trade?","tradeOptions":["HVAC","Plumbing","HVAC and plumbing","Other home service"],"techs":"How many technicians?","techsHint":"Count the people in the field, not the office.","techsOptions":["1 to 3","4 to 9","10 to 19","20 or more"],"loc":"How many locations?","locOptions":["1","2","3 or more"],"next":"Next","back":"Back","name":"First name","company":"Business name","companyHint":"As it shows on Google.","phone":"Best phone number","phonePrefix":"+1","phoneDigits":10,"city":"City or town","cityHint":"Where your business is based.","email":"Email","emailOpt":"(optional)","time":"Best time to call","timeOptions":["Morning","Midday","Afternoon","Any time"],"consentPhone":"You may call me about Rempo.","consentEmail":"You may email me about Rempo.","submit":"Get started","thanks":"Thanks{name}. We'll call you{phone} to set up your review requests.","failed":"Something went wrong. Please try again in a minute.","notSent":"Preview: nothing was sent. Set site.formEndpoint to receive start requests."};
 
   /* ---------- View flags: the production page by default; ?view=preview shows the open facts ({TBD}) ---------- */
@@ -2246,6 +2246,7 @@ li{text-wrap:pretty}
     e.preventDefault();
     if ($("#l-web").value) return;   // a bot: the honeypot is filled
     if (!checkStep1()) { showStep(1, true); return; }
+    if (step2.hidden) showStep(2, false);   // the thank-you and any error live in step 2: always show where the answer appears
     const digits = $("#l-phone").value.replace(/[^\d]/g, "");
     const want = +FORM.phoneDigits || 0;
     const phoneOk = want ? digits.length === want || digits.length === want + 1 : digits.length >= 6 && digits.length <= 15;
@@ -2267,12 +2268,13 @@ li{text-wrap:pretty}
     data.consentPhone = $("#l-cphone").checked; data.consentEmail = $("#l-cemail").checked;
     passThrough.forEach((k) => { if (params.has(k)) data[k] = params.get(k); });
     data.page = location.href;
+    data.form = "get-started";   // names this form in the lead notices and in public.leads.form
     $("#e-send").textContent = "";
     if (SITE.formEndpoint) {
       try {
         const r = await fetch(SITE.formEndpoint, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(data) });
         if (!r.ok) throw new Error(String(r.status));
-        $("#sent-note").remove();
+        $("#sent-note")?.remove();
       } catch (err) {
         btn.disabled = false;
         $("#e-send").textContent = FORM.failed + (SITE.phone ? " " + SITE.phone : "");
