@@ -19,21 +19,24 @@ This repository holds the landing page as one self-contained file, `index.html`,
 - `lead-capture/leads.sql`, `lead-capture/lead-form.js` (not used: the page's own script sends the form), `lead-capture/tests/`
 - `vercel.json`: `api/lead.mjs` gets 30 s. `.vercelignore`: `lead-capture/` is never served. `.gitignore`: `.env`, `.env*.local`, `.vercel`
 
-**The one form, and how it is wired** (pattern A: the page's own script posts JSON to `SITE.formEndpoint`):
-- `index.html:1780`, `#form`, the Get started form, in two steps. It opens in a dialog from every Get started and Book a call button, and also sits in the closing section.
-- `index.html:1882`: `SITE.formEndpoint` is now `"/api/lead"`.
-- `index.html:2271`: the lead is sent as `form: "get-started"`, so the notices and `public.leads.form` name it.
-- `index.html:2249`: sending always shows step 2, where the thank-you and any error appear.
-- What it sends: `trade`, `techs`, `locations`, `firstName`, `company`, `phone` (required), `city`, `email` (optional), `bestTime`, `consentPhone` (required), `consentEmail`, `page`, any `utm_*`, `src`, `p`, `e` from the link, and `website` (the bot trap, empty).
-- How it is stored: `firstName` goes to `name`, `company`, `phone` and `email` to their columns, the two consent boxes to `consent`, the page and campaign values to `meta`. Trade, technicians, locations, city, best time and the empty `website` go to `fields`.
-- The bot trap is named `website`. The page's own script drops a filled one before sending, and the endpoint keeps `website` as an ordinary field.
-- The page ignores any send in the first 3 seconds after its script starts (another bot check), and it shows the error and lets the visitor send again when `/api/lead` answers with an error.
+**Three ways forward, two forms** (both posted by the page's own script to `SITE.formEndpoint`, which is `"/api/lead"`):
+- **Get started** (`data-cta="buy"`: the header, the hero, after the done-for-you, comparison and starting sections, the close, the phone bar and the footer) goes to Stripe's checkout at `SITE.checkoutUrl` in `index.html`. Until that is set, it opens the call form. It carries the campaign (`utm_*`) and this visit's id as `client_reference_id`.
+- **Book a 15-minute call** (`data-cta="try"`) opens `#form`, sent as the lead `book-call`. Its fields are `trade`, `techs`, `locations`, `firstName`, `company`, `phone` (required), `city`, `email` (optional), `bestTime`, `consentPhone` (required), `consentEmail`. Its bot trap is named `website`; the page drops a filled one before sending, and the endpoint stores it as an ordinary field.
+- **The scorecard** (`data-cta="score"`) goes to the section `#scorecard`. Its request form `#score-form` is sent as the lead `scorecard`, with `trade`, `company`, `city`, `firstName`, `email` (required), `phone` (optional), `consentEmail` (required). Its bot trap is `hp`. Once `SITE.scorecardUrl` points at the scorecard itself, every scorecard link goes there and the request form steps aside.
+- Both leads also carry `page`, any `utm_*`, `src`, `p` and `e` from the link, and `visit`: the same id Stripe receives as `client_reference_id`. That lets a purchase be matched later to the leads of the same visit.
+- How they are stored: `firstName` goes to `name`, `company`, `phone` and `email` to their columns, the consent boxes to `consent`, and the page and campaign values to `meta`. Everything else goes to `fields`: trade, technicians, locations, city, best time, visit. `form` says which one it was.
+- The page ignores any send in the first 3 seconds after its script starts (a bot check). It shows an error and lets the visitor send again when `/api/lead` answers with an error. Sending the call form always shows its step 2, where the thank-you and any error appear.
+- The database needs nothing new for these: `public.leads` keeps each form apart by `form`. To list one kind: `select created_at, name, email, phone, company, fields from public.leads where form = 'scorecard' order by created_at desc;`
 
 **Tests**, run from the repository root:
 - `check-api.mjs`: 55 passed, 0 failed.
 - `check-db.mjs`: 20 passed, 0 failed. It used a local Postgres and fetched PostgREST v12.2.12 once.
-- `check-forms.mjs --wait 6000`: 8 passed, 0 failed, 0 warnings. The default `--wait 3200` counts from before the page opens. This page is about 1 MB, so its script starts later than that and it ignored the send as a bot. `--wait 6000` gives it its full 3 seconds.
-- The page's own form test (kept outside this repository, with a stand-in for `/api/lead`): 28 passed. It covers both steps at phone and desktop width, every answer reaching `/api/lead` as JSON, the thank-you reading the number back, and a failed send showing an error the visitor can retry from. The other page tests (theme, menu, questions, comparison): 11 passed.
+- `check-forms.mjs --wait 6000`: 13 passed, 0 failed, 0 warnings, for both forms. The default `--wait 3200` counts from before the page opens. This page is about 1 MB, so its script starts later than that and it ignored the send as a bot. `--wait 6000` gives it its full 3 seconds.
+- The page's own tests (kept outside this repository, with a stand-in for `/api/lead`), each at phone and desktop width:
+  - The call form: 28 passed.
+  - The three ways forward: 28 passed. They cover Get started with and without a checkout link, the scorecard request (empty, sent, failed) and the scorecard address.
+  - The rest of the page (theme, menu, questions, comparison): 11 passed.
+  - An accessibility scan in light and dark, with both forms showing their errors: no WCAG A/AA issue.
 - `check-live.mjs` was not run: it needs the deployed site with your keys set.
 
 **Branch**: committed and pushed to `claude/dreamy-franklin-5ksbo2`. `main` has the earlier design pass (pull request #1) but not the rebuilt form or this lead capture. Merge this branch into `main`, or set Vercel's production branch to it, before the live site can capture leads.
@@ -84,16 +87,17 @@ Then:
 ### Done by the agent
 - [x] Preflight: GO, after merging `origin/main` (pull request #1) into the branch. Warnings noted above: the newest work is on this branch, not `main`, and the bot trap is named `website`
 - [x] Kit installed: `api/lead.mjs`, `api/_lib/`, `lead-capture/`, `vercel.json`, `.vercelignore`, `.gitignore` (`install.mjs --site "Rempo" --require-consent`)
-- [x] The form wired: `SITE.formEndpoint` set to `/api/lead`, the form named `get-started`
+- [x] Both forms wired: `SITE.formEndpoint` set to `/api/lead`, the leads named `book-call` and `scorecard`
 - [x] check-api: 55 passed
 - [x] check-db: 20 passed
-- [x] check-forms: 8 passed, 0 warnings (`--wait 6000`)
-- [x] The page's own form test: 28 passed. Other page tests: 11 passed
+- [x] check-forms: 13 passed, 0 warnings (`--wait 6000`), both forms
+- [x] The page's own tests: the call form 28, the three ways forward 28, the rest of the page 11; the accessibility scan clean
 - [ ] check-live: not run, it needs the deployed site with your keys set
 - [x] Committed and pushed to `claude/dreamy-franklin-5ksbo2` (not yet in `main`)
 
 ### Yours
 - [ ] Supabase project created and `lead-capture/leads.sql` run
+- [ ] Your Stripe Payment Link set as `SITE.checkoutUrl` in `index.html` (until then, Get started opens the call form)
 - [ ] `SUPABASE_URL` and the **publishable** `SUPABASE_ANON_KEY` copied
 - [ ] Resend domain verified and an API key created
 - [ ] Slack incoming webhook created for the channel
