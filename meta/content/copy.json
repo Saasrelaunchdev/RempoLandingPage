@@ -143,8 +143,7 @@
           "topPct": 100
         }
       ],
-      "theme": "Complaint theme: 3 of the last 30 reviews mention a call that was not returned.",
-      "caption": "Illustration · sample report, demo data"
+      "theme": "Complaint theme: 3 of the last 30 reviews mention a call that was not returned."
     },
     "checksTitle": "What it checks, next to the top three",
     "checks": [
@@ -203,9 +202,7 @@
       "thanks": "Thanks, Dana!",
       "text": "Would you share an honest review of your visit? g.page/maple-street",
       "stop": "Reply STOP to opt out.",
-      "caption": "Illustration · sample thank-you, sent after the job",
-      "mini": "Would you share an honest review of your visit?",
-      "miniCaption": "Illustration · sample thank-you"
+      "mini": "Would you share an honest review of your visit?"
     },
     "listTitle": "Done for you, every month",
     "list": [

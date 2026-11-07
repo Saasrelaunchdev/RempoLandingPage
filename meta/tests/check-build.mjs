@@ -48,6 +48,7 @@ for (const v of variants) {
   ok(`${label}: every asset carries a version`, assets.every((u) => /\?v=[a-f0-9]{10}$/.test(u)));
   const stripped = html.replace(/<span class="tbd" data-tbd>[^<]*<\/span>/g, "").replace(/<section[^>]*data-tbd[\s\S]*?<\/section>/g, "").replace(/<div class="preview-bar" data-tbd[\s\S]*?<\/div>/g, "");
   ok(`${label}: {TBD} only in preview-only notes`, !stripped.includes("{TBD"));
+  ok(`${label}: no caption notes under the pictures`, !/class="proof-chip|Illustration · |demo data/.test(html));
   ok(`${label}: no em or en dashes`, !/[\u2013\u2014]/.test(html.replace(/<style>[\s\S]*?<\/style>/, "")));
   ok(`${label}: noindex`, html.includes('<meta name="robots" content="noindex, nofollow">'));
   ok(`${label}: no pixel until site.metaPixelId is set`, SITE.metaPixelId ? html.includes("connect.facebook.net") : !html.includes("connect.facebook.net"));

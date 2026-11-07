@@ -58,7 +58,8 @@ async function audit(page, label) {
     const noAlt = [...document.querySelectorAll("img")].filter((i) => !i.hasAttribute("alt")).map((i) => i.src);
     const wide = document.documentElement.scrollWidth > window.innerWidth + 1;
     const buttons = [...document.querySelectorAll("button,a.btn")].filter((b) => !(b.textContent.trim() || b.getAttribute("aria-label"))).length;
-    return { dupes, unlabeled, noAlt, wide, buttons, h1: document.querySelectorAll("h1").length };
+    const notes = [...document.querySelectorAll("body *:not(script):not(style)")].filter((e) => e.checkVisibility() && [...e.childNodes].some((c) => c.nodeType === 3 && /Illustration ·|sample (review|report|thank-you)|demo data/i.test(c.textContent))).map((e) => e.textContent.trim());
+    return { dupes, unlabeled, noAlt, wide, buttons, notes, h1: document.querySelectorAll("h1").length };
   });
   ok(`${label}: unique ids`, r.dupes.length === 0, r.dupes.join(","));
   ok(`${label}: every field has a label`, r.unlabeled.length === 0, r.unlabeled.join(","));
@@ -66,6 +67,7 @@ async function audit(page, label) {
   ok(`${label}: nothing wider than the screen`, !r.wide);
   ok(`${label}: every button has a name`, r.buttons === 0);
   ok(`${label}: one h1`, r.h1 === 1);
+  ok(`${label}: no caption notes under the pictures`, r.notes.length === 0, r.notes.join(" | "));
 }
 
 const tapOption = async (page, label) => {

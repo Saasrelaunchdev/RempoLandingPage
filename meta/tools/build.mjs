@@ -100,21 +100,18 @@ function scene(kind) {
   if (kind === "podium") {
     return `<div class="scene">${pic("podium", "(min-width: 900px) 600px, 100vw", "Illustration: three local companies' vans on a podium, first, second and third. Your van is on the street in front of them.", "pic", ' loading="lazy"')}
       <span class="pin rank" style="--x:41.5%;--y:22%" aria-hidden="true">2</span><span class="pin rank" style="--x:52.8%;--y:15%" aria-hidden="true">1</span><span class="pin rank" style="--x:63.5%;--y:25%" aria-hidden="true">3</span>
-      <span class="pin you" style="--x:43%;--y:57%" aria-hidden="true">You?</span></div>
-      <figcaption class="proof-chip">Illustration · the top three near you</figcaption>`;
+      <span class="pin you" style="--x:43%;--y:57%" aria-hidden="true">You?</span></div>`;
   }
   if (kind === "asked") {
     const xs = [21, 33, 45, 58, 71, 85], on = [1, 4];   // just above each roof (tools: measured on the 1440 px render)
     return `<div class="scene">${pic("street-six", "(min-width: 900px) 600px, 100vw", "Illustration: a street of six homes, each with a job done this week. Two of them were asked for a review.", "pic", ' loading="lazy"')}
       ${xs.map((x, i) => `<span class="pin ask${on.includes(i) ? " on" : ""}" style="--x:${x}%;--y:25%" aria-hidden="true">${ic("i-check")}</span>`).join("")}
-      <span class="scene-tag" style="--x:50%;--y:87%" aria-hidden="true">Asked this week: <b>2 of 6</b></span></div>
-      <figcaption class="proof-chip">Illustration · a typical week</figcaption>`;
+      <span class="scene-tag" style="--x:50%;--y:87%" aria-hidden="true">Asked this week: <b>2 of 6</b></span></div>`;
   }
   if (kind === "unanswered") {
     const stars = [1, 2, 3, 4, 5].map((n) => ic(n <= 3 ? "i-starf" : "i-star", n <= 3 ? "ic" : "ic off")).join("");
     return `<div class="scene">${pic("street", "(min-width: 900px) 600px, 100vw", "Illustration: a service van outside a customer's house after a job, with her 3-star review above the house and no reply under it.", "pic", ' loading="lazy"')}
-      <div class="rv-card waiting" style="--x:45.6%;--y:33%" aria-hidden="true"><span class="rv-av">P</span><span class="rv-head"><b>Priya S.</b><span class="stars">${stars}</span></span><p class="rv-text">Fixed it, but nobody called me back about the second visit.</p><span class="rv-reply wait">${ic("i-clock")}No reply yet · 3 weeks</span></div></div>
-      <figcaption class="proof-chip">Illustration · sample review</figcaption>`;
+      <div class="rv-card waiting" style="--x:45.6%;--y:33%" aria-hidden="true"><span class="rv-av">P</span><span class="rv-head"><b>Priya S.</b><span class="stars">${stars}</span></span><p class="rv-text">Fixed it, but nobody called me back about the second visit.</p><span class="rv-reply wait">${ic("i-clock")}No reply yet · 3 weeks</span></div></div>`;
   }
   if (kind === "phone") return phone(true);
   return "";
@@ -124,7 +121,7 @@ function scene(kind) {
 // before the first question, and the question stays in the first screen
 function miniRequest() {
   const P = C.service.phone;
-  return `<figure class="mini-req"><div class="mini-bubble">${pic("crew", "96px", P.photoAlt, "", ' loading="eager"')}<p><b>${esc(P.thanks)}</b> ${esc(P.mini)}</p></div><figcaption class="proof-chip">${esc(P.miniCaption)}</figcaption></figure>`;
+  return `<figure class="mini-req"><div class="mini-bubble">${pic("crew", "96px", P.photoAlt, "", ' loading="eager"')}<p><b>${esc(P.thanks)}</b> ${esc(P.mini)}</p></div></figure>`;
 }
 
 function phone(hero) {
@@ -134,8 +131,7 @@ function phone(hero) {
       <div class="phone-from"><span class="phone-av">M</span><b>${esc(P.from)}</b></div>
       <div class="bubble"><div class="bubble-photo">${pic("crew", "260px", P.photoAlt, "", ' loading="lazy"')}<b>${esc(P.thanks)}</b></div>
         <p>${esc(P.text.replace(/\s*g\.page\/\S+$/, ""))} <a>${esc((P.text.match(/g\.page\/\S+$/) || [""])[0])}</a></p><small>${esc(P.stop)}</small></div>
-    </div></div></div><p class="sr-only">${esc(P.photoAlt)} ${esc(P.text)} ${esc(P.stop)}</p>
-    <figcaption class="proof-chip">${esc(P.caption)}</figcaption>`;
+    </div></div></div><p class="sr-only">${esc(P.photoAlt)} ${esc(P.text)} ${esc(P.stop)}</p>`;
 }
 
 function stepHtml(step, i, total) {
@@ -216,14 +212,13 @@ function report(v) {
     <ul class="pts">${R.points.map((p) => { const [im, alt] = pick(p, v); return `<li class="pt reveal"><div class="pt-img">${pic(im, "220px", alt, "", ' loading="lazy"')}</div><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`; }).join("")}</ul>
     <div class="report-grid">
       <figure class="reveal">
-        <div class="rep" aria-label="${esc(S.caption)}">
+        <div class="rep">
           <div class="rep-top"><div><p class="rep-tag">${esc(S.label)}</p><p class="rep-biz">${esc(S.business)}</p><p class="rep-search">${esc(S.search)}</p></div>
             <div class="rep-score"><b>${esc(S.score)}<small>/100</small></b><span class="tier">${esc(S.tier)}</span></div></div>
           <p class="rep-legend"><span class="mine">${esc(S.you)}</span><span class="theirs">${esc(S.top)}</span></p>
           <dl class="rep-rows">${rows}</dl>
           <p class="rep-theme">${esc(S.theme)}</p>
         </div>
-        <figcaption class="proof-chip">${esc(S.caption)}</figcaption>
       </figure>
       <div class="reveal">
         <p class="list-t">${esc(R.checksTitle)}</p>

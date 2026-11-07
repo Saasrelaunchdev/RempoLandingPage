@@ -86,8 +86,6 @@ html:not(.is-preview) :is([data-tbd],.tbd,.preview-bar){display:none!important}
 .preview-bar a{color:#fff}
 
 /* The caption under every illustration and sample says what it is */
-.proof-chip{display:block;margin-top:10px;font:500 13px/1.4 var(--f-text);color:var(--c-text-2);text-wrap:balance}
-.proof-chip::before{content:"";display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:var(--c-accent);vertical-align:1px}
 
 /* ---------- Header: the logo, nothing else (one page, one action) ---------- */
 .hdr{padding:14px 0 6px}
@@ -477,7 +475,6 @@ body.sheet-open{overflow:hidden}
   .mini-bubble img{width:64px;height:44px;border-radius:10px}
   .mini-bubble p{font-size:14px;line-height:1.35}
   .mini-bubble b{font-size:14.5px}
-  .mini-req .proof-chip{margin-top:4px}
 
   /* Touch: buttons 56px (52 to 64 is the thumb's range; bigger reads as an ad), back and links 48px, checkboxes 32px */
   .btn,.gc-nav .btn{min-height:56px}
