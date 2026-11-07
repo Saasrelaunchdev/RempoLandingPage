@@ -2,6 +2,31 @@
   "functions": {
     "api/lead.mjs": {
       "maxDuration": 30
+    },
+    "api/meta-lead.mjs": {
+      "maxDuration": 30
     }
-  }
+  },
+  "redirects": [
+    { "source": "/meta/:path*", "destination": "/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/customers", "destination": "/customers/index.html" },
+    { "source": "/customers/:page", "destination": "/customers/:page/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/customers/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/customers(/.*)?",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    }
+  ]
 }

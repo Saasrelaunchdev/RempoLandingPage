@@ -1,0 +1,15 @@
+{
+  "name": "rempo-meta",
+  "private": true,
+  "description": "Rempo's landing page for Meta ads: the Gap Check funnel. Built into ../customers/ and served at /customers by the master page's Vercel project.",
+  "type": "module",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "dev": "node tools/dev.mjs --stub",
+    "lint": "node tools/copy-lint.mjs",
+    "test": "node tests/run.mjs",
+    "test:page": "node tests/check-page.mjs",
+    "sync-shared": "node tools/sync-shared.mjs"
+  }
+}

@@ -1,1 +1,13 @@
 lead-capture/
+# The Meta ads page: its built pages are in customers/ and its function is api/meta-lead.mjs. From meta/, only what
+# that function imports is uploaded (meta/api, meta/content, meta/lib); vercel.json redirects /meta/* away so none
+# of it is served as a file.
+meta/public/
+meta/src/
+meta/tests/
+meta/tools/
+meta/rules/
+meta/sql/
+meta/*.md
+meta/package.json
+meta/.gitignore

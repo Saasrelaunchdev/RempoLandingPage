@@ -132,3 +132,9 @@ node lead-capture/tests/check-live.mjs https://<your-site>   # the live deployme
 ```
 
 Read your leads: **Supabase > Table Editor > leads**. Set `status` (new, contacted, qualified, won, lost, spam) and `notes` there. Never edit the built page to change the form: change its sources and rebuild.
+
+## The Meta ads site shares this table
+
+`meta/` is Rempo's landing page for Meta ads, served by this same Vercel project at `/customers` (built into `customers/`), with its own endpoint, `/api/meta-lead` (`api/meta-lead.mjs`). It sends its leads to the same Supabase table through the same `public.submit_lead()`, with two form names: `meta-gap-report` (the Gap Check: answers, score, tier, fit) and `meta-call` (the call step: day, time window, phone). It reads this page's seven variables, plus its own optional Meta and prospect-email settings. Nothing in this guide changes. Setup and operations: [`meta/README.md`](../meta/README.md); an optional flat view of its leads: `meta/sql/meta-leads-view.sql`.
+
+To list them: `select created_at, form, name, email, company, fields->>'score' as score, fields->>'fit' as fit from public.leads where form like 'meta-%' order by created_at desc;`
