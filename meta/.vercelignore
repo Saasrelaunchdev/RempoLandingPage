@@ -1,0 +1,3 @@
+# The Meta project's own ignore file (it takes precedence over the repository root's). Uploads only what the build
+# and the function need; the tests and their screenshots stay out.
+tests/

@@ -1,1 +1,3 @@
 lead-capture/
+# The Meta ads site deploys as its own Vercel project (Root Directory: meta); keep it out of the master page.
+meta/

@@ -1,0 +1,84 @@
+{
+  "_note": "Rempo's claim rules, copied from the go-to-market build repo (rempogtmbuild, landing-page/copy-rules.json, which mirrors the GTM brain's rules/do-not-say.md). Applied to every word in content/ by tools/copy-lint.mjs on each build. refusalOk: the words may appear only in a sentence that refuses them (no, not, never, don't, won't...). allow: an exact content key where a rule is waived, with the reason (the copy file's own \"allow\" field works the same way).",
+  "rules": [
+    {
+      "id": "more-reviews",
+      "re": "\\b(get|gets|getting|more|extra|new) (more )?reviews\\b(?! in)|\\breviews? a month\\b",
+      "msg": "Never promise reviews: describe the asking, not the result",
+      "refusalOk": true
+    },
+    {
+      "id": "ranking",
+      "re": "\\b(rank|ranks|ranking|rankings) (higher|better|up|first)\\b|\\bhigher ranking\\b|\\btop of google\\b",
+      "msg": "Never promise rankings",
+      "refusalOk": true
+    },
+    {
+      "id": "guarantee",
+      "re": "\\bguarantee",
+      "msg": "The 7-day guarantee is PLANNED; no guarantees of results",
+      "refusalOk": true
+    },
+    {
+      "id": "lift",
+      "re": "\\b(personali[sz]ed|photo) (requests? )?(get|gets|drive|drives|boost|boosts|raise|raises)\\b",
+      "msg": "No lift claimed for the personalized request"
+    },
+    {
+      "id": "hyper",
+      "re": "\\bhyper-?personali[sz]",
+      "msg": "Say 'personalized request'"
+    },
+    {
+      "id": "instant",
+      "re": "\\binstant(ly)?\\b|\\bautomatic(ally)?\\b|\\bautopilot\\b",
+      "msg": "Approval mode is unconfirmed: no 'instant', 'automatic' or 'autopilot'"
+    },
+    {
+      "id": "always-on",
+      "re": "24/7",
+      "msg": "'24/7 Support' is dropped"
+    },
+    {
+      "id": "old-names",
+      "re": "google search boost|geotag|ai employee",
+      "msg": "Dropped names and claims"
+    },
+    {
+      "id": "rep-mgmt",
+      "re": "\\breputation management\\b",
+      "msg": "Name what is included instead"
+    },
+    {
+      "id": "remove",
+      "re": "\\bremov\\w* (bad |negative )?reviews?\\b",
+      "msg": "Only as a refusal: Rempo does not remove reviews",
+      "refusalOk": true
+    },
+    {
+      "id": "gating",
+      "re": "\\b(catch|filter|screen)\\w* (out )?unhappy\\b",
+      "msg": "Only as a refusal: no review gating",
+      "refusalOk": true
+    },
+    {
+      "id": "offer",
+      "re": "\\$\\s?\\d|month to month|money back|free trial|start free",
+      "msg": "The Run 2 offer is PLANNED: no prices or terms on the page"
+    },
+    {
+      "id": "works-with",
+      "re": "\\bworks with (jobber|housecall|servicetitan)|\\bintegrates with\\b",
+      "msg": "Name no job software as supported until product confirms it"
+    }
+  ],
+  "off": [],
+  "budgets": {
+    "h1Words": 10,
+    "heroLeadWords": 26,
+    "h2Words": 9,
+    "faqAnswerWords": 35,
+    "sentenceWords": 28
+  },
+  "allow": []
+}

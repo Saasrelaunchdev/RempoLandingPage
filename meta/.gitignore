@@ -1,0 +1,4 @@
+tests/shots/
+.vercel
+.env
+.env*.local
