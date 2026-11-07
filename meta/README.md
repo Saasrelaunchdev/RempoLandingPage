@@ -94,6 +94,7 @@ Supabase needs nothing new: the Meta leads go to the same `public.leads` table t
 ## Change the words
 
 - Page copy: `content/copy.json`. Each angle's hero: `content/variants.json`. The questions, scoring and call windows: `content/survey.mjs`. The prospect's emails: `content/emails.mjs`. Site settings and open decisions: `content/site.mjs`.
+- Phones (under 600 px) get their own shorter words: `leadShort` for each angle in `content/variants.json` and `check.frameShort` in `content/copy.json`, so the first question and every answer fit the first screen. The phone layout rules sit at the end of `src/styles/page.css`, all under `max-width:599px`; the PC page does not change. `tests/check-page.mjs` checks both.
 - Then `node tools/build.mjs`. The build stops on a banned claim (`rules/copy-rules.json`, the GTM's rules: no promised reviews or rankings, no price or terms until the offer is decided, no "instant" or "automatic", no named job software, no em dashes, every statistic with its source in the same sentence).
 - To add an angle: one entry in `content/variants.json` (and a `scene` the build knows: `podium`, `asked`, `unanswered` or `phone`), then build.
 - The pictures come from the master page (`python3 -I tools/extract-master.py` copies them again if it changes).

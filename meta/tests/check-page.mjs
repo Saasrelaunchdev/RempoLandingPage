@@ -11,11 +11,13 @@
  * books; Schedule does the same; the sticky bar opens the Gap Check as a sheet and gives the card back on close.
  * PC (1440 x 900): an owner on paper gets the call-only route and Meta hears nothing (pixel conditioning).
  * Keyboard: the whole check works without a mouse. Every page: no script errors, labelled fields, unique ids,
- * alt text on every picture, nothing wider than the screen. Screenshots go to tests/shots/ (not committed).
+ * alt text on every picture, nothing wider than the screen. The mobile pass: on a phone every answer to the first
+ * question shows in the first screen, the phone lines, 56 px buttons, 32 px checkboxes, no phone inside the phone, no
+ * scroll reveals, the sticky bar stepping aside; on a PC the original words and phone. Screenshots go to tests/shots/.
  */
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
@@ -190,7 +192,8 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   await page.goto(`${PAGES}/replies`, { waitUntil: "networkidle" });
   ok("/replies: its own headline", (await page.locator("h1").textContent()).includes("no reply"));
   ok("phone: the sticky bar hides while the card is on screen", !(await page.locator(".sticky-bar.show").count()));
-  await page.evaluate(() => window.scrollTo(0, 2600));
+  // past the card, at a section with no button of its own (the bar steps aside while one is on screen)
+  await page.evaluate(() => document.querySelector("#leaks").scrollIntoView({ block: "start" }));
   await page.waitForTimeout(700);
   ok("phone: the sticky bar shows once the card is off screen", (await page.locator(".sticky-bar.show").count()) === 1);
   await page.locator(".sticky-bar .btn").click();
@@ -274,6 +277,71 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   await page.goto(`${PAGES}/request`, { waitUntil: "networkidle" });
   ok("production view: no {TBD} note shows", (await page.locator(".tbd:visible").count()) === 0);
   await ctx.close();
+}
+
+/* ============ The mobile pass: what changes on a phone (under 600 px), and the PC page exactly as it was ============ */
+{
+  const { variants } = JSON.parse(readFileSync(path.join(ROOT, "content", "variants.json"), "utf8"));
+  const COPY = JSON.parse(readFileSync(path.join(ROOT, "content", "copy.json"), "utf8"));
+  const urlOf = (v) => `${PAGES}${v.slug ? `/${v.slug}` : ""}`;
+  const shown = (sel) => [...document.querySelectorAll(sel)].filter((e) => getComputedStyle(e).display !== "none").map((e) => e.textContent.trim());
+
+  // Phone: an iPhone 13's visible area (390 x 664 once the browser's bars are counted)
+  const phone = await browser.newContext({ viewport: { width: 390, height: 664 }, isMobile: true, hasTouch: true });
+  const pp = await phone.newPage();
+  for (const v of variants) {
+    const label = v.slug ? `/${v.slug}` : "/";
+    await pp.goto(urlOf(v), { waitUntil: "networkidle" });
+    const r = await pp.evaluate((shownSrc) => {
+      const shown = new Function(`return ${shownSrc}`)();
+      const opts = [...document.querySelectorAll(".gc-step:not([hidden]) .gc-opt")];
+      return { bottom: Math.round(Math.max(...opts.map((o) => o.getBoundingClientRect().bottom))), vh: innerHeight, lead: shown(".hero .lead"), frame: shown(".gc-frame > span") };
+    }, shown.toString());
+    ok(`phone ${label}: every answer to the first question shows in the first screen`, r.bottom <= r.vh, `${r.bottom} > ${r.vh}`);
+    ok(`phone ${label}: the hero line written for phones`, r.lead.length === 1 && r.lead[0] === v.leadShort, JSON.stringify(r.lead));
+    ok(`phone ${label}: the Gap Check's short opening line`, r.frame.length === 1 && r.frame[0] === COPY.check.frameShort, JSON.stringify(r.frame));
+  }
+  await pp.goto(PAGES, { waitUntil: "networkidle" });
+  const m = await pp.evaluate(() => {
+    const cta = document.querySelector("#report .sec-cta .btn").getBoundingClientRect();
+    return {
+      consent: getComputedStyle(document.querySelector(".consent input")).width,
+      ctaH: Math.round(cta.height), ctaW: Math.round(cta.width), wrapW: Math.round(document.querySelector("#report .wrap").clientWidth - 40),
+      phoneBar: getComputedStyle(document.querySelector(".svc-grid .phone-bar")).display,
+      reveal: getComputedStyle(document.querySelector("#faq .reveal")).opacity,
+      ptImg: Math.round(document.querySelector(".pt-img").getBoundingClientRect().height)
+    };
+  });
+  ok("phone: checkboxes are 32 px", m.consent === "32px", m.consent);
+  ok("phone: a section's button is 56 px tall and full width", m.ctaH >= 56 && m.ctaW >= m.wrapW, `${m.ctaH} x ${m.ctaW}`);
+  ok("phone: no phone inside the phone (the request is a card)", m.phoneBar === "none");
+  ok("phone: nothing waits on a scroll animation", m.reveal === "1", m.reveal);
+  ok("phone: micro visuals beside the headings", m.ptImg <= 64, String(m.ptImg));
+  await pp.evaluate(() => document.querySelector("#faq").scrollIntoView({ block: "start" }));
+  await pp.waitForTimeout(400);
+  ok("phone: the sticky bar shows between the page's own buttons", await pp.evaluate(() => document.querySelector(".sticky-bar").classList.contains("show")));
+  await pp.evaluate(() => document.querySelector("#report .sec-cta").scrollIntoView({ block: "center" }));
+  await pp.waitForTimeout(400);
+  ok("phone: the sticky bar steps aside while a section's own button is on screen", await pp.evaluate(() => !document.querySelector(".sticky-bar").classList.contains("show")));
+  await audit(pp, "phone mobile pass");
+  await phone.close();
+
+  // PC: the words, the phone and the motion as they were
+  const pc = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const cp = await pc.newPage();
+  for (const v of variants) {
+    const label = v.slug ? `/${v.slug}` : "/";
+    await cp.goto(urlOf(v), { waitUntil: "networkidle" });
+    const r = await cp.evaluate((shownSrc) => {
+      const shown = new Function(`return ${shownSrc}`)();
+      return { lead: shown(".hero .lead"), frame: shown(".gc-frame > span"), mOnly: shown(".m-only").length };
+    }, shown.toString());
+    ok(`pc ${label}: the full hero line, as before`, r.lead.length === 1 && r.lead[0] === v.lead, JSON.stringify(r.lead));
+    ok(`pc ${label}: the full opening line, as before`, r.frame.length === 1 && r.frame[0] === COPY.check.frame, JSON.stringify(r.frame));
+    ok(`pc ${label}: no phone-only words show`, r.mOnly === 0);
+  }
+  ok("pc: the request is still shown on a phone", await cp.evaluate(() => getComputedStyle(document.querySelector(".svc-grid .phone-bar")).display !== "none"));
+  await pc.close();
 }
 
 await browser.close();

@@ -172,7 +172,7 @@ function checkCard() {
   <div class="gc" id="gap-check" role="region" aria-labelledby="gc-title">
     <div class="gc-top"><span class="gc-label" id="gc-title">${ic("i-file")}${esc(C.check.label)}</span><span class="gc-count" aria-live="polite">${esc(fill(C.check.progress, { n: 1, total }))}</span></div>
     <div class="gc-bar" aria-hidden="true"><i></i></div>
-    <p class="gc-frame">${esc(C.check.frame)}</p>
+    <p class="gc-frame">${C.check.frameShort ? `<span class="m-hide">${esc(C.check.frame)}</span><span class="m-only">${esc(C.check.frameShort)}</span>` : esc(C.check.frame)}</p>
     <noscript><p class="err">${esc(C.check.noscript)}</p></noscript>
     <form class="gc-form" novalidate>
       ${SURVEY.steps.map((s, i) => stepHtml(s, i, total)).join("\n      ")}
@@ -188,7 +188,7 @@ function hero(v) {
     <div class="hero-copy">
       <p class="pill">${esc(C.hero.eyebrow)}</p>
       <h1 class="display" id="hero-h">${esc(v.h1)}</h1>
-      <p class="lead">${esc(v.lead)}</p>${v.scene === "phone" ? miniRequest() : ""}
+      ${v.leadShort ? `<p class="lead m-hide">${esc(v.lead)}</p><p class="lead m-only">${esc(v.leadShort)}</p>` : `<p class="lead">${esc(v.lead)}</p>`}${v.scene === "phone" ? miniRequest() : ""}
     </div>
     ${checkCard()}
     <div class="hero-vis">

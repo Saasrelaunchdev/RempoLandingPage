@@ -35,7 +35,7 @@ export function collect(copy, variants, survey, emails) {
   };
   walk(copy, "copy", null);
   for (const v of variants.variants) {
-    walk({ hook: v.hook, h1: v.h1, lead: v.lead }, `variants.${v.id}`, null);
+    walk({ hook: v.hook, h1: v.h1, lead: v.lead, leadShort: v.leadShort }, `variants.${v.id}`, null);
   }
   const s = { steps: survey.steps, tiers: survey.tiers, ruleLine: survey.ruleLine, gaps: survey.gaps, callOnlyWhy: survey.callOnlyWhy, booking: survey.booking };
   walk(s, "survey", null);
@@ -68,7 +68,7 @@ export function lint(strings, rules) {
       if (B.sentenceWords && words(s) > B.sentenceWords) warnings.push(`${key}: ${words(s)} words in one sentence (budget ${B.sentenceWords}): ${s}`);
     }
     if (/\.h1$/.test(key) && B.h1Words && words(text) > B.h1Words) errors.push(`${key}: headline over ${B.h1Words} words: ${text}`);
-    if (/^variants\.[^.]+\.lead$/.test(key) && B.heroLeadWords && words(text) > B.heroLeadWords) errors.push(`${key}: hero line over ${B.heroLeadWords} words: ${text}`);
+    if (/^variants\.[^.]+\.lead(Short)?$/.test(key) && B.heroLeadWords && words(text) > B.heroLeadWords) errors.push(`${key}: hero line over ${B.heroLeadWords} words: ${text}`);
     if (/\.h2$/.test(key) && B.h2Words && words(text) > B.h2Words) warnings.push(`${key}: section headline over ${B.h2Words} words: ${text}`);
     if (/^copy\.faq\..*\.a$/.test(key) && B.faqAnswerWords && words(text) > B.faqAnswerWords) warnings.push(`${key}: FAQ answer over ${B.faqAnswerWords} words: ${text}`);
   }

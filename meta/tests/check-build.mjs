@@ -37,6 +37,7 @@ for (const v of variants) {
   ok(`${label}: the survey and the variant in the page data`, data.variant === v.id && data.survey && data.survey.steps.length === SURVEY.steps.length);
   ok(`${label}: no secret or server-only setting in the page data`, !/PROSPECT|CAPI|TOKEN|SUPABASE|RESEND/i.test(JSON.stringify(data)));
   ok(`${label}: sends its leads to ${SITE.endpoint}`, data.site && data.site.endpoint === SITE.endpoint);
+  ok(`${label}: the PC hero line and the phone one, each marked for its screen`, html.includes(`<p class="lead m-hide">${v.lead.replace(/'/g, "&#39;")}</p>`) && (!v.leadShort || html.includes(`<p class="lead m-only">${v.leadShort.replace(/'/g, "&#39;")}</p>`)));
   ok(`${label}: every question in the HTML (Meta's crawler reads the page)`, SURVEY.steps.every((s) => html.includes(s.q.replace(/'/g, "&#39;"))));
   const links = [...html.matchAll(/(?:src|href|srcset)="([^"]+)"/g), ...html.matchAll(/url\(([^)]+)\)/g)].flatMap((m) => m[1].split(",").map((x) => x.trim().split(" ")[0]));
   const outside = links.filter((u) => u.startsWith("/") && u !== BASE && !u.startsWith(`${BASE}/`));

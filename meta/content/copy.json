@@ -16,6 +16,7 @@
   "check": {
     "label": "Free Gap Report",
     "frame": "A few quick questions, about a minute. Your score shows right after; the full report comes by email.",
+    "frameShort": "About a minute. Score shows right after.",
     "progress": "Question {n} of {total}",
     "next": "Next",
     "back": "Back",

@@ -451,3 +451,65 @@ body.sheet-open{overflow:hidden}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important;scroll-behavior:auto!important}
 }
+
+/* ============================================================
+   Phones: the mobile conversion pass. The first question and all its answers in the first screen, tap targets a thumb
+   hits without aiming, copy written for the small screen (leadShort, frameShort), micro visuals instead of pictures
+   stacked above every heading, no phone inside the phone, nothing that moves while you read. Every rule sits under
+   max-width:599px (the one rule outside hides the phone-only words on larger screens): the PC page is untouched.
+   ============================================================ */
+.m-only{display:none}
+@media (max-width:599px){
+  .m-hide{display:none!important}
+  span.m-only{display:inline}
+  p.m-only{display:block}
+
+  /* The first screen: the headline, one line, then the first question with every answer showing */
+  .hero{padding-top:4px}
+  .hero-grid{gap:16px}
+  .hero-copy{gap:8px}
+  .gc{padding:16px 16px 18px}
+  .gc-bar{margin:10px 0 2px}
+  .gc-frame{margin-top:8px}
+  .gc-step{margin-top:12px;gap:12px}
+  /* the request angle: the thank-you your customer gets, compact, so its first question still fits */
+  .mini-bubble{grid-template-columns:64px minmax(0,1fr);gap:10px;padding:6px 10px 6px 6px;border-radius:16px 16px 16px 6px}
+  .mini-bubble img{width:64px;height:44px;border-radius:10px}
+  .mini-bubble p{font-size:14px;line-height:1.35}
+  .mini-bubble b{font-size:14.5px}
+  .mini-req .proof-chip{margin-top:4px}
+
+  /* Touch: buttons 56px (52 to 64 is the thumb's range; bigger reads as an ad), back and links 48px, checkboxes 32px */
+  .btn,.gc-nav .btn{min-height:56px}
+  .gc-back{min-height:48px}
+  .consent{grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center}
+  .consent input{width:32px;height:32px;margin:0}
+  .sec-cta .btn{width:100%}
+  .foot-links a{display:inline-flex;align-items:center;min-height:48px}
+
+  /* Micro visuals: a small picture beside each heading, not a picture above it (a shorter page, the words first) */
+  .pt{grid-template-columns:64px minmax(0,1fr);column-gap:14px;align-items:center;padding:16px 16px 18px}
+  .pt-img{height:64px}
+  .pt p{grid-column:1 / -1}
+  .case{grid-template-columns:64px minmax(0,1fr);column-gap:14px;align-items:center}
+  .case-img{grid-column:1;grid-row:1 / span 2;height:64px}
+  .case .tag,.case h3{grid-column:2}
+  .case p{grid-column:1 / -1}
+
+  /* No phone inside the phone: the request your customer gets is shown as the message itself, a card on the page */
+  .svc-grid .phone{width:100%;max-width:400px;padding:0;border-radius:24px;background:none;box-shadow:var(--shadow-card)}
+  .svc-grid .phone-in-screen{min-height:0;padding:12px 12px 14px;border-radius:24px}
+  .svc-grid .phone-bar{display:none}
+  .svc-grid .bubble{max-width:100%}
+
+  /* The sample report, readable at arm's length */
+  .rep-row dt{font-size:15px}
+  .rep-bar,.rep-legend{font-size:13.5px}
+  .rep-search,.rep-theme{font-size:14.5px}
+
+  /* Nothing moves while you read: sections are simply there, and the pin stops bobbing */
+  .motion .reveal{opacity:1;transform:none;transition:none}
+  .motion .you{animation:none}
+}
+/* The narrowest phones: the Gap Check's opening line stays on one line */
+@media (max-width:359px){.gc-frame{font-size:14px}}

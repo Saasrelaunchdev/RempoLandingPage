@@ -1346,6 +1346,76 @@ li{text-wrap:pretty}
   .pod-n{width:22px;height:22px;font-size:12px}.you-pin{font-size:12px;padding:5px 10px}
   .score-panel{margin-top:28px}
 }
+
+/* Words written for phones only (a shorter line): hidden on every larger screen */
+.m-only{display:none}
+/* ============================================================
+   Phones: the mobile conversion pass. One clear action per screen, tap targets a thumb hits without aiming, copy
+   written for the small screen, micro visuals where a full scene would land a screen away from its words, nothing
+   that moves while you read. Every rule sits under max-width:599px: the PC page is untouched.
+   ============================================================ */
+@media (max-width:599px){
+  /* Copy for the small screen: the long half of a line, and optional fields you would have to type, step out */
+  .m-hide{display:none!important}
+  .m-only{display:block}
+
+  /* Buttons: 56px tall on a phone (52 to 64 is the thumb's range; bigger reads as an ad) */
+  .btn:not(.btn-sm){min-height:56px}
+
+  /* The hero: headline, one line, one button. The call and the scorecard stay one tap away as links under it.
+     The checklist repeats what the page shows further down, so on a phone it steps out */
+  .hero{padding-bottom:32px}
+  .hero-copy{gap:16px}
+  .hero .cta-row{justify-items:stretch;gap:0;margin-top:2px}
+  .hero .cta-btns{display:contents}
+  .hero .cta-btns .btn-primary{order:1;width:100%}
+  .hero .under{order:2;margin:10px 0 4px;font-size:14px;line-height:1.45}
+  .hero .cta-btns .btn-line{order:3;justify-self:start}
+  .hero .hero-links{order:4}
+  .hero .trust{display:none}
+  /* The close says it the same way: one full-width button, the call as a link under it */
+  .final-copy .cta-btns{flex-direction:column;align-items:stretch;gap:2px}
+  .final-copy .cta-btns .btn-line{align-self:flex-start}
+  .hero .cta-btns .btn-line,.final-copy .cta-btns .btn-line{min-height:48px;padding:0;border-radius:6px;background:none;box-shadow:none;color:var(--c-accent-text);font-size:16px;text-decoration:underline 1px color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:5px}
+  /* The page's own buttons along the way: as wide as the thumb's reach */
+  .cta-strip .btn,.start-foot > .btn{width:100%}
+
+  /* Micro visual: on a phone the street scene lands below the fold, away from the words it illustrates. Its point,
+     a customer vouching in her own words with the reply written, stays as one readable card under the button */
+  .hero-grid{gap:20px}
+  .hero-vis{padding-top:0;margin-inline:0}
+  .hero-vis .scene{transform:none}
+  .hero-vis .scene::before,.hero-vis picture,.hero-vis .beams,.hero-vis .glow,.hero-vis .ping,.hero-vis .reach{display:none}
+  .hero-vis .rv-card,.hero-vis .tilt .rv-card{position:relative;left:auto;top:auto;transform:none;width:100%;max-width:420px;padding:14px 16px 15px;gap:8px 12px;border-radius:16px}
+  .hero-vis .rv-card::after{display:none}
+  .hero-vis .rv-av{width:36px;height:36px;font-size:15px}
+  .hero-vis .rv-head b{font-size:15px}
+  .hero-vis .stars .ic{width:14px;height:14px}
+  .hero-vis .rv-text{display:block;font-size:15px;line-height:1.45;-webkit-line-clamp:unset;overflow:visible}
+  .hero-vis .rv-reply{font-size:12.5px;padding:5px 10px}
+  .hero-vis .proof-chip{text-align:left}
+  .js:not(.tier-c) .hero-vis :is(.rv-card,.rv-reply){opacity:1;animation:none!important}
+
+  /* Touch: options 48px, links outside sentences 48px, checkboxes 32px, fields 52px */
+  .opt-row{gap:10px}
+  .opt span{min-height:48px;padding:0 18px;font-size:16px}
+  .hero-links a,.cta-alt,.router a{display:inline-flex;align-items:center;min-height:48px}
+  .consent{grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;font-size:15.5px}
+  .consent input{width:32px;height:32px;margin:0}
+  .field input,.field select,.phone-in span{min-height:52px}
+  .cmp-more,.replay{min-height:48px}
+
+  /* Forms: the action as wide as the thumb's reach */
+  .f-next{justify-self:stretch}
+  .f-actions{flex-wrap:nowrap}
+  .f-actions .btn{flex:1}
+  .f-actions .f-back{flex:0 0 auto}
+
+  /* Micro visuals: your crew and Rempo's team as two rows, a small picture beside the words */
+  .side{grid-template-columns:96px minmax(0,1fr);align-items:center;gap:14px;padding:14px 16px}
+  .side .scene{margin:0}
+  .side .scene::before{display:none}
+}
 </style>
 </head>
 <body>
@@ -1430,7 +1500,8 @@ li{text-wrap:pretty}
       <p class="kicker" id="kicker"></p>
       <p class="label hero-eyebrow">For HVAC and plumbing businesses</p>
       <h1 id="hero-h" class="display">Your reputation, as good as your work.</h1>
-      <p class="lead">Every happy customer is a neighbor ready to vouch for you. Rempo asks every customer after every job and answers every review, so you never have to run it.</p>
+      <p class="lead m-hide">Every happy customer is a neighbor ready to vouch for you. Rempo asks every customer after every job and answers every review, so you never have to run it.</p>
+      <p class="lead m-only">Rempo asks every customer after every job and answers every review, so you never have to run it.</p>
       <div class="cta-row">
         <div class="cta-btns">
           <a class="btn btn-primary" data-cta="buy" href="#final">Get started</a>
@@ -1631,7 +1702,7 @@ li{text-wrap:pretty}
               <div class="field"><label for="s-name">First name</label><input id="s-name" name="firstName" autocomplete="given-name" autocapitalize="words" enterkeyhint="next" required aria-describedby="e-s-name"><p class="err" id="e-s-name"></p></div>
               <div class="field"><label for="s-email">Email</label><input id="s-email" name="email" type="email" autocomplete="email" autocapitalize="none" enterkeyhint="next" required aria-describedby="e-s-email"><p class="err" id="e-s-email"></p></div>
             </div>
-            <div class="row">
+            <div class="row m-hide">
               <div class="field"><label for="s-phone">Phone <span class="opt-t">(optional)</span></label><div class="phone-in"><span aria-hidden="true">+1</span><input id="s-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" enterkeyhint="done"></div></div>
             </div>
             <label class="consent"><input type="checkbox" name="consentEmail" id="s-consent" aria-describedby="e-s-consent"><span>Email me my scorecard and the occasional tip. Unsubscribe any time.</span></label>
@@ -1918,7 +1989,7 @@ li{text-wrap:pretty}
               <div class="field"><label for="l-city">City or town</label><input id="l-city" name="city" autocomplete="address-level2" autocapitalize="words" enterkeyhint="next" required aria-describedby="h-city e-city"><p class="opts-h" id="h-city">Where your business is based.</p><p class="err" id="e-city"></p></div>
             </div>
             <div class="row">
-              <div class="field"><label for="l-email">Email <span class="opt-t">(optional)</span></label><input id="l-email" name="email" type="email" autocomplete="email" autocapitalize="none" enterkeyhint="done" aria-describedby="e-email"><p class="err" id="e-email"></p></div>
+              <div class="field m-hide"><label for="l-email">Email <span class="opt-t">(optional)</span></label><input id="l-email" name="email" type="email" autocomplete="email" autocapitalize="none" enterkeyhint="done" aria-describedby="e-email"><p class="err" id="e-email"></p></div>
               <div class="opts" role="radiogroup" id="g-time" aria-labelledby="lb-time" aria-describedby="e-time">
               <p class="opts-l" id="lb-time">Best time to call <span class="opt-t">(optional)</span></p>
               <div class="opt-row"><label class="opt"><input type="radio" name="bestTime" value="Morning"><span>Morning</span></label><label class="opt"><input type="radio" name="bestTime" value="Midday"><span>Midday</span></label><label class="opt"><input type="radio" name="bestTime" value="Afternoon"><span>Afternoon</span></label><label class="opt"><input type="radio" name="bestTime" value="Any time"><span>Any time</span></label></div>
@@ -1927,7 +1998,7 @@ li{text-wrap:pretty}
             </div>
             <label class="consent"><input type="checkbox" name="consentPhone" id="l-cphone" aria-describedby="e-cphone"><span>You may call me about Rempo.</span></label>
             <p class="err" id="e-cphone"></p>
-            <label class="consent"><input type="checkbox" name="consentEmail" id="l-cemail"><span>You may email me about Rempo.</span></label>
+            <label class="consent m-hide"><input type="checkbox" name="consentEmail" id="l-cemail"><span>You may email me about Rempo.</span></label>
             <div class="hp" aria-hidden="true"><label for="l-web">Website</label><input id="l-web" name="website" tabindex="-1" autocomplete="off"></div>
             <div class="f-actions"><button class="btn btn-line f-back" type="button" id="f-back">Back</button><button class="btn btn-primary" type="submit">Book my call</button></div>
             <div class="sent" id="sent" role="status" tabindex="-1" hidden>
@@ -2003,6 +2074,8 @@ li{text-wrap:pretty}
   // A phone on its side can be 900 px wide but too short for a pinned stage: it gets the stacked page.
   const mqShortTouch = matchMedia("(hover: none) and (pointer: coarse) and (max-height: 599px)");
   const setStages = () => html.classList.toggle("stages", mqWide.matches && !mqShortTouch.matches && !tierC);
+  // Phones (under 600 px): nothing moves while you read, and one action at a time
+  const mqSmall = matchMedia("(max-width: 599px)");
   setStages();
 
   /* ---------- Theme: light and dark ---------- */
@@ -2122,7 +2195,8 @@ li{text-wrap:pretty}
   }
   let jAuto = 0, jUser = false;
   function jPlay() {
-    if (jUser || tierC || stagesOn()) return;
+    // on a phone the accordion does not play itself: opening and closing steps would move the page under the reader
+    if (jUser || tierC || stagesOn() || mqSmall.matches) return;
     let i = 0;
     jSet(0);
     clearInterval(jAuto);
@@ -2190,7 +2264,7 @@ li{text-wrap:pretty}
     else if (y > lastY + 2) hide = true;
     put("hide", hide, (v) => header.classList.toggle("hide", v));
     lastY = y;
-    put("bar", heroGone && !finalIn, (v) => {
+    put("bar", heroGone && !finalIn && !ctaNear.size, (v) => {
       bar.classList.toggle("show", v);
       bar.setAttribute("aria-hidden", String(!v));
       $$("a", bar).forEach((a) => (v ? a.removeAttribute("tabindex") : a.setAttribute("tabindex", "-1")));
@@ -2257,6 +2331,13 @@ li{text-wrap:pretty}
   watch(hero, `-${header.offsetHeight + 8}px 0px 0px 0px`, (v) => { heroUnder = !v; });
   watch(hero, "0px", (v) => { heroGone = !v; });
   watch(finalSec, "0px", (v) => { finalIn = v; });
+  // The phone bar steps aside while a form or the page's own buttons are on screen: one action at a time
+  const ctaNear = new Set();
+  const ctaIO = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) ctaNear.add(e.target); else ctaNear.delete(e.target); });
+    onScroll();
+  }, { rootMargin: "0px 0px -12% 0px" });
+  $$("#get-score, .cta-strip, .start-foot, .score-head > .btn").forEach((el) => ctaIO.observe(el));
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", onScroll);
   const onLayout = () => { setStages(); if (!stagesOn()) resetStacked(); onScroll(); };

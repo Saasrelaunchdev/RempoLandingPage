@@ -88,6 +88,8 @@ const home = $("#gc-home");
 const wide = matchMedia("(min-width: 900px)");
 const sticky = $(".sticky-bar");
 let cardVisible = true, finalVisible = false;
+// The page's own buttons on screen (phones): the sticky bar steps aside, one action at a time
+const ctaSeen = new Set();
 let state = Object.assign({ step: 0, answers: {}, sent: null, call: null, emailOnly: false, started: false, seen: [] }, store.get("rm-gc"));
 const save = () => store.set("rm-gc", { step: state.step, answers: state.answers, sent: state.sent, call: state.call, emailOnly: state.emailOnly, started: state.started, seen: state.seen });
 
@@ -488,17 +490,22 @@ if (sheet && home) {
 }
 $$("[data-open-check]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openCheck(a.dataset.openCheck || "page"); }));
 
-/* ---------- The sticky bar: on phones, once the hero card is off screen; not over the close, not once done ---------- */
+/* ---------- The sticky bar: on phones, once the hero card is off screen; not over the close or a section's own button, not once done ---------- */
 function syncSticky() {
   if (!sticky) return;
   const done = !!(state.call || state.emailOnly);
   const inSheet = sheet && sheet.open;
-  sticky.classList.toggle("show", !cardVisible && !finalVisible && !done && !inSheet);
+  sticky.classList.toggle("show", !cardVisible && !finalVisible && !ctaSeen.size && !done && !inSheet);
 }
 if ("IntersectionObserver" in window && sticky && home) {
   new IntersectionObserver((es) => { cardVisible = es[0].isIntersecting; syncSticky(); }, { rootMargin: "0px 0px -20% 0px" }).observe(home);
   const fin = $("#final");
   if (fin) new IntersectionObserver((es) => { finalVisible = es[0].isIntersecting; syncSticky(); }, { threshold: 0.2 }).observe(fin);
+  const ctaIO = new IntersectionObserver((es) => {
+    es.forEach((e) => { if (e.isIntersecting) ctaSeen.add(e.target); else ctaSeen.delete(e.target); });
+    syncSticky();
+  }, { rootMargin: "0px 0px -12% 0px" });
+  $$(".sec-cta").forEach((el) => ctaIO.observe(el));
 }
 
 /* ---------- Reveal on scroll (motion only); everything is visible without it ---------- */
