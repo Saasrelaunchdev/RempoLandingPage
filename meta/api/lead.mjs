@@ -1,4 +1,5 @@
-// /api/lead for the Meta site: where the Gap Check and the call step send their leads.
+// The Meta ads page's lead endpoint, served at /api/meta-lead by the root api/meta-lead.mjs (it runs this file): where
+// the Gap Check and the call step on /customers send their leads.
 //
 //   POST  a lead, as JSON: the Gap Check ("meta-gap-report") or the call step ("meta-call"). The answers are scored
 //         again here (lib/gapcheck.mjs), so nothing stored or sent to Meta trusts the browser. Stored in the same
@@ -7,9 +8,9 @@
 //         Then, for qualified answers only, Lead or Schedule to Meta's Conversions API with the browser's event id;
 //         and, when set up, the prospect's own email. If Supabase fails, the notices still go, marked NOT SAVED.
 //   GET   a health report: which settings this deployment sees (true or false, never a value), whether the database
-//         answers with the lead-capture schema, and what to fix. Open https://<this-site>/api/lead after every change.
+//         answers with the lead-capture schema, and what to fix. Open https://<the-site>/api/meta-lead after every change.
 //
-// Settings are Vercel environment variables: the master page's seven (SUPABASE_URL, SUPABASE_ANON_KEY, LEAD_HASH_SALT,
+// Settings are the master page's Vercel environment variables: its seven (SUPABASE_URL, SUPABASE_ANON_KEY, LEAD_HASH_SALT,
 // RESEND_API_KEY, LEAD_NOTIFY_FROM, LEAD_NOTIFY_TO, SLACK_WEBHOOK_URL), plus META_PIXEL_ID, META_CAPI_TOKEN,
 // META_TEST_EVENT_CODE, META_GRAPH_VERSION, PROSPECT_EMAIL_FROM, PROSPECT_REPLY_TO. See README.md.
 import { createHash } from "node:crypto";
@@ -106,7 +107,7 @@ export default async function handler(req, res) {
   const ip = String(req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || "").split(",")[0].trim();
   const salt = process.env.LEAD_HASH_SALT || cfg.url || "lead-capture";
   const payload = { ...lead, ip_hash: ip ? createHash("sha256").update(`${salt}|${ip}`).digest("hex") : null };
-  const healthUrl = host(req) ? `https://${host(req)}/api/lead` : "";
+  const healthUrl = host(req) ? `https://${host(req)}${SITE.endpoint}` : "";
   // The owner's notice shows the campaign, not the Meta ids
   const forNotice = { ...lead, meta: Object.fromEntries(Object.entries(lead.meta).filter(([k]) => !["fbc", "fbp", "meta_event_id", "gpc"].includes(k))) };
 
@@ -185,7 +186,7 @@ async function toProspect({ lead, ev, slot, isCall, id }) {
   }
 }
 
-// GET /api/lead: what this deployment sees and whether each part works. Names and true or false only, never a value.
+// GET /api/meta-lead: what this deployment sees and whether each part works. Names and true or false only, never a value.
 async function health(req, res) {
   const cfg = supabaseConfig();
   const n = notifyConfig();

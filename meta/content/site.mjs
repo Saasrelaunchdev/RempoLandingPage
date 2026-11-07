@@ -1,11 +1,22 @@
-// Site settings, read by the build (the page) and by the server (/api/lead and its emails).
+// Site settings, read by the build (the page) and by the server (/api/meta-lead and its emails).
 // null means "not decided yet": the page leaves the thing out, and the preview view (add ?view=preview to any page)
 // shows a {TBD} chip where it will go. Fill a value, run `node tools/build.mjs`, commit. PLAN.md section 11 lists them.
 export default {
   name: "Rempo",
 
-  // This site's own address, once it has a domain (for example "https://go.rempo.io"). Sets the canonical link, the
-  // share image's full URL and the links in the prospect's emails. Until then those use the request's own host.
+  // Where these pages live on the master page's domain: /customers, /customers/recent, /customers/replies and
+  // /customers/request. The build writes them to the repository's customers/ folder, which the master page's Vercel
+  // project serves as it is. To move them: change this, update the "/customers" headers in the root vercel.json,
+  // build, delete the old folder, commit.
+  path: "/customers",
+
+  // Where the page sends its leads: the function api/meta-lead.mjs at the repository root (it runs api/lead.mjs here).
+  // Its own address, so it never meets the master page's /api/lead.
+  endpoint: "/api/meta-lead",
+
+  // The master page's address once its domain points at Vercel, with no path (for example "https://rempo.io").
+  // Sets the canonical link (this address followed by the page's path) and the share image's full URL. Until then
+  // both are left out or relative.
   url: null,
 
   // The master page, for the footer link. The GTM names rempo.io as the company site.

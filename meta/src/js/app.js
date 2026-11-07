@@ -52,12 +52,12 @@ const cookie = (n) => { const m = document.cookie.match(`(?:^|; )${n}=([^;]*)`);
 const fbc = () => cookie("_fbc") || (attr.fbclid ? `fb.1.${attr.fbclidAt || Date.now()}.${attr.fbclid}` : "");
 const tracking = (extra) => Object.assign({ fbc: GPC ? "" : fbc(), fbp: GPC ? "" : cookie("_fbp"), gpc: GPC }, extra);
 
-/* ---------- Sending: JSON to /api/lead, the same endpoint shape as the master page ---------- */
+/* ---------- Sending: JSON to site.endpoint (/api/meta-lead), the same endpoint shape as the master page's /api/lead ---------- */
 async function send(body) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
   try {
-    const r = await fetch("/api/lead", { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(body), signal: ctrl.signal });
+    const r = await fetch(SITE.endpoint, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(body), signal: ctrl.signal });
     let data = null;
     try { data = await r.json(); } catch (e) { data = null; }
     return { ok: r.ok && data && data.ok, status: r.status, data };

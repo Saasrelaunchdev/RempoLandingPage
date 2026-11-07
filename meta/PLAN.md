@@ -1,8 +1,8 @@
 # Rempo for Meta ads: the plan
 
-The landing page at the root of this repository is Rempo's master page: the full story for an HVAC or plumbing owner who wants to read everything. This folder is a second, separate site built for one kind of visitor: an owner who tapped a Facebook or Instagram ad a few seconds ago. It has one job: turn that tap into a qualified lead, then into a booked 15-minute call.
+The landing page at the root of this repository is Rempo's master page: the full story for an HVAC or plumbing owner who wants to read everything. This folder is a second page, built for one kind of visitor: an owner who tapped a Facebook or Instagram ad a few seconds ago. It has one job: turn that tap into a qualified lead, then into a booked 15-minute call.
 
-It shares the master page's look (the same tokens, fonts, illustrations and components), its lead storage (the same Supabase table, through the same `submit_lead()`), and its email (the same Resend account). It deploys as its own Vercel project.
+It shares the master page's look (the same tokens, fonts, illustrations and components), its lead storage (the same Supabase table, through the same `submit_lead()`), and its email (the same Resend account). It lives on the master page's domain at `/customers` and deploys with the master page's Vercel project.
 
 Sources: the three methodologies the founder supplied (summarized in section 1), the go-to-market build repo (`rempogtmbuild`: GTM brief, dashboards 03, 04, 06, 07, 08, 10, 12 to 15, the lead magnet spec, the landing page's copy rules), and the master page in this repository.
 
@@ -156,10 +156,11 @@ meta/
   api/_lib/                    shared copies from ../api/_lib, plus capi.mjs and prospect-email.mjs
   tools/                       build, dev server, image processing, copy lint, sync
   tests/                       scoring, endpoint, copy rules, build, the page in a real browser
-  public/                      the built site (Vercel's output directory)
+../customers/                  the built pages, served at /customers (committed)
+../api/meta-lead.mjs           the function Vercel runs at /api/meta-lead (runs api/lead.mjs)
 ```
 
-Vercel: a new project from the same repository, Root Directory `meta`, build command `node tools/build.mjs`, output directory `public`. The repository root's `.vercelignore` drops `meta/` from the master page's deployment; `meta/.vercelignore` is the Meta project's own.
+Vercel: the master page's project, with nothing to set up. `node tools/build.mjs` writes the pages to the repository's `customers/` folder (committed; Vercel runs no build and serves it at `/customers`), and the root `api/meta-lead.mjs` runs `api/lead.mjs` at `/api/meta-lead`, with the master page's environment variables. The root `vercel.json` adds the function's time limit, the `/customers` headers and a redirect that keeps `meta/` from being served; the root `.vercelignore` leaves out what the function does not import.
 
 ## 10. Quality bar
 

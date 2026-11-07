@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-// Builds the site into public/: one static page per ad angle (content/variants.json), the script, the pictures and
-// fonts. No dependencies: Vercel runs this as the build command.
+// Builds the pages into the repository's customers/ folder (the folder is named by `path` in content/site.mjs): one
+// static page per ad angle (content/variants.json), the script, the pictures and fonts, every link starting with that
+// path. The master page's Vercel project serves the folder as it is, so the output is committed and Vercel runs no
+// build. No dependencies.
 //
-//   node tools/build.mjs           build public/
-//   node tools/build.mjs --check   fail if public/ is not what the sources build (the tests run this)
+//   node tools/build.mjs           build ../customers/
+//   node tools/build.mjs --check   fail if ../customers/ is not what the sources build (the tests run this)
 //
 // The copy rules run first (tools/copy-lint.mjs): a banned claim stops the build.
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, statSync, existsSync, copyFileSync } from "node:fs";
@@ -16,11 +18,20 @@ import { lintAll } from "./copy-lint.mjs";
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const r = (...p) => path.join(ROOT, ...p);
 const CHECK = process.argv.includes("--check");
-const OUT = CHECK ? path.join(os.tmpdir(), `rempo-meta-check-${process.pid}`) : r("public");
 
 const read = (p) => readFileSync(r(p), "utf8");
 const json = (p) => JSON.parse(read(p));
 const SITE = (await import(pathToFileURL(r("content/site.mjs")).href)).default;
+
+// The path the pages live at, and the folder at the repository root that holds them. One plain segment, never a
+// folder the repository already uses: the build empties this folder before writing it.
+const BASE = String(SITE.path || "");
+if (!/^\/[a-z0-9][a-z0-9-]*$/.test(BASE) || ["/api", "/meta", "/lead-capture", "/assets"].includes(BASE)) {
+  console.error(`build stopped: site.path must be one segment such as "/customers", not ${JSON.stringify(SITE.path)}`);
+  process.exit(1);
+}
+const SITE_DIR = path.join(ROOT, "..", BASE.slice(1));
+const OUT = CHECK ? path.join(os.tmpdir(), `rempo-meta-check-${process.pid}`) : SITE_DIR;
 const SURVEY = (await import(pathToFileURL(r("content/survey.mjs")).href)).default;
 const COPY = json("content/copy.json");
 const { variants: VARIANTS } = json("content/variants.json");
@@ -43,16 +54,17 @@ const T = (s) => fill(s, { turnaround: SITE.reportTurnaround });
 const tbd = (text) => `<span class="tbd" data-tbd>${esc(text)}</span>`;
 
 /* ---------- Assets: copied with a content version, so they can be cached for a year ---------- */
+rmSync(OUT, { recursive: true, force: true });   // a fresh folder: nothing stale is left behind
 mkdirSync(path.join(OUT, "assets", "img"), { recursive: true });
 mkdirSync(path.join(OUT, "assets", "fonts"), { recursive: true });
-const V = {};   // "/assets/img/podium-800.webp" -> "/assets/img/podium-800.webp?v=abc"
+const V = {};   // "/assets/img/podium-800.webp" -> "/customers/assets/img/podium-800.webp?v=abc"
 function copyTree(from, to) {
   for (const name of readdirSync(from)) {
     const src = path.join(from, name), dst = path.join(to, name);
     if (statSync(src).isDirectory()) { mkdirSync(dst, { recursive: true }); copyTree(src, dst); continue; }
     copyFileSync(src, dst);
     const rel = "/" + path.relative(OUT, dst).split(path.sep).join("/");
-    V[rel] = `${rel}?v=${hash(readFileSync(src))}`;
+    V[rel] = `${BASE}${rel}?v=${hash(readFileSync(src))}`;
   }
 }
 copyTree(r("src/assets"), path.join(OUT, "assets"));
@@ -72,7 +84,7 @@ const pic = (name, sizes, alt, cls, extra) => img(name, IMG[name], sizes, alt, c
 const gapcheck = read("lib/gapcheck.mjs").replace(/^export function /gm, "function ");
 const appJs = `/* Rempo for Meta ads. Built by tools/build.mjs from lib/gapcheck.mjs and src/js/app.js. */\n(function () {\n${gapcheck}\n${read("src/js/app.js")}\n})();\n`;
 writeFileSync(path.join(OUT, "assets", "app.js"), appJs);
-V["/assets/app.js"] = `/assets/app.js?v=${hash(appJs)}`;
+V["/assets/app.js"] = `${BASE}/assets/app.js?v=${hash(appJs)}`;
 
 /* ---------- Styles: fonts, tokens, page; comments dropped, inlined in every page ---------- */
 const fontFace = (fam, file) => `@font-face{font-family:"${fam}";font-style:normal;font-display:swap;font-weight:100 900;src:url(${A(`/assets/fonts/${file}`)}) format("woff2-variations");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}`;
@@ -333,16 +345,16 @@ function claritySnippet() {
 }
 
 /* ---------- The page ---------- */
-const PUBLIC_SITE = { name: SITE.name, reportTurnaround: SITE.reportTurnaround, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl };
+const PUBLIC_SITE = { name: SITE.name, endpoint: SITE.endpoint, reportTurnaround: SITE.reportTurnaround, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl };
 const UI = { check: C.check, result: C.result };
 
 function page(v) {
-  const urlPath = v.slug ? `/${v.slug}` : "/";
+  const urlPath = v.slug ? `${BASE}/${v.slug}` : BASE;
   const canonical = SITE.url ? `${SITE.url.replace(/\/$/, "")}${urlPath}` : null;
   const data = JSON.stringify({ site: PUBLIC_SITE, survey: SURVEY, ui: UI, variant: v.id }).replace(/</g, "\\u003c");
   const ogImage = SITE.url ? `${SITE.url.replace(/\/$/, "")}${A("/assets/og.jpg")}` : A("/assets/og.jpg");
   return `<!doctype html>
-<!-- Built by tools/build.mjs from content/ and src/. Do not edit: edit the sources and run node tools/build.mjs -->
+<!-- Built by meta/tools/build.mjs from meta/content/ and meta/src/. Do not edit: edit the sources and run node meta/tools/build.mjs -->
 <html lang="en" class="no-js" data-variant="${esc(v.id)}">
 <head>
 <meta charset="utf-8">
@@ -397,8 +409,6 @@ for (const v of VARIANTS) {
   const rel = v.slug ? path.join(v.slug, "index.html") : "index.html";
   pages[rel] = page(v);
 }
-pages["404.html"] = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Not found · Rempo</title><link rel="icon" href="${A("/assets/favicon.svg")}" type="image/svg+xml"><style>body{margin:0;min-height:100vh;display:grid;place-items:center;font:17px/1.5 system-ui,sans-serif;color:#0A1A33;background:#fff;text-align:center;padding:24px}a{color:#0057B3;font-weight:600}</style></head><body><main><h1 style="font-size:28px;margin:0 0 8px">This page isn't here.</h1><p><a href="/">See your free Gap Report</a></p></main></body></html>\n`;
-pages["robots.txt"] = "User-agent: *\nAllow: /\n";
 
 for (const [rel, body] of Object.entries(pages)) {
   const file = path.join(OUT, rel);
@@ -406,15 +416,15 @@ for (const [rel, body] of Object.entries(pages)) {
   writeFileSync(file, body);
 }
 
-/* ---------- --check: the committed public/ must be exactly what the sources build ---------- */
+/* ---------- --check: the committed folder must be exactly what the sources build ---------- */
 if (CHECK) {
   const list = (dir, base = dir) => readdirSync(dir).flatMap((n) => { const p = path.join(dir, n); return statSync(p).isDirectory() ? list(p, base) : [path.relative(base, p)]; }).sort();
-  const want = list(OUT), have = existsSync(r("public")) ? list(r("public")) : [];
-  const diff = [...new Set([...want, ...have])].filter((f) => !want.includes(f) || !have.includes(f) || !readFileSync(path.join(OUT, f)).equals(readFileSync(r("public", f))));
+  const want = list(OUT), have = existsSync(SITE_DIR) ? list(SITE_DIR) : [];
+  const diff = [...new Set([...want, ...have])].filter((f) => !want.includes(f) || !have.includes(f) || !readFileSync(path.join(OUT, f)).equals(readFileSync(path.join(SITE_DIR, f))));
   rmSync(OUT, { recursive: true, force: true });
-  if (diff.length) { console.error(`public/ is stale: ${diff.join(", ")}. Run node tools/build.mjs`); process.exit(1); }
-  console.log("build --check: public/ is up to date");
+  if (diff.length) { console.error(`${BASE.slice(1)}/ is stale: ${diff.join(", ")}. Run node meta/tools/build.mjs`); process.exit(1); }
+  console.log(`build --check: ${BASE.slice(1)}/ is up to date`);
 } else {
   const kb = (f) => (statSync(path.join(OUT, f)).size / 1024).toFixed(1);
-  console.log(`built ${VARIANTS.length} pages: ${VARIANTS.map((v) => `/${v.slug}`).join(", ")} (index.html ${kb("index.html")} KB, app.js ${kb("assets/app.js")} KB)`);
+  console.log(`built ${VARIANTS.length} pages into ${BASE.slice(1)}/: ${VARIANTS.map((v) => (v.slug ? `${BASE}/${v.slug}` : BASE)).join(", ")} (index.html ${kb("index.html")} KB, app.js ${kb("assets/app.js")} KB)`);
 }

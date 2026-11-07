@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * The page in a real browser (Playwright's Chromium), against the dev server in stub mode (tools/dev.mjs --stub): the
- * real /api/lead handler, with Supabase, Resend, Slack and Meta answered locally and recorded.
+ * real /api/meta-lead function at the real /customers paths, with Supabase, Resend, Slack and Meta answered locally
+ * and recorded.
  *
  *   node tests/check-page.mjs            (build first: node tools/build.mjs)
  *
@@ -15,7 +16,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { mkdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const require = createRequire(import.meta.url);
@@ -25,6 +26,8 @@ const SHOTS = path.join(ROOT, "tests", "shots");
 mkdirSync(SHOTS, { recursive: true });
 const PORT = 8800 + (process.pid % 150);
 const BASE = `http://localhost:${PORT}`;
+const SITE = (await import(pathToFileURL(path.join(ROOT, "content", "site.mjs")).href)).default;
+const PAGES = `${BASE}${SITE.path}`;   // http://localhost:PORT/customers
 
 let pass = 0, fail = 0;
 const ok = (name, cond, info = "") => { if (cond) { pass++; console.log(`ok   ${name}`); } else { fail++; console.log(`FAIL ${name}${info ? `: ${info}` : ""}`); } };
@@ -80,7 +83,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
   await page.addInitScript(FBQ);
   const t0 = Date.now();
-  await page.goto(`${BASE}/?utm_source=facebook&utm_campaign=gap-test&fbclid=IwAR0testtesttesttest`, { waitUntil: "networkidle" });
+  await page.goto(`${PAGES}?utm_source=facebook&utm_campaign=gap-test&fbclid=IwAR0testtesttesttest`, { waitUntil: "networkidle" });
   await page.screenshot({ path: path.join(SHOTS, "phone-01-first-screen.png") });
 
   const q1 = await page.locator(".gc-step[data-key=trade] .gc-q").boundingBox();
@@ -184,7 +187,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
 {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/replies`, { waitUntil: "networkidle" });
+  await page.goto(`${PAGES}/replies`, { waitUntil: "networkidle" });
   ok("/replies: its own headline", (await page.locator("h1").textContent()).includes("no reply"));
   ok("phone: the sticky bar hides while the card is on screen", !(await page.locator(".sticky-bar.show").count()));
   await page.evaluate(() => window.scrollTo(0, 2600));
@@ -212,7 +215,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   page.on("pageerror", (e) => errors.push(e.message));
   await page.addInitScript(FBQ);
   const t0 = Date.now();
-  await page.goto(`${BASE}/recent`, { waitUntil: "networkidle" });
+  await page.goto(`${PAGES}/recent`, { waitUntil: "networkidle" });
   await page.screenshot({ path: path.join(SHOTS, "pc-01-recent.png") });
   ok("/recent: its own headline", (await page.locator("h1").textContent()).includes("fresh"));
   const box = await page.locator("#gap-check").boundingBox();
@@ -251,7 +254,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/request`, { waitUntil: "networkidle" });
+  await page.goto(`${PAGES}/request`, { waitUntil: "networkidle" });
   ok("/request: its own headline", (await page.locator("h1").textContent()).includes("what your customer sees"));
   await page.locator('.gc-step[data-key=trade] input[value="hvac"]').focus();
   await page.keyboard.press("Space");
@@ -266,9 +269,9 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   await waitStep(page, "newest");
   ok("keyboard: Enter after an arrow choice moves on", (await currentKey(page)) === "newest");
   await audit(page, "pc /request");
-  await page.goto(`${BASE}/request?view=preview`, { waitUntil: "networkidle" });
+  await page.goto(`${PAGES}/request?view=preview`, { waitUntil: "networkidle" });
   ok("preview view: the {TBD} notes show", (await page.locator(".tbd:visible").count()) > 0);
-  await page.goto(`${BASE}/request`, { waitUntil: "networkidle" });
+  await page.goto(`${PAGES}/request`, { waitUntil: "networkidle" });
   ok("production view: no {TBD} note shows", (await page.locator(".tbd:visible").count()) === 0);
   await ctx.close();
 }

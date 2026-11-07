@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The Meta lead endpoint, api/lead.mjs, run for real with Supabase, Resend, Slack and Meta's Conversions API stubbed
+ * The Meta lead endpoint (served at /api/meta-lead by the root api/meta-lead.mjs, which runs api/lead.mjs), run for real with Supabase, Resend, Slack and Meta's Conversions API stubbed
  * (no network, no keys): the health report; a qualified Gap Check stored with the server's own score, announced, sent
  * to Meta with the browser's event id and hashed details, and emailed to the prospect; the server re-scoring answers the
  * browser lied about; unqualified answers, Global Privacy Control and a missing setup keeping Meta out; the call step and
@@ -20,6 +20,7 @@ const crashed = (e) => { process.stdout.write(`FAIL crashed: ${e && e.stack || e
 process.on("uncaughtException", crashed); process.on("unhandledRejection", crashed);
 const ok = (name, cond, info = "") => { if (cond) { pass++; console.log(`ok   ${name}`); } else { fail++; console.log(`FAIL ${name}${info ? `: ${info}` : ""}`); } };
 const sha = (s) => createHash("sha256").update(s).digest("hex");
+ok("the root api/meta-lead.mjs runs this handler", (await import(new URL("../../api/meta-lead.mjs", import.meta.url))).default === handler);
 
 let calls = [], answer = {};
 globalThis.fetch = async (url, init = {}) => {

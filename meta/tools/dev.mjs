@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// The site on your machine: public/ with clean URLs (/recent serves public/recent/index.html), and /api/lead running
-// the real handler (api/lead.mjs).
+// The pages on your machine, laid out as on Vercel: the built ../customers/ folder at /customers (/customers/recent
+// serves ../customers/recent/index.html), and /api/meta-lead running the real function (../api/meta-lead.mjs).
 //
-//   node tools/dev.mjs                 http://localhost:8790, /api/lead uses the variables in your environment
+//   node tools/dev.mjs                 http://localhost:8790/customers, /api/meta-lead uses the variables in your environment
 //   node tools/dev.mjs --stub          Supabase, Resend, Slack and Meta answered locally: every call is recorded and
 //                                      listed at /__stub (DELETE /__stub clears it). Nothing leaves the machine.
 //   node tools/dev.mjs --port 9000
@@ -14,7 +14,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const PUBLIC = path.join(ROOT, "public");
+const SITE = (await import(pathToFileURL(path.join(ROOT, "content", "site.mjs")).href)).default;
+const BASE = SITE.path;                                   // "/customers"
+const PUBLIC = path.join(ROOT, "..", BASE.slice(1));      // the repository's customers/ folder
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d; };
 const PORT = Number(arg("--port", process.env.PORT || 8790));
 const STUB = process.argv.includes("--stub");
@@ -43,7 +45,7 @@ if (STUB) {
   };
 }
 
-const handler = (await import(pathToFileURL(path.join(ROOT, "api", "lead.mjs")).href)).default;
+const handler = (await import(pathToFileURL(path.join(ROOT, "..", "api", "meta-lead.mjs")).href)).default;
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml",
   ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".json": "application/json", ".ics": "text/calendar" };
 
@@ -56,13 +58,16 @@ async function file(res, p, status = 200) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   try {
-    if (url.pathname === "/api/lead") return await handler(req, res);
+    if (url.pathname === SITE.endpoint) return await handler(req, res);
     if (STUB && url.pathname === "/__stub") {
       if (req.method === "DELETE") calls.length = 0;
       res.writeHead(200, { "content-type": "application/json" });
       return res.end(JSON.stringify(calls));
     }
-    let p = path.normalize(path.join(PUBLIC, decodeURIComponent(url.pathname)));
+    if (url.pathname === "/") { res.writeHead(302, { location: BASE }); return res.end(); }
+    const notFound = () => { res.writeHead(404, { "content-type": "text/plain; charset=utf-8" }); res.end("not found"); };
+    if (url.pathname !== BASE && !url.pathname.startsWith(`${BASE}/`)) return notFound();
+    let p = path.normalize(path.join(PUBLIC, decodeURIComponent(url.pathname.slice(BASE.length))));
     if (!p.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
     const s = await stat(p).catch(() => null);
     if (s && s.isDirectory()) p = path.join(p, "index.html");
@@ -70,7 +75,7 @@ const server = http.createServer(async (req, res) => {
       const html = `${p}.html`, idx = path.join(p, "index.html");
       if (await stat(idx).catch(() => null)) p = idx;
       else if (await stat(html).catch(() => null)) p = html;
-      else return file(res, path.join(PUBLIC, "404.html"), 404);
+      else return notFound();
     }
     return await file(res, p);
   } catch (e) {
@@ -79,4 +84,4 @@ const server = http.createServer(async (req, res) => {
     res.end("error");
   }
 });
-server.listen(PORT, () => console.log(`Rempo for Meta: http://localhost:${PORT}${STUB ? " (stubbed services: /__stub)" : ""}`));
+server.listen(PORT, () => console.log(`Rempo for Meta: http://localhost:${PORT}${BASE}${STUB ? " (stubbed services: /__stub)" : ""}`));

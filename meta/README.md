@@ -1,6 +1,6 @@
 # Rempo for Meta ads
 
-A landing page built for one visitor: an HVAC or plumbing shop owner who tapped a Facebook or Instagram ad a few seconds ago. It turns the tap into a qualified lead with a free **Gap Check** (a few taps, a score on screen, a Gap Report by email), then into a booked 15-minute call. It is a separate site from the master page at the root of this repository, deployed as its own Vercel project, and it shares the master page's look, its Supabase table and its Resend account.
+A landing page built for one visitor: an HVAC or plumbing shop owner who tapped a Facebook or Instagram ad a few seconds ago. It turns the tap into a qualified lead with a free **Gap Check** (a few taps, a score on screen, a Gap Report by email), then into a booked 15-minute call. It lives on the master page's domain at `/customers` and deploys with it: the master page's Vercel project serves the built pages from the repository's `customers/` folder and runs its form endpoint, `/api/meta-lead`. It shares the master page's look, its Supabase table, its Resend account and its Vercel settings.
 
 Why it is built this way, section by section, with the methodology and GTM source for each decision: [PLAN.md](PLAN.md).
 
@@ -10,10 +10,12 @@ One page per ad angle, so every ad lands on a page that says what the ad said (M
 
 | URL | Use it with an ad that says | Headline |
 |---|---|---|
-| `/` | "How do your Google reviews compare with the three shops above you?" | Your work is better. Do your reviews show it? |
-| `/recent` | "When did your shop get its last Google review?" | How fresh are your Google reviews? |
-| `/replies` | "How many of your Google reviews have no reply?" | How many of your reviews have no reply? |
-| `/request` | "Here's what your customer sees after every job." | Here's what your customer sees after every job. |
+| `/customers` | "How do your Google reviews compare with the three shops above you?" | Your work is better. Do your reviews show it? |
+| `/customers/recent` | "When did your shop get its last Google review?" | How fresh are your Google reviews? |
+| `/customers/replies` | "How many of your Google reviews have no reply?" | How many of your reviews have no reply? |
+| `/customers/request` | "Here's what your customer sees after every job." | Here's what your customer sees after every job. |
+
+The path is `path` in `content/site.mjs`. To move the pages, change it, update the `/customers` entries in the root `vercel.json`, build, delete the old folder and commit (`tests/check-build.mjs` fails if the two disagree).
 
 Add `?view=preview` to any page to see the open decisions marked `{TBD}` (visitors never see them).
 
@@ -34,7 +36,7 @@ node tools/build.mjs
 node tools/dev.mjs --stub
 ```
 
-Then open http://localhost:8790. With `--stub`, Supabase, Resend, Slack and Meta are answered locally, and every call the server makes is listed at http://localhost:8790/__stub. Without `--stub`, `/api/lead` uses the variables in your shell.
+The build writes `../customers/` (commit it: Vercel serves it as it is and runs no build). Then open http://localhost:8790/customers. With `--stub`, Supabase, Resend, Slack and Meta are answered locally, and every call the server makes is listed at http://localhost:8790/__stub. Without `--stub`, `/api/meta-lead` uses the variables in your shell.
 
 ```bash
 node tests/run.mjs
@@ -44,19 +46,17 @@ Runs every check: the scoring against the GTM spec, the copy rules, the shared l
 
 ## Deploy on Vercel
 
-1. **Add New > Project**, import this repository again (the master page stays its own project).
-2. **Root Directory:** `meta`. Framework preset: Other. Build and output come from `meta/vercel.json` (`node tools/build.mjs` into `public`). Leave "Include files outside the root directory" as it is: the site needs nothing outside `meta/`.
-3. **Environment variables** (Production, and Preview if you test on preview links). The first seven are the master page's, with the same values, so leads land in the same table and the same inbox:
+Nothing to set up in Vercel: the master page's project deploys these pages with every push. Merge into `main` and the production deployment serves:
+
+- `https://<the-site>/customers` and the three angle pages, from the repository's `customers/` folder (static files, no build step).
+- `https://<the-site>/api/meta-lead`, the form endpoint: the root `api/meta-lead.mjs`, which runs `meta/api/lead.mjs`.
+
+The root `vercel.json` gives the function 30 seconds, marks the `/customers` pages noindex with the security headers, caches `/customers/assets` for a year, and redirects `/meta/*` away so the sources the function needs are never served as files. The root `.vercelignore` leaves out `meta/`'s tests, tools and sources that the function does not import.
+
+**Environment variables:** the function reads the master page's (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `LEAD_HASH_SALT`, `RESEND_API_KEY`, `LEAD_NOTIFY_FROM`, `LEAD_NOTIFY_TO`, `SLACK_WEBHOOK_URL`), so leads land in the same table and the same inbox with nothing new to add. Add these to the same project when you want them (Production, and Preview to test on preview links):
 
 | Name | What | Needed |
 |---|---|---|
-| `SUPABASE_URL` | The Supabase project URL (the master page's) | Yes |
-| `SUPABASE_ANON_KEY` | The publishable key (never the secret key; it is refused) | Yes |
-| `LEAD_HASH_SALT` | Any long random text, the same as the master page's | Optional |
-| `RESEND_API_KEY` | The Resend key with sending access | Yes |
-| `LEAD_NOTIFY_FROM` | `Rempo Leads <leads@your-domain>` | Yes |
-| `LEAD_NOTIFY_TO` | Your inbox, comma separated | Yes |
-| `SLACK_WEBHOOK_URL` | The Slack incoming webhook | Optional |
 | `META_PIXEL_ID` | The Meta dataset (pixel) id, the same as `metaPixelId` in `content/site.mjs` | For the Conversions API |
 | `META_CAPI_TOKEN` | Events Manager > your dataset > Settings > Conversions API > Generate access token | For the Conversions API |
 | `META_TEST_EVENT_CODE` | Events Manager > Test events. Remove it once events show there | While testing |
@@ -64,12 +64,16 @@ Runs every check: the scoring against the GTM spec, the copy rules, the shared l
 | `PROSPECT_EMAIL_FROM` | A person on the verified Resend domain: `Ali at Rempo <ali@your-domain>` | For the prospect's emails |
 | `PROSPECT_REPLY_TO` | Where the prospect's replies go, if not the sender | Optional |
 
-4. **Domain:** give it its own, for example `go.rempo.io`, then set `url` in `content/site.mjs` to it.
-5. **Check:** open `https://<this-site>/api/lead`. It should say `"ready": true`, and under `meta` whether the Conversions API is on and uses the same pixel as the page. Then take the Gap Check yourself.
+**Domain:** the pages use the master page's. Once it points at Vercel, set `url` in `content/site.mjs` to it (for example `https://rempo.io`, no path) for the canonical link and the share image, then build and commit.
+
+**Check that Vercel has it:**
+
+1. On GitHub, the commit (or the pull request) shows Vercel's check: "Deployment has completed". "Deployment was blocked" means Vercel refused it (see the master page's deployment settings); nothing went live.
+2. In Vercel, the project > Deployments: the newest one for `main` is Ready, marked Production, with the commit you merged. Open it: under Deployment Summary, the functions list `api/meta-lead`; the Source tab shows `customers/`.
+3. Open `https://<the-site>/api/meta-lead`. It should say `"ready": true`, and `deployment` names `production` and the commit you merged (the same short hash GitHub shows). Under `meta`, whether the Conversions API is on and uses the same pixel as the page.
+4. Open `https://<the-site>/customers` and take the Gap Check yourself.
 
 Supabase needs nothing new: the Meta leads go to the same `public.leads` table through the same `submit_lead()`, as the forms `meta-gap-report` and `meta-call`. For a flat view of them, run [`sql/meta-leads-view.sql`](sql/meta-leads-view.sql) once in the SQL Editor (it lives in a private schema; only the dashboard can read it).
-
-The repository root's `.vercelignore` keeps `meta/` out of the master page's deployment; `meta/.vercelignore` is this project's own and takes precedence for it, per Vercel's documentation. If the first Meta deployment ever shows no files, remove `meta/` from the root `.vercelignore` and redeploy.
 
 ## Meta setup
 
@@ -96,7 +100,7 @@ The repository root's `.vercelignore` keeps `meta/` out of the master page's dep
 
 ## Shared with the master page
 
-`api/_lib/lead-store.mjs`, `lead-fields.mjs` and `lead-notify.mjs` are copies of the master page's (`../api/_lib/`), so both sites store and announce leads the same way while deploying on their own. `tests/check-shared.mjs` fails if they drift; `node tools/sync-shared.mjs` copies them again.
+`api/_lib/lead-store.mjs`, `lead-fields.mjs` and `lead-notify.mjs` are copies of the master page's (`../api/_lib/`), so both pages store and announce leads the same way. `tests/check-shared.mjs` fails if they drift; `node tools/sync-shared.mjs` copies them again.
 
 ## Before launch
 
@@ -111,4 +115,4 @@ The repository root's `.vercelignore` keeps `meta/` out of the master page's dep
 | Who calls, and in which windows | Morning, midday, afternoon, in the visitor's time | `content/survey.mjs`, `booking` |
 | The pixel and the Conversions API | No tracking | `site.metaPixelId`; `META_PIXEL_ID`, `META_CAPI_TOKEN` |
 | Prospect emails | Off | `PROSPECT_EMAIL_FROM` |
-| The domain | Relative links, no canonical | `site.url` |
+| The domain | The master page's; no canonical until it is set | `site.url` |
