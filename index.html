@@ -1754,9 +1754,10 @@ li{text-wrap:pretty}
   </div>
 </section>
 
-<!-- ============ Case studies: two businesses, their own Google profiles, before and after Rempo. Each card opens the
-     full case study (/case-studies/...), the card growing into the page's hero. The numbers are each business's own ============ -->
-<section id="results" class="proof sec" aria-labelledby="results-h">
+<!-- ============ Case studies: businesses' own Google profiles, before and after Rempo. Each card opens the full case
+     study (/case-studies/...), the card growing into the page's hero. Rendered from the seed by tools/render-landing.mjs;
+     assets/proof.js swaps in what /admin has published since. The numbers are each business's own ============ -->
+<section id="results" class="proof sec" aria-labelledby="results-h" data-proof-version="296e7bb19875">
   <div class="wrap">
     <header class="sec-head">
       <p class="label eyebrow">Case studies</p>
@@ -1765,28 +1766,28 @@ li{text-wrap:pretty}
     </header>
     <div class="cs-grid">
       <a class="cs-card" href="/case-studies/junkaway-movers/">
-        <div class="cs-vis" data-tilt data-vtn="cs-junkaway">
+        <div class="cs-vis" data-tilt data-vtn="vis" style="--vtn:cs-junkaway-movers">
           <span class="cs-tag"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Six months</span>
           <div class="s3d" aria-hidden="true" data-s3d='{"unit":2.1,"cols":[{"num":"32","cap":"Two years before Rempo","segs":[{"n":32,"k":"old"}]},{"num":"102","cap":"Six months with Rempo","rq":true,"segs":[{"n":32,"k":"old"},{"n":70,"k":"new","pill":"+70"}]}]}'></div>
           <div class="gbp" aria-hidden="true"><img class="gbp-ph" src="/media/case-studies/junkaway-truck.webp" alt="" width="52" height="52" decoding="async"><span class="gbp-b"><b class="gbp-n">Junkaway &amp; Movers LLC</b><span class="gbp-r"><b>5.0</b><span class="stars" aria-hidden="true"><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg></span><span class="gbp-c">102 Google reviews</span></span><span class="gbp-t">Junk removal service</span></span></div>
         </div>
         <div class="cs-body">
           <p class="cs-meta">Junk removal and moving · San Mateo, CA</p>
-          <h3 data-vtn="cs-junkaway-t">From 32 to 102 Google reviews in six months.</h3>
+          <h3 data-vtn="title" style="--vtn:cs-junkaway-movers-t">From 32 to 102 Google reviews in six months.</h3>
           <p>The team already asked after each job. Rempo took over the follow-up.</p>
           <ul class="cs-stats"><li><b>+70</b><span>new five-star reviews</span></li><li><b>6</b><span>months with Rempo</span></li></ul>
           <span class="cs-more">Read the case study<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
         </div>
       </a>
       <a class="cs-card" href="/case-studies/ranchero-plumbing/">
-        <div class="cs-vis" data-tilt data-vtn="cs-ranchero">
+        <div class="cs-vis" data-tilt data-vtn="vis" style="--vtn:cs-ranchero-plumbing">
           <span class="cs-tag"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>First week</span><span class="cs-av"><img src="/media/testimonials/german-aquino-avatar.webp" alt="" width="28" height="28" decoding="async"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Owner's video</span>
           <div class="s3d" aria-hidden="true" data-s3d='{"unit":6,"cols":[{"num":"5","cap":"Before Rempo","segs":[{"n":5,"k":"old"}]},{"num":"32","cap":"Under nine months open","rq":true,"segs":[{"n":5,"k":"old"},{"n":10,"k":"new","pill":"+10 in week one"},{"n":17,"k":"later"}]}]}'></div>
           <div class="gbp" aria-hidden="true"><img class="gbp-ph" src="/media/case-studies/ranchero-van.webp" alt="" width="52" height="52" decoding="async"><span class="gbp-b"><b class="gbp-n">Ranchero Plumbing</b><span class="gbp-r"><b>5.0</b><span class="stars" aria-hidden="true"><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg></span><span class="gbp-c">32 Google reviews</span></span></span></div>
         </div>
         <div class="cs-body">
           <p class="cs-meta">Plumbing · Half Moon Bay, CA</p>
-          <h3 data-vtn="cs-ranchero-t">10 five-star reviews in the first week.</h3>
+          <h3 data-vtn="title" style="--vtn:cs-ranchero-plumbing-t">10 five-star reviews in the first week.</h3>
           <p>Two months after opening, Rempo reached back out to the customers Ranchero had already served.</p>
           <ul class="cs-stats"><li><b>+10</b><span>five-star reviews in week one</span></li><li><b>32</b><span>reviews, under nine months open</span></li></ul>
           <span class="cs-more">Read the case study<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
@@ -1797,15 +1798,16 @@ li{text-wrap:pretty}
   </div>
 </section>
 
-<!-- ============ Video testimonials: the owner, in his own words. A card plays on hover, muted, with the words on screen
-     (on a phone: while it is on screen); a click or a tap opens the film full screen with sound ============ -->
-<section id="testimonials" class="vt-sec" aria-labelledby="vt-h">
+<!-- ============ Video testimonials: owners, in their own words. A card plays on hover, muted, with the words on screen
+     (on a phone: while it is on screen); a click or a tap opens the film full screen with sound. Published from /admin,
+     like the case studies ============ -->
+<section id="testimonials" class="vt-sec" aria-labelledby="vt-h" data-proof-version="296e7bb19875">
   <div class="wrap vt-sec-grid">
     <div class="vt-sec-copy">
       <header class="sec-head">
         <p class="label eyebrow">Video testimonials</p>
         <h2 id="vt-h" class="h2">Hear it from the owner.</h2>
-        <p class="lead">German Aquino owns Ranchero Plumbing in Half Moon Bay. Two months after opening, Rempo set up their review system. Here is the first week, in his words.</p>
+        <p class="lead">German Aquino owns Ranchero Plumbing in Half Moon Bay. Two months after opening, Rempo set up their review system. Here is the first week, in German's words.</p>
       </header>
       <blockquote class="vt-section-quote">
         <q>We went from getting little to no reviews to having 10 in the first week.</q>

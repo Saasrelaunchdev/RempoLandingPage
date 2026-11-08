@@ -5,7 +5,9 @@
    - Before and after ([data-pf]): the business's own Google profile, switched in place.
    - Video testimonials ([data-vt]): the card plays on hover, muted, with the words on screen. A click or a tap
      opens the film full screen with sound; the card grows into it.
-   Tier C (reduced motion, Save-Data, ?tier=c): every scene at its end state, nothing plays by itself. */
+   Tier C (reduced motion, Save-Data, ?tier=c): every scene at its end state, nothing plays by itself.
+   The landing page's two sections are rendered again from the published set when it is newer than the page (what
+   the admin at /admin publishes); init(root) wires whatever was put in. */
 (() => {
   "use strict";
   const html = document.documentElement;
@@ -66,7 +68,7 @@
   const revealIO = new IntersectionObserver((es) => es.forEach((e) => {
     if (e.isIntersecting) { e.target.classList.add("is-in"); revealIO.unobserve(e.target); }
   }), { rootMargin: "0px 0px -10% 0px" });
-  $$("[data-reveal]").forEach((n) => revealIO.observe(n));
+  const initReveal = (root) => $$("[data-reveal]", root).forEach((n) => revealIO.observe(n));
 
   /* ============================================================
      The 3D stacks
@@ -188,7 +190,7 @@
     e.target.classList.toggle("s3d-vis", e.isIntersecting);
     if (e.isIntersecting && e.intersectionRatio >= 0.3) e.target.classList.add("s3d-in");
   }), { threshold: [0, 0.3] });
-  $$(".s3d[data-s3d]").forEach((h) => { build3d(h); sceneIO.observe(h); });
+  const initScenes = (root) => $$(".s3d[data-s3d]", root).forEach((h) => { build3d(h); sceneIO.observe(h); });
 
   /* ============================================================
      Before and after: the same Google profile, switched in place. Once in view it turns to the after
@@ -199,7 +201,7 @@
     pfIO.unobserve(e.target);
     setTimeout(() => { if (!e.target._user) e.target._show(1); }, 1100);
   }), { threshold: 0.6 });
-  $$("[data-pf]").forEach((pf) => {
+  const initPf = (root) => $$("[data-pf]", root).forEach((pf) => {
     const frame = $(".pf-frame", pf), btns = $$(".pf-tabs button", pf);
     pf._show = (k, user) => {
       if (user) pf._user = true;
@@ -241,7 +243,9 @@
   }
   const fmt = (t) => { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
 
-  const vtCards = $$("[data-vt]");
+  let touchIO = null;
+  const initCards = (root) => {
+  const vtCards = $$("[data-vt]", root);
   vtCards.forEach((card) => {
     const btn = $(".vt-frame", card), v = $("video", card), cap = $(".vt-cap", card), bar = $(".vt-bar", card);
     const track = $("track", v);
@@ -282,13 +286,14 @@
   });
   // Touch screens have no hover: a card plays (muted, with the words) while it is mostly on screen
   if (!finePointer.matches && vtCards.length) {
-    const touchIO = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!touchIO) touchIO = new IntersectionObserver((es) => es.forEach((e) => {
       const card = e.target;
       if (e.isIntersecting && e.intersectionRatio >= 0.6 && !html.classList.contains("vt-open")) card._start();
       else card._stop();
     }), { threshold: [0, 0.6] });
     vtCards.forEach((c) => touchIO.observe(c));
   }
+  };
 
   /* ---------- The film: one dialog for every card ---------- */
   let dlg = null, stage, big, capBig, from = null, idleT = 0, raf2 = 0, bigCues = [];
@@ -451,5 +456,41 @@
       $(".vt-x", dlg).animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
       a.finished.then(() => { done(); $(".vt-x", dlg).getAnimations().forEach((x) => x.cancel()); }, done);
     } else done();
+  }
+
+  const init = (root) => { initReveal(root); initScenes(root); initPf(root); initCards(root); };
+  init(document);
+
+  /* ---------- The landing page: the case studies and videos as published now ----------
+     The page is built with the set it was deployed with (data-proof-version). When the admin has published since,
+     /api/proof is newer: the two sections are rendered again from it, with the renderer the case study pages use. */
+  const results = $("#results[data-proof-version]"), voices = $("#testimonials[data-proof-version]");
+  if ((results || voices) && window.fetch) {
+    fetch("/api/proof", { credentials: "omit" }).then((r) => (r.ok ? r.json() : null)).then(async (pub) => {
+      if (!pub || !Array.isArray(pub.cases) || pub.version === (results || voices).dataset.proofVersion) return;
+      const R = await import("/assets/proof-render.mjs");
+      if (results) {
+        results.hidden = !pub.cases.length;
+        if (pub.cases.length) {
+          const grid = $(".cs-grid", results), lead = $(".sec-head .lead", results);
+          if (lead) lead.textContent = R.resultsLead(pub.cases);
+          grid.innerHTML = R.caseCardsHTML(pub.cases, pub.testimonials);
+          init(grid);
+        }
+        results.dataset.proofVersion = pub.version;
+      }
+      if (voices) {
+        voices.hidden = !pub.testimonials.length;
+        if (pub.testimonials.length) {
+          const inner = $(".vt-sec-grid", voices);
+          $$("[data-vt]", inner).forEach((c) => { if (c._stop) c._stop(); });
+          inner.innerHTML = R.testimonialsInnerHTML(pub.testimonials, pub.cases);
+          voices.classList.toggle("vt-many", pub.testimonials.length > 1);
+          init(inner);
+        }
+        voices.dataset.proofVersion = pub.version;
+      }
+      document.dispatchEvent(new CustomEvent("proof:updated", { detail: { version: pub.version } }));
+    }).catch(() => { /* the page keeps what it was built with */ });
   }
 })();

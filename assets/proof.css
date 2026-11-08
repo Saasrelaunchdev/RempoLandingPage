@@ -9,23 +9,23 @@
    Transitions; browsers without them simply load the page) */
 @view-transition{navigation:auto}
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
-/* Named on the landing page's cards and on each case study's hero only. The theme switch (html.vt-reveal)
-   reveals the whole page in one circle, so the names step aside while it runs */
-[data-vtn="cs-junkaway"]{view-transition-name:cs-junkaway}
-[data-vtn="cs-junkaway-t"]{view-transition-name:cs-junkaway-t}
-[data-vtn="cs-ranchero"]{view-transition-name:cs-ranchero}
-[data-vtn="cs-ranchero-t"]{view-transition-name:cs-ranchero-t}
+/* Named on the landing page's cards and on each case study's hero only, from the case study's slug (--vtn, set by
+   the renderer). The theme switch (html.vt-reveal) reveals the whole page in one circle, so the names step aside */
+[data-vtn]{view-transition-name:var(--vtn)}
+[data-vtn="vis"]{view-transition-class:cs-vis}
+[data-vtn="title"]{view-transition-class:cs-title}
 .vt-reveal [data-vtn]{view-transition-name:none}
-::view-transition-group(cs-junkaway),::view-transition-group(cs-ranchero){animation-duration:.55s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
-::view-transition-group(cs-junkaway-t),::view-transition-group(cs-ranchero-t){animation-duration:.5s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
-::view-transition-old(cs-junkaway),::view-transition-new(cs-junkaway),::view-transition-old(cs-ranchero),::view-transition-new(cs-ranchero){height:100%;object-fit:cover}
-::view-transition-old(cs-junkaway-t),::view-transition-new(cs-junkaway-t),::view-transition-old(cs-ranchero-t),::view-transition-new(cs-ranchero-t){height:100%;object-fit:none;object-position:left top}
+::view-transition-group(*.cs-vis){animation-duration:.55s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+::view-transition-group(*.cs-title){animation-duration:.5s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+::view-transition-old(*.cs-vis),::view-transition-new(*.cs-vis){height:100%;object-fit:cover}
+::view-transition-old(*.cs-title),::view-transition-new(*.cs-title){height:100%;object-fit:none;object-position:left top}
 
 /* ============================================================
    The business's Google profile, as a card: the same paper card as the reviews on the landing page
    ============================================================ */
 .gbp{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 12px;align-items:center;width:min(100%,300px);padding:12px 14px 12px 12px;border-radius:16px;background:#fff;color:var(--c-ink-950);box-shadow:0 0 0 1px color-mix(in srgb,var(--c-ink-300) 55%,transparent),0 22px 44px -20px color-mix(in srgb,var(--c-ink-975) 60%,transparent)}
 .gbp-ph{width:52px;height:52px;border-radius:12px;object-fit:cover;background:var(--c-ink-100)}
+.gbp-ini{display:grid;place-items:center;background:var(--c-grad-forward);color:var(--c-ink-975);font:800 22px/1 var(--f-display)}
 .gbp-b{display:grid;gap:3px;min-width:0}
 .gbp-n{font:700 14.5px/1.2 var(--f-text);color:var(--c-ink-950);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gbp-r{display:flex;flex-wrap:wrap;align-items:center;gap:4px 7px;font:600 13px/1.2 var(--f-text);color:var(--c-neutral-800)}
@@ -282,3 +282,15 @@ html.vt-open .sticky-bar{transform:translateY(110%)}
   .vt-list{justify-content:flex-end}
 }
 @media (max-width:599px){.vt-sec{padding:64px 0}.vt-list .vt-card{width:min(100%,340px)}}
+
+/* More than one video: the words on top, the films side by side below */
+.vt-sec.vt-many .vt-sec-grid{grid-template-columns:minmax(0,1fr)}
+.vt-sec.vt-many .vt-sec-copy{max-width:780px}
+.vt-sec.vt-many .vt-list{justify-content:flex-start}
+@media (min-width:900px){.vt-sec.vt-many .vt-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,320px));gap:28px}}
+
+/* A result told by its number alone (no screenshots on file) */
+.csx-stat{min-height:220px;align-content:center;justify-items:start;background:radial-gradient(80% 90% at 80% 20%,color-mix(in srgb,var(--c-accent) 14%,var(--c-surface)),var(--c-surface))}
+.csx-stat figcaption{display:grid;gap:8px;padding:8px}
+.csx-stat figcaption b{font-size:clamp(56px,7vw,96px)}
+.cs-preview-bar{position:sticky;top:0;z-index:60;margin:0;padding:8px var(--pad-r) 8px var(--pad-l);background:var(--c-signal);color:var(--c-ink-975);font:700 13.5px/1.3 var(--f-text);text-align:center}
