@@ -105,7 +105,7 @@ Then:
 - [ ] Production branch checked and the project redeployed
 - [ ] `https://<your-site>/api/lead` says `"ready": true`
 - [ ] A real test lead seen in Supabase, in your inbox and in Slack
-- [ ] The privacy notice says what the form collects and who processes it (Supabase stores it; Resend and Slack deliver it)
+- [x] The privacy notice says what the form collects and who processes it (Supabase stores it; Resend and Slack deliver it): `/legal/privacy`, built from `legal-src/`; both forms carry the notice at collection and send `noticeVersion`
 
 ## If something is off
 

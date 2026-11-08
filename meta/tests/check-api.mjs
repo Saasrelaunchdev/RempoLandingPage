@@ -54,13 +54,14 @@ const REPORT = {
   form: "meta-gap-report", firstName: "Tom", email: "Tom@MapleStreet.com", company: "Maple Street Plumbing", city: "Springfield", consentEmail: true,
   ...ANSWERS, variant: "top-three", visit: VISIT, tz: "America/Chicago",
   page: "https://go.example.com/?utm_source=facebook&utm_campaign=gap", utm_source: "facebook", utm_campaign: "gap", fbclid: "IwAR0abcdefghij",
-  tracking: { fbc: "fb.1.1762540000000.IwAR0abcdefghij", fbp: "fb.1.1762540000000.1234567890", leadEventId: `lead-${VISIT}`, gpc: false }
+  noticeVersion: "2026-11-08",
+  tracking: { fbc: "fb.1.1762540000000.IwAR0abcdefghij", fbp: "fb.1.1762540000000.1234567890", leadEventId: `lead-${VISIT}`, gpc: false, consent: "granted" }
 };
 const weekday = (() => { const d = new Date(); do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })();
 const CALL = {
   form: "meta-call", firstName: "Tom", email: "tom@maplestreet.com", company: "Maple Street Plumbing", city: "Springfield",
   ...ANSWERS, phone: "(512) 555-0134", consentPhone: true, consentText: false, slotDay: weekday, slotWindow: "morning",
-  variant: "top-three", visit: VISIT, page: "https://go.example.com/", tracking: { scheduleEventId: `schedule-${VISIT}`, gpc: false }
+  variant: "top-three", visit: VISIT, page: "https://go.example.com/", noticeVersion: "2026-11-08", tracking: { scheduleEventId: `schedule-${VISIT}`, gpc: false, consent: "unset" }
 };
 
 async function call(body, { method = "POST", headers = {} } = {}) {
@@ -97,11 +98,13 @@ ok("report: the answers, city, variant, visit and time zone kept", p.fields.trad
 ok("report: no tracking object left in fields", !("tracking" in p.fields));
 ok("report: campaign, fbclid, fbc, fbp and the event id in meta", p.meta.utm_campaign === "gap" && p.meta.fbclid === "IwAR0abcdefghij" && p.meta.fbc === REPORT.tracking.fbc && p.meta.fbp === REPORT.tracking.fbp && p.meta.meta_event_id === `lead-${VISIT}`, JSON.stringify(p.meta));
 ok("report: the email consent kept", p.consent.consentEmail === true);
+ok("report: the consent wording version kept, with the visitor's choice about ad tools", p.fields.noticeVersion === "2026-11-08" && p.meta.ads_consent === "granted", JSON.stringify(p.meta));
 ok("report: the IP address never stored, only its salted hash", !JSON.stringify(p).includes("203.0.113.9") && /^[a-f0-9]{64}$/.test(p.ip_hash));
 const owner = r.resend.find((c) => c.body.to && c.body.to.includes && c.body.to.includes("owner@gmail.com"));
 ok("report: the owner is emailed and told in Slack", owner && /New lead for Rempo \(Meta\): Tom \(meta-gap-report\)/.test(owner.body.subject) && r.slack.length === 1);
 ok("report: the owner's notice shows the score and fit", owner && /Score: 79/.test(owner.body.text) && /Fit: qualified/.test(owner.body.text), owner && owner.body.text);
 ok("report: the owner's notice leaves out fbc, fbp and the event id", owner && !/fbc|fbp|meta_event_id|IwAR0abcdefghij\.|1234567890/.test(owner.body.text.replace(/fbclid=IwAR0abcdefghij/, "")), owner && owner.body.text);
+ok("report: the prospect's email footer links the privacy policy", r.resend.some((c) => c.body.to && c.body.to[0] === "tom@maplestreet.com" && /Privacy Policy: https:\/\/rempo\.io\/legal\/privacy/.test(c.body.text)));
 ok("report: one event to the Conversions API", r.meta.length === 1 && r.meta[0].url.startsWith("https://graph.facebook.com/v25.0/1234567890/events?access_token="));
 const e = r.meta[0] && r.meta[0].body.data[0];
 ok("report: Lead, the browser's event id, website, the page", e && e.event_name === "Lead" && e.event_id === `lead-${VISIT}` && e.action_source === "website" && e.event_source_url === REPORT.page);
@@ -130,7 +133,12 @@ ok("an answer that is not one of the options: 400, says which", r.status === 400
 
 /* ---------- Privacy and setup keep Meta out ---------- */
 r = await call({ ...REPORT, tracking: { ...REPORT.tracking, gpc: true } });
-ok("Global Privacy Control: stored, nothing to Meta, no fbc kept", r.status === 200 && r.meta.length === 0 && r.supabase[0].body.payload.meta.gpc === "true");
+ok("Global Privacy Control: stored, nothing to Meta, no fbc kept", r.status === 200 && r.meta.length === 0 && r.supabase[0].body.payload.meta.gpc === "true" && !r.supabase[0].body.payload.meta.fbc);
+r = await call({ ...REPORT, tracking: { ...REPORT.tracking, consent: "denied" } });
+const pd = r.supabase[0].body.payload;
+ok("declined in the cookie notice: stored, nothing to Meta, no fbc or fbp kept, the choice recorded", r.status === 200 && r.meta.length === 0 && !pd.meta.fbc && !pd.meta.fbp && pd.meta.ads_consent === "denied", JSON.stringify(pd.meta));
+r = await call({ ...REPORT, tracking: { ...REPORT.tracking, consent: "maybe" } });
+ok("an unknown consent value counts as no choice yet (Meta hears it, as the notice at collection says)", r.meta.length === 1 && r.supabase[0].body.payload.meta.ads_consent === "unset");
 setEnv({ META_PIXEL_ID: undefined, META_CAPI_TOKEN: undefined });
 r = await call(REPORT);
 ok("no Conversions API set up: the lead is fine, nothing to Meta", r.status === 200 && r.body.ok && r.meta.length === 0);
@@ -157,7 +165,8 @@ const c = r.supabase[0] && r.supabase[0].body.payload;
 ok("call: 200 ok, stored as meta-call", r.status === 200 && c.form === "meta-call", r.raw);
 ok("call: the phone as 10 digits, the slot, the consent", c.phone === "5125550134" && c.fields.slotDay === weekday && c.fields.slotWindow === "morning" && c.consent.consentPhone === true);
 const se = r.meta[0] && r.meta[0].body.data[0];
-ok("call: Schedule with the browser's event id and the hashed phone (with the country code)", se && se.event_name === "Schedule" && se.event_id === `schedule-${VISIT}` && se.user_data.ph[0] === sha("15125550134"));
+ok("call: Schedule with the browser's event id and the hashed email", se && se.event_name === "Schedule" && se.event_id === `schedule-${VISIT}` && se.user_data.em[0] === sha("tom@maplestreet.com"));
+ok("call: the phone number never goes to Meta, hashed or not (the privacy policy's promise, carrier rules)", se && !se.user_data.ph && !JSON.stringify(r.meta).includes("5125550134") && !JSON.stringify(r.meta).includes(sha("15125550134")));
 const pc = r.resend.find((x) => x.body.to && x.body.to[0] === "tom@maplestreet.com");
 ok("call: the prospect's booking email, asking for a YES", pc && /^You're booked: \w{3}, \w{3} \d+, morning$/.test(pc.body.subject) && /reply YES to confirm/i.test(pc.body.text) && /\(512\) 555-0134/.test(pc.body.text), pc && pc.body.subject);
 r = await call({ ...CALL, phone: "555-0134" });

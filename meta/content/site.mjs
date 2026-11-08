@@ -28,8 +28,30 @@ export default {
   // The postal address that commercial email must carry (CAN-SPAM). The prospect emails add it when set.
   postalAddress: null,
 
-  // The privacy notice. Needed before ads run: Meta's terms ask that a site using the pixel says so.
-  privacyUrl: null,
+  // The privacy notice. Needed before ads run: Meta's terms ask that a site using the pixel says so. The legal pages
+  // are built from ../legal-src/ into the repository's legal/ folder and served at /legal on the same domain.
+  privacyUrl: "/legal/privacy",
+
+  // Every legal page the footer, the forms and the cookie notice link to (../legal-src/docs/).
+  legal: {
+    hub: "/legal",
+    terms: "/legal/terms",
+    privacy: "/legal/privacy",
+    cookies: "/legal/cookies",
+    sms: "/legal/sms",
+    choices: "/legal/privacy-choices",
+    accessibility: "/legal/accessibility"
+  },
+
+  // The version of the consent and policy wording, stored with every lead so it can be matched to the words agreed
+  // to. Keep it equal to noticeVersion in ../legal-src/settings.mjs (tests/check-legal.mjs fails if they differ).
+  noticeVersion: "2026-11-08",
+
+  // When advertising and analytics tools (the pixel, Clarity) may load. "opt-in": only after the visitor taps Allow
+  // in the cookie notice, the safest reading of California's wiretap law (CIPA section 631) for pixels and session
+  // recordings. "notice": they load unless the visitor declines. Either way, never with Global Privacy Control.
+  // Change it only on counsel's advice. The notice shows only when a pixel or Clarity id is set.
+  trackingConsent: "opt-in",
 
   // Where "Rather skip the call? Get started" goes once the offer is decided: a Stripe Payment Link or the checkout.
   // It carries the campaign and the visit id. Until then the page shows no checkout link anywhere.

@@ -90,6 +90,8 @@ export default async function handler(req, res) {
     gaps: ev.gaps.map((g) => g.key),
     variant: str(raw.variant, 40),
     visit: str(raw.visit, 64),
+    // The consent and policy wording this lead agreed to (site.noticeVersion, legal-src/settings.mjs)
+    noticeVersion: /^\d{4}-\d{2}-\d{2}$/.test(str(raw.noticeVersion, 10)) ? str(raw.noticeVersion, 10) : "",
     tz: /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+){0,2}$/.test(str(raw.tz, 64)) ? str(raw.tz, 64) : "",
     ...(slot ? { slotDay: slot.day, slotWindow: slot.window.v } : {})
   };
@@ -97,9 +99,13 @@ export default async function handler(req, res) {
   const eventKey = isCall ? "scheduleEventId" : "leadEventId";
   const eventId = EVENT_ID.test(str(t[eventKey], 80)) ? str(t[eventKey], 80) : `${isCall ? "schedule" : "lead"}-${createHash("sha256").update(`${lead.fields.visit || lead.email}|${body.form}`).digest("hex").slice(0, 24)}`;
   const gpc = t.gpc === true;
-  const fbc = FBC.test(str(t.fbc, 600)) ? str(t.fbc, 600) : "";
-  const fbp = FBP.test(str(t.fbp, 60)) ? str(t.fbp, 60) : "";
-  lead.meta = { ...lead.meta, ...(fbc ? { fbc } : {}), ...(fbp ? { fbp } : {}), meta_event_id: eventId, ...(gpc ? { gpc: "true" } : {}) };
+  // The visitor's choice about advertising tools (the cookie notice or /legal/privacy-choices): "denied", like Global
+  // Privacy Control, is an opt-out of sharing, so nothing about this lead goes to Meta
+  const adsConsent = ["granted", "denied", "unset"].includes(t.consent) ? t.consent : "unset";
+  const optedOut = gpc || adsConsent === "denied";
+  const fbc = !optedOut && FBC.test(str(t.fbc, 600)) ? str(t.fbc, 600) : "";
+  const fbp = !optedOut && FBP.test(str(t.fbp, 60)) ? str(t.fbp, 60) : "";
+  lead.meta = { ...lead.meta, ...(fbc ? { fbc } : {}), ...(fbp ? { fbp } : {}), meta_event_id: eventId, ads_consent: adsConsent, ...(gpc ? { gpc: "true" } : {}) };
 
   /* ---------- Store ---------- */
   const cfg = supabaseConfig();
@@ -109,7 +115,7 @@ export default async function handler(req, res) {
   const payload = { ...lead, ip_hash: ip ? createHash("sha256").update(`${salt}|${ip}`).digest("hex") : null };
   const healthUrl = host(req) ? `https://${host(req)}${SITE.endpoint}` : "";
   // The owner's notice shows the campaign, not the Meta ids
-  const forNotice = { ...lead, meta: Object.fromEntries(Object.entries(lead.meta).filter(([k]) => !["fbc", "fbp", "meta_event_id", "gpc"].includes(k))) };
+  const forNotice = { ...lead, meta: Object.fromEntries(Object.entries(lead.meta).filter(([k]) => !["fbc", "fbp", "meta_event_id", "gpc", "ads_consent"].includes(k))) };
 
   let stored = false, id = "", reason;
   if (cfg.ok) {
@@ -136,7 +142,7 @@ export default async function handler(req, res) {
   /* ---------- Then, together: the owner's notices, Meta (qualified only), the prospect's email ---------- */
   const jobs = {
     notify: notifyLead(forNotice, stored ? { stored: true, id, site: SETTINGS.site } : { stored: false, reason, deployment: deployment(), healthUrl, site: SETTINGS.site }),
-    capi: toMeta({ req, lead, ev, isCall, eventId, fbc, fbp, gpc }),
+    capi: toMeta({ req, lead, ev, isCall, eventId, fbc, fbp, optedOut }),
     prospect: toProspect({ lead, ev, slot, isCall, id })
   };
   const [n, , p] = await Promise.all([jobs.notify, jobs.capi, jobs.prospect]);
@@ -144,13 +150,15 @@ export default async function handler(req, res) {
   return send(res, 200, { ok: true, ...(stored ? {} : { stored: false }), confirmEmail: p === true });
 }
 
-/* ---------- Meta: Lead or Schedule, for qualified answers only (pixel conditioning), never with Global Privacy Control ---------- */
-async function toMeta({ req, lead, ev, isCall, eventId, fbc, fbp, gpc }) {
+/* ---------- Meta: Lead or Schedule, for qualified answers only (pixel conditioning), never after an opt-out (Global
+   Privacy Control or a declined cookie notice), and never with the phone number: the privacy policy promises that
+   mobile numbers and texting consent are not shared for marketing (carrier rules for A2P 10DLC) ---------- */
+async function toMeta({ req, lead, ev, isCall, eventId, fbc, fbp, optedOut }) {
   const cfg = capiConfig();
-  if (!cfg || !ev.qualified || gpc) return null;
+  if (!cfg || !ev.qualified || optedOut) return null;
   const page = lead.meta.page || lead.meta.pageUrl || "";
   const user = userData({
-    email: lead.email, phone: isCall ? lead.phone : "", firstName: lead.name, city: lead.fields.city, country: "us",
+    email: lead.email, firstName: lead.name, city: lead.fields.city, country: "us",
     externalId: lead.fields.visit, ip: header(req, "x-forwarded-for") || header(req, "x-real-ip"), ua: header(req, "user-agent"), fbc, fbp
   });
   const event = capiEvent({
@@ -168,7 +176,10 @@ async function toMeta({ req, lead, ev, isCall, eventId, fbc, fbp, gpc }) {
 async function toProspect({ lead, ev, slot, isCall, id }) {
   const cfg = prospectConfig();
   if (!cfg) return null;
-  const footer = [SITE.company, SITE.postalAddress, EMAILS.unsubscribe];
+  // CAN-SPAM: who sends, the postal address (once site.postalAddress is set), how to opt out; then the privacy policy
+  const home = SITE.url || SITE.masterUrl;
+  const privacy = home && SITE.privacyUrl ? `${EMAILS.privacy} ${new URL(SITE.privacyUrl, home).href}` : "";
+  const footer = [SITE.company, SITE.postalAddress, EMAILS.unsubscribe, privacy];
   const base = { firstName: lead.name, business: lead.company, service: ev.service, city: lead.fields.city, turnaround: SITE.reportTurnaround };
   let msg;
   if (isCall) {

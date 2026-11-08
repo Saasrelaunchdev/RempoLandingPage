@@ -10,6 +10,9 @@
  * the score matches the server's; Lead goes to the pixel and to the Conversions API with one event id; the call step
  * books; Schedule does the same; the sticky bar opens the Gap Check as a sheet and gives the card back on close.
  * PC (1440 x 900): an owner on paper gets the call-only route and Meta hears nothing (pixel conditioning).
+ * Legal: the notice at collection under both forms names its button and links the Terms, the Privacy Policy, the
+ * privacy choices and (by the text box) the SMS terms; the text box starts unticked; every footer link opens a legal
+ * page; without the visitor's consent the pixel hears nothing (the cookie notice itself: tests/check-consent.mjs).
  * Keyboard: the whole check works without a mouse. Every page: no script errors, labelled fields, unique ids,
  * alt text on every picture, nothing wider than the screen. Screenshots go to tests/shots/ (not committed).
  */
@@ -44,6 +47,8 @@ const clearStub = () => fetch(`${BASE}/__stub`, { method: "DELETE" });
 const browser = await chromium.launch();
 // A stand-in for the Meta pixel: records every fbq call (the real one is not loaded without site.metaPixelId)
 const FBQ = () => { window.__fbq = []; window.fbq = (...a) => window.__fbq.push(a); };
+// The visitor allowed advertising tools (in the cookie notice or on /legal/privacy-choices): the pixel may hear events
+const ALLOW = () => { try { localStorage.setItem("rm-consent", JSON.stringify({ v: 1, ads: "granted", at: new Date().toISOString(), src: "test" })); } catch (e) { /* none */ } };
 
 async function audit(page, label) {
   const r = await page.evaluate(() => {
@@ -82,6 +87,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
   await page.addInitScript(FBQ);
+  await page.addInitScript(ALLOW);
   const t0 = Date.now();
   await page.goto(`${PAGES}?utm_source=facebook&utm_campaign=gap-test&fbclid=IwAR0testtesttesttest`, { waitUntil: "networkidle" });
   await page.screenshot({ path: path.join(SHOTS, "phone-01-first-screen.png") });
@@ -114,6 +120,11 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   await page.locator(".gc-step:not([hidden]) .gc-next").click();
   await waitStep(page, "contact");
   await page.fill("#gc-firstName", "Tom");
+  const note = page.locator(".gc-step[data-key=contact] .legal-note");
+  const noteLinks = await note.locator("a").evaluateAll((as) => as.map((a) => [a.getAttribute("href"), a.target]));
+  ok("phone: the notice at collection names the button that agrees", (await note.textContent()).startsWith("By tapping See my score, you agree to our Terms of Service"));
+  ok("phone: it links the Terms, the Privacy Policy and the privacy choices, each in a new tab", ["/legal/terms", "/legal/privacy", "/legal/privacy-choices"].every((h) => noteLinks.some(([href, t]) => href === h && t === "_blank")), JSON.stringify(noteLinks));
+  ok("phone: the email box starts unticked", !(await page.locator('.gc-step[data-key=contact] input[name=consentEmail]').isChecked()));
   await page.fill("#gc-email", "tom@maplestreet");
   await page.locator(".gc-step:not([hidden]) button[type=submit]").click();
   ok("phone: a bad email is caught before sending", (await page.locator(".gc-step:not([hidden]) .err").textContent()).includes("valid email"));
@@ -135,6 +146,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   let calls = await stubCalls();
   const stored = calls.find((c) => c.svc === "supabase" && c.body && c.body.payload && c.body.payload.form === "meta-gap-report");
   ok("phone: stored as meta-gap-report with the server's score and fit", stored && stored.body.payload.fields.score === 79 && stored.body.payload.fields.fit === "qualified", JSON.stringify(stored && stored.body.payload.fields));
+  ok("phone: the consent wording version and the ad-tools choice are stored", stored && stored.body.payload.fields.noticeVersion === SITE.noticeVersion && stored.body.payload.meta.ads_consent === "granted", JSON.stringify(stored && stored.body.payload.meta));
   ok("phone: the campaign and fbclid are stored", stored && stored.body.payload.meta.utm_campaign === "gap-test" && stored.body.payload.meta.fbclid === "IwAR0testtesttesttest" && /^fb\.1\.\d+\.IwAR0testtesttesttest$/.test(stored.body.payload.meta.fbc || ""), JSON.stringify(stored && stored.body.payload.meta));
   const events = await page.evaluate(() => window.__rmEvents);
   const fbq = await page.evaluate(() => window.__fbq);
@@ -158,6 +170,9 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   await page.locator(".book .chip-opt").first().click();
   await page.locator('.book .chip-opt:has(input[value="morning"])').click();
   await page.fill("#bk-phone", "(512) 555-0134");
+  ok("phone: the text box starts unticked and is not required", !(await page.locator(".book input[name=consentText]").isChecked()) && !(await page.locator(".book input[name=consentText]").getAttribute("data-req")));
+  ok("phone: the text box says who, why, how many, rates, STOP and HELP", /Rempo may text this number.*up to 3 texts.*Msg & data rates may apply.*STOP.*HELP.*Not required to book/.test(await page.locator(".book .consent").nth(1).textContent()));
+  ok("phone: the call step's notice names its button and links the SMS terms", (await page.locator(".book .legal-note").textContent()).startsWith("By tapping Book my 15-minute call") && (await page.locator('.book .legal-note a[href="/legal/sms"]').count()) === 1);
   await page.locator(".book .consent").first().click();
   await page.screenshot({ path: path.join(SHOTS, "phone-05-call-step.png") });
   await clearStub();
@@ -173,7 +188,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   const call = calls.find((c) => c.svc === "supabase" && c.body.payload && c.body.payload.form === "meta-call");
   ok("phone: the call stored as meta-call with the slot and phone", call && call.body.payload.phone === "5125550134" && call.body.payload.fields.slotWindow === "morning" && call.body.payload.consent.consentPhone === true);
   ok("phone: Schedule to the pixel and the Conversions API, same event id", sched && capiSched && capiSched.body.data[0].event_id === sched.eventID && /^schedule-/.test(sched.eventID));
-  ok("phone: the server Schedule carries the hashed phone", capiSched && /^[a-f0-9]{64}$/.test(capiSched.body.data[0].user_data.ph[0]));
+  ok("phone: the server Schedule never carries the phone number", capiSched && !capiSched.body.data[0].user_data.ph);
   ok("phone: the prospect's booking email went out", calls.some((c) => c.svc === "resend" && c.body.to && /You're booked/.test(c.body.subject)));
   // A reload keeps the visit's place
   await page.reload({ waitUntil: "networkidle" });
@@ -187,6 +202,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
 {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
+  await page.addInitScript(FBQ);
   await page.goto(`${PAGES}/replies`, { waitUntil: "networkidle" });
   ok("/replies: its own headline", (await page.locator("h1").textContent()).includes("no reply"));
   ok("phone: the sticky bar hides while the card is on screen", !(await page.locator(".sticky-bar.show").count()));
@@ -201,6 +217,7 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   await waitStep(page, "asks");
   await page.locator(".dlg-x").click();
   await page.waitForTimeout(400);
+  ok("no consent yet: events are counted on the page, the pixel hears none of them", await page.evaluate(() => window.__rmEvents.some((e) => e.name === "GapCheckStart") && window.__fbq.length === 0));
   ok("phone: closing gives the card back to the hero, the answer kept", await page.evaluate(() => !!document.querySelector("#gc-home #gap-check") && document.querySelector('.gc-step[data-key=trade] input[value="plumbing"]').checked));
   await audit(page, "phone /replies");
   await ctx.close();
@@ -269,6 +286,10 @@ const waitStep = (page, key) => page.waitForSelector(`.gc-step[data-key="${key}"
   await waitStep(page, "newest");
   ok("keyboard: Enter after an arrow choice moves on", (await currentKey(page)) === "newest");
   await audit(page, "pc /request");
+  const footLinks = await page.locator(".foot a[href^='/legal']").evaluateAll((as) => [...new Set(as.map((a) => a.getAttribute("href")))]);
+  const statuses = await Promise.all(footLinks.map(async (h) => (await fetch(`${BASE}${h}`)).status));
+  ok(`footer: ${footLinks.length} legal links, each opens a page`, footLinks.length >= 7 && statuses.every((st) => st === 200), footLinks.map((h, i) => `${h} ${statuses[i]}`).join(", "));
+  ok("footer: no cookie settings link while no tracker is set", (await page.locator("[data-cookie-settings]").count()) === (SITE.metaPixelId || SITE.clarityId ? 1 : 0));
   await page.goto(`${PAGES}/request?view=preview`, { waitUntil: "networkidle" });
   ok("preview view: the {TBD} notes show", (await page.locator(".tbd:visible").count()) > 0);
   await page.goto(`${PAGES}/request`, { waitUntil: "networkidle" });
