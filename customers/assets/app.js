@@ -219,24 +219,81 @@ ATTR.forEach((k) => { const v = qs.get(k); if (v) attr[k] = v.slice(0, 300); });
 if (qs.get("fbclid") && !attr.fbclidAt) attr.fbclidAt = Date.now();
 store.set("rm-attr", attr);
 
-/* ---------- Events: the Meta pixel (only if loaded, never with Global Privacy Control), the dataLayer, and a log
+/* ---------- Consent: whether advertising and analytics tools (Meta's pixel, Clarity) may run. Global Privacy Control
+   always means no. Otherwise the visitor's choice, kept in localStorage "rm-consent" ({ ads: "granted" | "denied" })
+   and shared with /legal/privacy-choices on the same domain. With no choice yet, site.trackingConsent decides:
+   "opt-in" (the default) waits for Allow, "notice" runs until the visitor declines. ---------- */
+const GPC = navigator.globalPrivacyControl === true;
+const TRACK = SITE.tracking || {};
+const CONSENT_KEY = "rm-consent";
+function readConsent() {
+  try { const c = JSON.parse(localStorage.getItem(CONSENT_KEY) || "null"); return c && (c.ads === "granted" || c.ads === "denied") ? c : null; } catch (e) { return null; }
+}
+function writeConsent(ads) {
+  try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ v: 1, ads, at: new Date().toISOString(), src: "notice" })); } catch (e) { /* not kept: asked again next visit */ }
+}
+// "granted", "denied" (a choice, or Global Privacy Control), or "unset"; sent with each lead, so the server knows too
+const consentState = () => (GPC ? "denied" : (readConsent() || {}).ads || "unset");
+const adsAllowed = () => { const s = consentState(); return s === "granted" || (s === "unset" && TRACK.mode === "notice"); };
+
+// The tools themselves, loaded only once they are allowed (never from the page's head)
+function loadTrackers() {
+  if (window.__rmTrackersOn || !adsAllowed()) return;
+  window.__rmTrackersOn = true;
+  if (TRACK.pixel) {
+    try {
+      !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+      window.fbq("init", TRACK.pixel);
+      window.fbq("track", "PageView");
+    } catch (e) { /* tracking never breaks the page */ }
+  }
+  if (TRACK.clarity) {
+    try {
+      (function (c, l, a, r, i, t, y) { c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); }; t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i; y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y); })(window, document, "clarity", "script", TRACK.clarity);
+    } catch (e) { /* tracking never breaks the page */ }
+  }
+}
+
+/* ---------- Events: the Meta pixel (only once allowed, never with Global Privacy Control), the dataLayer, and a log
    the tests read. Standard events (Lead, Schedule) go out only for qualified answers: the course's pixel
    conditioning, so Meta looks for more owners like the ones who fit. ---------- */
-const GPC = navigator.globalPrivacyControl === true;
 const STANDARD = ["Lead", "Schedule", "InitiateCheckout", "ViewContent"];
 window.__rmEvents = window.__rmEvents || [];
 function track(name, params, eventID) {
   const p = Object.assign({ variant: VARIANT }, params || {});
   const std = STANDARD.includes(name);
   window.__rmEvents.push({ name, params: p, eventID: eventID || null, standard: std });
-  if (!GPC && typeof window.fbq === "function") {
+  if (adsAllowed() && typeof window.fbq === "function") {
     try { window.fbq(std ? "track" : "trackCustom", name, p, eventID ? { eventID } : undefined); } catch (e) { /* tracking never breaks the page */ }
   }
   (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: `rempo_${name}` }, p));
 }
 const cookie = (n) => { const m = document.cookie.match(`(?:^|; )${n}=([^;]*)`); return m ? decodeURIComponent(m[1]) : ""; };
 const fbc = () => cookie("_fbc") || (attr.fbclid ? `fb.1.${attr.fbclidAt || Date.now()}.${attr.fbclid}` : "");
-const tracking = (extra) => Object.assign({ fbc: GPC ? "" : fbc(), fbp: GPC ? "" : cookie("_fbp"), gpc: GPC }, extra);
+const tracking = (extra) => {
+  const out = consentState() === "denied";
+  return Object.assign({ fbc: out ? "" : fbc(), fbp: out ? "" : cookie("_fbp"), gpc: GPC, consent: consentState() }, extra);
+};
+
+/* ---------- The cookie notice (in the page only when a pixel or Clarity id is set): shown until the visitor
+   chooses, never with Global Privacy Control; the footer's "Cookie settings" opens it again ---------- */
+const notice = document.getElementById("cookie-notice");
+function showNotice(open) {
+  if (!notice) return;
+  notice.hidden = !open;
+  document.body.classList.toggle("cookie-open", open);
+}
+if (notice) {
+  if (!GPC && !readConsent()) showNotice(true);
+  $$("[data-consent]", notice).forEach((b) => b.addEventListener("click", () => {
+    writeConsent(b.dataset.consent);
+    showNotice(false);
+    if (b.dataset.consent === "granted") loadTrackers();
+    else if (window.__rmTrackersOn) location.reload();   // a tool that already ran stops only with a fresh page
+  }));
+  $$("[data-cookie-settings]").forEach((b) => b.addEventListener("click", () => { showNotice(true); const first = $("[data-consent]", notice); if (first) first.focus(); }));
+}
+loadTrackers();
 
 /* ---------- Sending: JSON to site.endpoint (/api/meta-lead), the same endpoint shape as the master page's /api/lead ---------- */
 async function send(body) {
@@ -253,6 +310,7 @@ async function send(body) {
 }
 const common = () => {
   const out = { variant: VARIANT, visit, page: location.href, tz: (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { return ""; } })() };
+  if (SITE.noticeVersion) out.noticeVersion = SITE.noticeVersion;   // the consent and policy wording this lead agreed to
   ATTR.forEach((k) => { if (attr[k]) out[k] = attr[k]; });
   return out;
 };
@@ -274,6 +332,8 @@ const home = $("#gc-home");
 const wide = matchMedia("(min-width: 900px)");
 const sticky = $(".sticky-bar");
 let cardVisible = true, finalVisible = false;
+// The page's own buttons on screen (phones): the sticky bar steps aside, one action at a time
+const ctaSeen = new Set();
 let state = Object.assign({ step: 0, answers: {}, sent: null, call: null, emailOnly: false, started: false, seen: [] }, store.get("rm-gc"));
 const save = () => store.set("rm-gc", { step: state.step, answers: state.answers, sent: state.sent, call: state.call, emailOnly: state.emailOnly, started: state.started, seen: state.seen });
 
@@ -512,6 +572,19 @@ function renderResult(fresh) {
   syncSticky();
 }
 
+// The notice at collection under a form (the same words the build puts under the Gap Check): the button that signals
+// agreement, by name, the Terms and the Privacy Policy, what Meta hears, and, under the text box, the SMS terms.
+// Links open in a new tab so the form keeps its answers.
+function legalNotice(button, sms) {
+  const L = UI.legal, G = SITE.legal || {};
+  if (!L || !G.terms || !G.privacy) return "";
+  const a = (href, label) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}<span class="sr-only"> ${esc(L.newTab)}</span></a>`;
+  let html = fill(esc(L.notice), { button: esc(button), terms: a(G.terms, L.terms), privacy: a(G.privacy, L.privacy) });
+  if (sms && G.sms) html += ` ${fill(esc(L.noticeSms), { sms: a(G.sms, L.sms) })}`;
+  if (G.choices) html += ` ${fill(esc(L.noticeMeta), { choices: a(G.choices, L.choices) })}`;
+  return `<p class="legal-note">${html}</p>`;
+}
+
 function renderBooking(ev) {
   const R = UI.result, B = SURVEY.booking, s = state.sent;
   const days = bookingDays(SURVEY, new Date());
@@ -527,6 +600,7 @@ function renderBooking(ev) {
       <div class="field"><label for="bk-phone">${esc(B.phone.label)}</label><div class="phone-in"><span aria-hidden="true">${esc(B.phone.prefix)}</span><input id="bk-phone" name="phone" type="tel" inputmode="${esc(B.phone.inputmode)}" autocomplete="${esc(B.phone.autocomplete)}" maxlength="20" data-req></div></div>
       <label class="consent"><input type="checkbox" name="${esc(B.consentPhone.name)}" data-req><span>${esc(B.consentPhone.label)}</span></label>
       <label class="consent"><input type="checkbox" name="${esc(B.consentText.name)}"><span>${esc(B.consentText.label)}</span></label>
+      ${legalNotice(R.bookSubmit, true)}
       <p class="err" role="alert"></p>
       <button class="btn btn-primary btn-block" type="submit">${icon("i-calendar")}${esc(R.bookSubmit)}</button>
       <button class="link-btn skip" type="button">${esc(R.skip)}</button>
@@ -674,17 +748,22 @@ if (sheet && home) {
 }
 $$("[data-open-check]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openCheck(a.dataset.openCheck || "page"); }));
 
-/* ---------- The sticky bar: on phones, once the hero card is off screen; not over the close, not once done ---------- */
+/* ---------- The sticky bar: on phones, once the hero card is off screen; not over the close or a section's own button, not once done ---------- */
 function syncSticky() {
   if (!sticky) return;
   const done = !!(state.call || state.emailOnly);
   const inSheet = sheet && sheet.open;
-  sticky.classList.toggle("show", !cardVisible && !finalVisible && !done && !inSheet);
+  sticky.classList.toggle("show", !cardVisible && !finalVisible && !ctaSeen.size && !done && !inSheet);
 }
 if ("IntersectionObserver" in window && sticky && home) {
   new IntersectionObserver((es) => { cardVisible = es[0].isIntersecting; syncSticky(); }, { rootMargin: "0px 0px -20% 0px" }).observe(home);
   const fin = $("#final");
   if (fin) new IntersectionObserver((es) => { finalVisible = es[0].isIntersecting; syncSticky(); }, { threshold: 0.2 }).observe(fin);
+  const ctaIO = new IntersectionObserver((es) => {
+    es.forEach((e) => { if (e.isIntersecting) ctaSeen.add(e.target); else ctaSeen.delete(e.target); });
+    syncSticky();
+  }, { rootMargin: "0px 0px -12% 0px" });
+  $$(".sec-cta").forEach((el) => ctaIO.observe(el));
 }
 
 /* ---------- Reveal on scroll (motion only); everything is visible without it ---------- */

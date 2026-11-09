@@ -1,5 +1,5 @@
 {
-  "_note": "One page per ad angle (PLAN.md section 6). Each is its own static page at /<slug>, so Meta's crawler reads its own words. Only the hero changes; everything below it is shared, so a test compares one thing: the angle. To add one: a new entry, then node tools/build.mjs. hook is the ad's first line, kept here so the page and the ad are written together.",
+  "_note": "One page per ad angle (PLAN.md section 6). leadShort is the hero line on a phone (under 600 px), shorter so the first question and its answers fit the first screen; lead stays everywhere else and in the share card. Each is its own static page at /<slug>, so Meta's crawler reads its own words. Only the hero changes; everything below it is shared, so a test compares one thing: the angle. To add one: a new entry, then node tools/build.mjs. hook is the ad's first line, kept here so the page and the ad are written together.",
   "variants": [
     {
       "id": "top-three",
@@ -7,6 +7,7 @@
       "hook": "How do your Google reviews compare with the three shops above you?",
       "h1": "Your work is better. Do your reviews show it?",
       "lead": "Get a free Gap Report: your Google reviews next to the top three companies near you.",
+      "leadShort": "A free Gap Report: your Google reviews next to the top three near you.",
       "scene": "podium"
     },
     {
@@ -15,6 +16,7 @@
       "hook": "When did your shop get its last Google review?",
       "h1": "How fresh are your Google reviews?",
       "lead": "74% of consumers look for reviews from the last three months (BrightLocal 2026). See how yours compare with the top three near you.",
+      "leadShort": "74% of consumers look for reviews from the last three months (BrightLocal 2026).",
       "scene": "asked"
     },
     {
@@ -23,6 +25,7 @@
       "hook": "How many of your Google reviews have no reply?",
       "h1": "How many of your reviews have no reply?",
       "lead": "80% of consumers are more likely to use a business that replies to all its reviews (BrightLocal 2026). See where you stand, free.",
+      "leadShort": "80% of consumers are more likely to use a business that replies to all its reviews (BrightLocal 2026).",
       "scene": "unanswered"
     },
     {
@@ -31,6 +34,7 @@
       "hook": "Here's what your customer sees after every job.",
       "h1": "Here's what your customer sees after every job.",
       "lead": "Your team's photo and their first name, after every job. Then a reply to every review. Start with a free Gap Report.",
+      "leadShort": "Your team's photo and their first name, after every job.",
       "scene": "phone"
     }
   ]

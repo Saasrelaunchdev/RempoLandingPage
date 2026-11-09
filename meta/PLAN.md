@@ -28,7 +28,7 @@ Sources: the three methodologies the founder supplied (summarized in section 1),
 | Never close the loop early | After the score: "Last step: pick a time"; no "thank you" until the call is booked | M3 |
 | Images over text | Every value point is led by an illustration from the master page | M3 (thought) |
 | Lean into the negatives | "What we won't do", and "a review tool costs less, and we'll tell you so" | M3 (construct the argument; talk about the worst) |
-| No fake proof | No testimonials, counts or logos (none on file). A labelled sample report instead | GTM claim rules, M1 |
+| No fake proof | No testimonials, counts or logos (none on file). A sample report, plainly the product's own example, instead | GTM claim rules, M1 |
 | Quality over quantity | Qualifying questions from the GTM's own floor; Meta is told only about qualified leads | M1, M3 (pixel conditioning) |
 | Transparency | What's in the report, who checks it, when it arrives, what starting takes | M1 (supporting value points) |
 | Show-up rate | Booking window of 5 business days, never same day or weekends; an add-to-calendar; an expectations note | M3 (booking page, thank-you page) |
@@ -72,14 +72,14 @@ Mobile is the design target (390 px). On a PC the hero becomes two columns: the 
 |---|---|---|---|
 | 0 | Header | Says whose page this is. No menu, no exits | The Rempo logo |
 | 1 | Hero | Continues the ad's thought and starts the action | Eyebrow "For HVAC and plumbing shop owners"; the variant's headline and line; the Gap Check card; three trust lines (free, no call needed; built from your public Google profile; emailed within one business day); the variant's illustration |
-| 2 | Your free Gap Report (leading value points) | Makes the report concrete and worth a minute | The top three near you; five measures in plain words; checked by a person. A labelled sample report (demo data) beside the podium illustration. Button |
+| 2 | Your free Gap Report (leading value points) | Makes the report concrete and worth a minute | The top three near you; five measures in plain words; checked by a person. A sample report (demo data), shown as the product's own example, beside the podium illustration. Button |
 | 3 | Where reviews leak (the problem) | Names what they already suspect, so they recognise themselves | Three typical cases from the master page (customers never asked; the 3-star review nobody answered; the newest review is months old), each with what Rempo does |
 | 4 | If you hand it over (supporting value points) | Transparency on the service behind the report | What your customer sees (a sample thank-you with the team photo); every job asked, one reminder; every review answered; monthly report; same-day alert. Starting is four things, once. Button |
 | 5 | What we won't do (closing: honesty) | Removes the "what's the catch" | No removing reviews, no screening out unhappy customers, no promised counts or rankings, no rewards or suggested words; "a review tool costs less, and we'll tell you so" |
 | 6 | Straight answers (FAQ) | Answers the questions they would leave to ask | 14 questions in four groups: the report, getting started, results and expectations, objections |
 | 7 | Who reads your report (founder) | A real face, once the founder supplies one | Hidden until `site.founder` is filled (shown as {TBD} in the preview view) |
 | 8 | Final call | Back to emotion before the ask, then the action | A short problem stack, the button, the trust line |
-| 9 | Footer | Who runs this, privacy | Logo, company line, privacy notice link |
+| 9 | Footer | Who runs this, privacy | Logo, company line, the legal pages (`/legal`: Terms, Privacy, Cookies, SMS terms, Accessibility, Do Not Sell or Share), Cookie settings when a tracker is set |
 | - | Sticky bar (phones) | The action is one tap from anywhere | "Get my free Gap Report", shown once the hero card is off screen, hidden at the final call and once the check is done |
 
 Every button opens the same Gap Check: on a phone it rises as a bottom sheet (the master page's pattern: one form, moved into the sheet and back), on a PC the page glides to the hero card.
@@ -131,7 +131,7 @@ Everything below the hero is shared, so a test compares one variable: the angle 
 
 ## 7. Tracking
 
-- **Meta pixel** (only when `site.metaPixelId` is set, and never for a visitor whose browser sends Global Privacy Control): `PageView`; custom `GapCheckStart`, `GapCheckStep` (step number and name, to see the drop-off slide by slide, M3), `GapReportRequested` and `CallRequested` (with `fit`, for everyone); standard `Lead` and `Schedule` for qualified visitors only; `InitiateCheckout` on the checkout link.
+- **Meta pixel** (only when `site.metaPixelId` is set, only after the visitor taps Allow in the cookie notice (`site.trackingConsent`), and never for a visitor whose browser sends Global Privacy Control): `PageView`; custom `GapCheckStart`, `GapCheckStep` (step number and name, to see the drop-off slide by slide, M3), `GapReportRequested` and `CallRequested` (with `fit`, for everyone); standard `Lead` and `Schedule` for qualified visitors only; `InitiateCheckout` on the checkout link.
 - **Conversions API** (only when `META_PIXEL_ID` and `META_CAPI_TOKEN` are set): the server sends `Lead` and `Schedule` for qualified visitors with the same event id as the browser, so Meta counts each once. Email, phone, first name, city, country and the visit id are hashed with SHA-256; `fbc`, `fbp`, IP and user agent are sent as Meta requires, unhashed. `META_TEST_EVENT_CODE` routes events to Events Manager's test tab.
 - **Attribution:** `utm_*`, `fbclid` and the variant are kept for the visit and stored with each lead, with `fbc` and `fbp`.
 - **Microsoft Clarity** (optional, `site.clarityId`): session recordings to see how visitors scroll and where they stop (M3).
@@ -166,7 +166,7 @@ Vercel: the master page's project, with nothing to set up. `node tools/build.mjs
 
 - The first question is visible without scrolling on a 390 x 844 phone.
 - Every claim passes the GTM's copy rules (`content` is linted on every build): no promised reviews or rankings, no price or terms until the offer is decided, no "instant" or "automatic", no named job software, no em dashes.
-- Every illustration and sample is labelled as one. No invented testimonial, count or logo.
+- No caption under the illustrations (removed at the owner's request, 2026-11-07): they read as internal notes. So no sample may pass for real proof: a sample review stays inside its illustration, never alone as a testimonial, and the sample report is shown as the product's example. No invented testimonial, count or logo.
 - Keyboard and screen reader work through the whole Gap Check; contrast from the master page's tokens; reduced motion respected.
 - A light page: no framework, one small script, fonts and pictures cached, below-the-fold pictures lazy.
 
@@ -176,7 +176,7 @@ Vercel: the master page's project, with nothing to set up. `node tools/build.mjs
 |---|---|---|
 | The offer (price, setup fee, guarantee, terms) | Hidden; the FAQ says the call covers the numbers | `content/site.mjs` `offer` |
 | Checkout link | No checkout link anywhere | `site.checkoutUrl` |
-| Privacy notice | Footer and consent link shown as {TBD} in preview | `site.privacyUrl` |
+| Privacy notice | Done: `/legal/privacy` and the other legal pages, built from `../legal-src/` | `site.privacyUrl`, `site.legal` |
 | Company line (legal name, city) | Footer shows "Rempo · rempo.io" | `site.company` |
 | Meta pixel and Conversions API | No tracking | `site.metaPixelId`; Vercel `META_PIXEL_ID`, `META_CAPI_TOKEN` |
 | The founder's face and name | Founder section hidden | `site.founder` |

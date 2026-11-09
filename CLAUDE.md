@@ -1,0 +1,105 @@
+# Rules for working on this repository
+
+These rules come from the owner. They apply to every session and every task, and they override any habit or
+default that conflicts with them.
+
+## Why these rules exist
+
+On Nov 7 and 8, 2026, three sessions worked at the same time on three branches (`claude/busy-faraday-urxwws`,
+`claude/compassionate-newton-8h79kb`, `claude/keen-mendel-uu2qxa`). None of them was merged into `main`, so each one
+started from an old `main` and had no idea about the others. Each branch's Vercel preview was then promoted to
+production on its own, so each promotion replaced the live site with that one branch's copy:
+
+- Promoting /admin brought the "Illustration · ..." caption notes back and dropped the phone layout and /customers.
+- Promoting the legal pages then dropped /admin, the case studies and the video testimonial.
+
+Nothing was lost in git. The work was spread across branches, and production showed whichever branch was promoted
+last. The rules below make sure that cannot happen again.
+
+## Rule 1. One branch: `main`
+
+- `main` is the only source of truth, and the only branch that deploys to production (Vercel's production branch).
+- A session's own branch (`claude/...`) only carries work to `main`. It starts from the latest `main` and is merged
+  back into `main` at the end of the same task. Work that is not on `main` is not done.
+- Never promote or redeploy a branch's preview to production in Vercel, and never advise the owner to. Production
+  is whatever `main` holds. If something has to go live, merge it into `main`.
+
+### Start of every session
+
+1. `.claude/hooks/session-start.sh` runs automatically. It brings your branch up to date with `origin/main` and lists
+   any branch on GitHub that holds work `main` does not have. If its "Branch sync" report is not in your context (for
+   example, in a session with several repositories), run it yourself first: `.claude/hooks/session-start.sh`.
+2. If it says **STOP** about branches holding work that is not on `main`, tell the owner which branches and what they
+   contain. Then merge them into `main` (Rule 2 applies) before any new work, unless the owner says to drop one. If
+   the owner says to drop one, delete that branch on GitHub so it stops being flagged.
+3. If it says **STOP** because merging `main` into your branch conflicts, resolve that merge first (Rule 2).
+
+### End of every task
+
+1. Bring in anything merged meanwhile: `git fetch origin main && git merge origin/main`.
+2. Rebuild whatever is generated (see "Generated files" below) and run every check (see "Checks"). All must pass.
+3. Push your branch, open a pull request into `main`, and merge it with **"Create a merge commit"**. Never squash or
+   rebase: those copy the commits, so the branch would still show as not merged and the next session would be told
+   to merge it again. The owner has asked for every task to end merged into `main`. You do not need to ask again
+   before opening and merging the pull request.
+4. Check that `git rev-list --count origin/main..HEAD` prints `0` after the merge, and tell the owner the work is on
+   `main` and deploying to production.
+
+The only exception: if the owner says this task is a preview only, or not to ship it yet, leave the pull request
+open and say so plainly. The start-of-session hook will keep flagging it until it is merged or dropped.
+
+## Rule 2. No update undoes an earlier update unless the owner explicitly asks
+
+- Each change the owner asked for stays in place until the owner explicitly asks to undo that specific change. A new
+  task, a redesign, a merge or a "cleanup" is not permission to remove, revert or reword earlier work.
+- Before you change a file, look at its recent history (`git log --oneline -10 -- <file>`) and at "Owner decisions"
+  below. If your change would undo or contradict one of them, do not make it. Ask the owner.
+- When you merge, keep both sides. Never resolve a conflict by taking one whole side (`-X ours`, `-X theirs`,
+  `git checkout --ours/--theirs`) on a source file. Combine the two intents. If they truly contradict each other,
+  ask the owner.
+- Never rebuild a generated file by hand during a merge. Merge its sources, then run its build (see below).
+- Never force-push `main`, rewrite its history, or reset it.
+- `tests/unit/owner-decisions.test.mjs` pins the owner's decisions and runs with `npm test`. If it fails, an earlier
+  update has been undone: restore it. Only when the owner explicitly asks to undo a decision, change its test in the
+  same commit, update the list below, and name the decision in the commit message.
+- Add each new owner-requested change to the list below, and give it a test in that file when it can be checked
+  mechanically.
+
+## Owner decisions (do not undo unless the owner explicitly asks)
+
+| Date | Decision | Where |
+|---|---|---|
+| 2026-11-06 | Lead capture: the Get started form, the scorecard and the call form store leads in Supabase and announce them | `api/lead.mjs`, `index.html` |
+| 2026-11-07 | The Meta ads landing page lives at `/customers`, served by this project | `meta/` builds into `customers/` |
+| 2026-11-07 | Both landing pages are optimized for phones; the PC version stays as it was | `index.html`, `meta/` |
+| 2026-11-07 | No caption notes under pictures ("Illustration · ...", "sample ... demo data") on any page, phone or PC | `index.html`, `meta/` |
+| 2026-11-07 | Case studies (Junkaway & Movers, Ranchero Plumbing) and German Aquino's video testimonial | `index.html#results`, `/case-studies/*` |
+| 2026-11-08 | `/admin` publishes proof (videos, case studies) behind `ADMIN_PASSWORD` | `admin/`, `api/admin*.mjs`, `PROOF.md` |
+| 2026-11-08 | Legal pages at `/legal`, linked from every footer; consent and a notice at collection on every form | `legal-src/` builds into `legal/` |
+
+## Generated files: rebuild them, never merge them by hand
+
+| Output | Source | Build |
+|---|---|---|
+| `customers/` | `meta/` | `node meta/tools/build.mjs` |
+| `legal/` | `legal-src/` | `node legal-src/tools/build.mjs` |
+| The case studies section of `index.html` | the published proof seed | `node tools/render-landing.mjs` |
+
+The built files are committed: Vercel serves them as they are and runs no build for them.
+
+## Checks (all must pass before merging into `main`)
+
+```bash
+npm install
+npm test                                   # unit tests + the owner decisions
+npm run test:e2e                           # /admin end to end, in Chromium
+node meta/tests/run.mjs                    # the /customers pages
+node legal-src/tests/check-legal.mjs       # the legal pages and consent
+node lead-capture/tests/check-forms.mjs    # the landing page's forms
+node lead-capture/tests/check-api.mjs      # the lead endpoint
+```
+
+## Other repositories
+
+`Saasrelaunchdev/rempogtmbuild` (the go-to-market build) is read-only reference and the source of truth for
+positioning, ICPs and copy rules. Read it for context. Never commit to it from work on this repository.

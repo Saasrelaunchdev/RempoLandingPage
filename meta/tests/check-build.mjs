@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
  * The built pages: ../customers/ is exactly what the sources build (node tools/build.mjs --check); one page per variant,
- * each with its own headline, the survey data and the script; every link stays under site.path and every asset exists;
- * {TBD} only inside preview-only notes; no em dashes; the noindex; no pixel or canonical until they are set; the weight
+ * each with its own headline, the survey data and the script; every link stays under site.path, except links to the
+ * legal pages (../legal/, built from ../legal-src/), which must exist; every asset exists; the notice at collection
+ * and the footer's legal links; {TBD} only inside preview-only notes; no em dashes; the noindex; no pixel, cookie
+ * notice or canonical until they are set, and no tracker in the page's head ever (they wait for consent); the weight
  * stays small; and the master page's Vercel project serves it all (root vercel.json, .vercelignore, api/meta-lead.mjs).
  *   node tests/check-build.mjs
  */
@@ -37,19 +39,31 @@ for (const v of variants) {
   ok(`${label}: the survey and the variant in the page data`, data.variant === v.id && data.survey && data.survey.steps.length === SURVEY.steps.length);
   ok(`${label}: no secret or server-only setting in the page data`, !/PROSPECT|CAPI|TOKEN|SUPABASE|RESEND/i.test(JSON.stringify(data)));
   ok(`${label}: sends its leads to ${SITE.endpoint}`, data.site && data.site.endpoint === SITE.endpoint);
+  ok(`${label}: the PC hero line and the phone one, each marked for its screen`, html.includes(`<p class="lead m-hide">${v.lead.replace(/'/g, "&#39;")}</p>`) && (!v.leadShort || html.includes(`<p class="lead m-only">${v.leadShort.replace(/'/g, "&#39;")}</p>`)));
   ok(`${label}: every question in the HTML (Meta's crawler reads the page)`, SURVEY.steps.every((s) => html.includes(s.q.replace(/'/g, "&#39;"))));
   const links = [...html.matchAll(/(?:src|href|srcset)="([^"]+)"/g), ...html.matchAll(/url\(([^)]+)\)/g)].flatMap((m) => m[1].split(",").map((x) => x.trim().split(" ")[0]));
-  const outside = links.filter((u) => u.startsWith("/") && u !== BASE && !u.startsWith(`${BASE}/`));
-  ok(`${label}: every link on this site stays under ${BASE}`, outside.length === 0, outside.join(", "));
+  const outside = links.filter((u) => u.startsWith("/") && u !== BASE && !u.startsWith(`${BASE}/`) && !/^\/legal(\/|$)/.test(u));
+  ok(`${label}: every link on this site stays under ${BASE} or /legal`, outside.length === 0, outside.join(", "));
+  const legal = [...new Set(links.filter((u) => /^\/legal(\/|$)/.test(u)).map((u) => u.split("#")[0]))];
+  const noPage = legal.filter((u) => !existsSync(path.join(REPO, u, "index.html")));
+  ok(`${label}: every /legal link is a built legal page (${legal.length})`, legal.length >= 7 && noPage.length === 0, noPage.join(", "));
+  const L = SITE.legal || {};
+  ok(`${label}: the footer links every legal page`, ["terms", "privacy", "cookies", "sms", "choices", "accessibility", "hub"].every((k) => L[k] && html.includes(`href="${L[k]}"`)));
+  ok(`${label}: the notice at collection names the button and links the Terms and the Privacy Policy`, /<p class="legal-note">By tapping See my score, you agree to our <a href="\/legal\/terms"[^>]*>Terms of Service[\s\S]*?<a href="\/legal\/privacy"[^>]*>Privacy Policy/.test(html));
   const assets = links.filter((u) => u.startsWith(`${BASE}/assets/`));
   const missing = assets.filter((u) => !existsSync(path.join(OUT, u.split("?")[0].slice(BASE.length))));
   ok(`${label}: every ${BASE}/assets/ link exists (${assets.length})`, assets.length > 0 && missing.length === 0, missing.join(", "));
   ok(`${label}: every asset carries a version`, assets.every((u) => /\?v=[a-f0-9]{10}$/.test(u)));
   const stripped = html.replace(/<span class="tbd" data-tbd>[^<]*<\/span>/g, "").replace(/<section[^>]*data-tbd[\s\S]*?<\/section>/g, "").replace(/<div class="preview-bar" data-tbd[\s\S]*?<\/div>/g, "");
   ok(`${label}: {TBD} only in preview-only notes`, !stripped.includes("{TBD"));
+  ok(`${label}: no caption notes under the pictures`, !/class="proof-chip|Illustration · |demo data/.test(html));
   ok(`${label}: no em or en dashes`, !/[\u2013\u2014]/.test(html.replace(/<style>[\s\S]*?<\/style>/, "")));
   ok(`${label}: noindex`, html.includes('<meta name="robots" content="noindex, nofollow">'));
-  ok(`${label}: no pixel until site.metaPixelId is set`, SITE.metaPixelId ? html.includes("connect.facebook.net") : !html.includes("connect.facebook.net"));
+  const head = (html.match(/<head>([\s\S]*?)<\/head>/) || [])[1] || "";
+  ok(`${label}: no tracker in the page's head (they load only with consent)`, !/connect\.facebook\.net|clarity\.ms|facebook\.com\/tr/.test(head));
+  ok(`${label}: no pixel until site.metaPixelId is set`, SITE.metaPixelId ? data.site.tracking.pixel === String(SITE.metaPixelId).replace(/\D/g, "") : data.site.tracking && data.site.tracking.pixel === null);
+  ok(`${label}: a cookie notice only when a tracker is set`, (SITE.metaPixelId || SITE.clarityId) ? html.includes('id="cookie-notice"') : !html.includes('id="cookie-notice"') && !html.includes("data-cookie-settings"));
+  ok(`${label}: the consent version in the page data`, data.site.noticeVersion === SITE.noticeVersion && /^\d{4}-\d{2}-\d{2}$/.test(SITE.noticeVersion));
   ok(`${label}: no canonical until site.url is set`, SITE.url ? html.includes('rel="canonical"') : !html.includes('rel="canonical"'));
   const gz = zlib.gzipSync(html).length;
   ok(`${label}: the page is light (${(gz / 1024).toFixed(1)} KB gzipped, budget 40)`, gz < 40 * 1024);

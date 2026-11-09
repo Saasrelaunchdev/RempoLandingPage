@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The pages on your machine, laid out as on Vercel: the built ../customers/ folder at /customers (/customers/recent
-// serves ../customers/recent/index.html), and /api/meta-lead running the real function (../api/meta-lead.mjs).
+// serves ../customers/recent/index.html), the legal pages (../legal/, built from ../legal-src/) at /legal, and
+// /api/meta-lead running the real function (../api/meta-lead.mjs).
 //
 //   node tools/dev.mjs                 http://localhost:8790/customers, /api/meta-lead uses the variables in your environment
 //   node tools/dev.mjs --stub          Supabase, Resend, Slack and Meta answered locally: every call is recorded and
@@ -17,6 +18,7 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = (await import(pathToFileURL(path.join(ROOT, "content", "site.mjs")).href)).default;
 const BASE = SITE.path;                                   // "/customers"
 const PUBLIC = path.join(ROOT, "..", BASE.slice(1));      // the repository's customers/ folder
+const LEGAL = path.join(ROOT, "..", "legal");             // the repository's legal/ folder, served at /legal
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d; };
 const PORT = Number(arg("--port", process.env.PORT || 8790));
 const STUB = process.argv.includes("--stub");
@@ -66,9 +68,11 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === "/") { res.writeHead(302, { location: BASE }); return res.end(); }
     const notFound = () => { res.writeHead(404, { "content-type": "text/plain; charset=utf-8" }); res.end("not found"); };
-    if (url.pathname !== BASE && !url.pathname.startsWith(`${BASE}/`)) return notFound();
-    let p = path.normalize(path.join(PUBLIC, decodeURIComponent(url.pathname.slice(BASE.length))));
-    if (!p.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
+    const legal = url.pathname === "/legal" || url.pathname.startsWith("/legal/");
+    if (!legal && url.pathname !== BASE && !url.pathname.startsWith(`${BASE}/`)) return notFound();
+    const [dir, prefix] = legal ? [LEGAL, "/legal"] : [PUBLIC, BASE];
+    let p = path.normalize(path.join(dir, decodeURIComponent(url.pathname.slice(prefix.length))));
+    if (!p.startsWith(dir)) { res.writeHead(403); return res.end(); }
     const s = await stat(p).catch(() => null);
     if (s && s.isDirectory()) p = path.join(p, "index.html");
     else if (!s) {

@@ -1,0 +1,223 @@
+<!doctype html>
+<!-- Built by legal-src/tools/build.mjs from legal-src/docs/. Do not edit: edit the sources and run node legal-src/tools/build.mjs -->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Processing Addendum · Rempo</title>
+<meta name="description" content="How Rempo protects the customer data it processes for clients, including the service provider terms California law requires.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://rempo.io/legal/dpa">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="/legal/assets/favicon.svg?v=6c7b9350ee" type="image/svg+xml">
+<link rel="preload" href="/legal/assets/fonts/outfit.woff2?v=6c18d579fd" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/legal/assets/fonts/geist.woff2?v=19f9c92546" as="font" type="font/woff2" crossorigin>
+<script>(function(){var d=document.documentElement,t=null;try{t=localStorage.getItem("lp-theme")}catch(e){}if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";d.dataset.theme=t;if(/(^|[?&])view=preview(&|$)/.test(location.search))d.classList.add("is-preview")})();</script>
+<style>@font-face{font-family:"Outfit";font-style:normal;font-display:swap;font-weight:100 900;src:url(/legal/assets/fonts/outfit.woff2?v=6c18d579fd) format("woff2-variations")}
+@font-face{font-family:"Geist";font-style:normal;font-display:swap;font-weight:100 900;src:url(/legal/assets/fonts/geist.woff2?v=19f9c92546) format("woff2-variations")}
+:root, [data-theme="light"] {
+color-scheme: light;
+--c-bg: #FFFFFF;
+--c-surface: #FAFCFF;
+--c-surface-2: #F3F7FE;
+--c-line: #EAEFF6;
+--c-line-strong: #D9DEE6;
+--c-heading: #0A1A33;
+--c-text: #040F22;
+--c-text-2: #4D535C;
+--c-accent: #1F86FF;
+--c-accent-text: #0057B3;
+--c-focus: #0057B3;
+--c-logo-ink: #0A1A33;
+--c-logo-accent: #1F86FF;
+--c-callout: #F2F7FF;
+--c-callout-line: #C9E0FF;
+--c-signal-bg: #FFF5E9;
+--c-signal-text: #7D5000;
+--f-display: "Outfit", system-ui, sans-serif;
+--f-text: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+--r-card: 16px;
+--gutter: 20px;
+}
+[data-theme="dark"] {
+color-scheme: dark;
+--c-bg: #050C1A;
+--c-surface: #0E1B31;
+--c-surface-2: #1A2E4C;
+--c-line: #2E4363;
+--c-line-strong: #465C7E;
+--c-heading: #FFFFFF;
+--c-text: #EAEFF6;
+--c-text-2: #C2C8D1;
+--c-accent: #1F86FF;
+--c-accent-text: #70ADFF;
+--c-focus: #70ADFF;
+--c-logo-ink: #FFFFFF;
+--c-callout: #0E1F3A;
+--c-callout-line: #2E4363;
+--c-signal-bg: #2B1800;
+--c-signal-text: #FBB960;
+}
+@media (min-width: 900px) { :root { --gutter: 32px; } }
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: 84px; }
+body { margin: 0; background: var(--c-bg); color: var(--c-text); font: 400 16px/1.65 var(--f-text); -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+a { color: var(--c-accent-text); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--c-focus); outline-offset: 2px; border-radius: 4px; }
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 max(var(--gutter), env(safe-area-inset-left, 0px)) 0 max(var(--gutter), env(safe-area-inset-right, 0px)); }
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 50; padding: 10px 14px; border-radius: 10px; background: var(--c-heading); color: var(--c-bg); font-weight: 600; text-decoration: none; }
+.skip-link:focus { top: 12px; }
+html:not(.is-preview) [data-tbd] { display: none !important; }
+.preview-bar { padding: 10px var(--gutter); background: var(--c-signal-bg); color: var(--c-signal-text); font-size: 14px; font-weight: 600; border-bottom: 1px dashed currentColor; }
+.hdr { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--c-bg) 92%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--c-line); }
+.hdr-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+.brand { display: inline-flex; align-items: center; min-height: 44px; }
+.brand svg { height: 30px; width: auto; display: block; }
+.hdr-link { font-weight: 600; text-decoration: none; color: var(--c-heading); display: inline-flex; align-items: center; min-height: 44px; }
+.hdr-link:hover { color: var(--c-accent-text); }
+.layout { display: grid; gap: 32px; padding-top: 32px; padding-bottom: 72px; }
+@media (min-width: 1000px) { .layout { grid-template-columns: 250px minmax(0, 1fr); gap: 56px; padding-top: 48px; } }
+.side { display: none; }
+@media (min-width: 1000px) {
+.side { display: block; position: sticky; top: 88px; align-self: start; max-height: calc(100vh - 110px); overflow: auto; }
+.side-t { margin: 0 0 10px; font: 600 12.5px/1.3 var(--f-text); letter-spacing: .06em; text-transform: uppercase; color: var(--c-text-2); }
+.side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.side a { display: block; padding: 7px 12px; border-radius: 10px; color: var(--c-text); text-decoration: none; font-size: 14.5px; line-height: 1.35; }
+.side a:hover { background: var(--c-surface-2); }
+.side a[aria-current="page"] { background: var(--c-surface-2); color: var(--c-heading); font-weight: 600; box-shadow: inset 3px 0 0 var(--c-accent); }
+}
+.doc { min-width: 0; max-width: 760px; }
+.eyebrow { margin: 0; font: 600 13px/1.3 var(--f-text); letter-spacing: .06em; text-transform: uppercase; color: var(--c-accent-text); }
+h1 { margin: 10px 0 6px; font: 650 clamp(32px, 5vw, 46px)/1.08 var(--f-display); letter-spacing: -.02em; color: var(--c-heading); }
+.updated { margin: 0 0 24px; color: var(--c-text-2); font-size: 14.5px; }
+.toc { margin: 0 0 32px; padding: 14px 18px; border: 1px solid var(--c-line); border-radius: var(--r-card); background: var(--c-surface); }
+.toc summary { cursor: pointer; font-weight: 600; color: var(--c-heading); min-height: 32px; display: flex; align-items: center; }
+.toc ul { list-style: none; margin: 10px 0 2px; padding: 0; columns: 1; }
+@media (min-width: 700px) { .toc ul { columns: 2; column-gap: 32px; } }
+.toc li { break-inside: avoid; margin: 0 0 6px; font-size: 14.5px; line-height: 1.4; }
+.toc a { color: var(--c-text); text-decoration: none; }
+.toc a:hover { color: var(--c-accent-text); text-decoration: underline; }
+.prose h2 { margin: 44px 0 12px; font: 650 24px/1.25 var(--f-display); letter-spacing: -.01em; color: var(--c-heading); }
+.prose h3 { margin: 28px 0 8px; font: 650 18px/1.35 var(--f-display); color: var(--c-heading); }
+.prose h2:first-child { margin-top: 8px; }
+.prose p, .prose ul, .prose ol { margin: 0 0 14px; }
+.prose ul, .prose ol { padding-left: 22px; }
+.prose li { margin: 0 0 8px; }
+.prose li::marker { color: var(--c-text-2); }
+.prose strong { color: var(--c-heading); font-weight: 650; }
+.prose code { font-size: .92em; padding: 1px 6px; border-radius: 6px; background: var(--c-surface-2); }
+.prose .lead { font-size: 18px; color: var(--c-text-2); }
+.anchor { margin-left: 8px; font-weight: 400; color: var(--c-line-strong); text-decoration: none; opacity: 0; }
+h2:hover .anchor, h3:hover .anchor, .anchor:focus { opacity: 1; }
+.doc > .callout { margin-bottom: 20px; }
+.callout { margin: 0 0 24px; padding: 16px 20px; border: 1px solid var(--c-callout-line); border-left: 4px solid var(--c-accent); border-radius: 12px; background: var(--c-callout); }
+.callout p { margin: 0 0 10px; }
+.callout p:last-child { margin-bottom: 0; }
+.tbl { margin: 0 0 20px; overflow-x: auto; border: 1px solid var(--c-line); border-radius: 12px; }
+.tbl table { width: 100%; border-collapse: collapse; font-size: 14.5px; line-height: 1.5; }
+.tbl th, .tbl td { padding: 11px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--c-line); min-width: 150px; }
+.tbl thead th { background: var(--c-surface-2); color: var(--c-heading); font-weight: 650; }
+.tbl tbody th { color: var(--c-heading); font-weight: 600; background: var(--c-surface); }
+.tbl tr:last-child > * { border-bottom: 0; }
+.doc-foot { margin: 48px 0 0; padding-top: 18px; border-top: 1px solid var(--c-line); color: var(--c-text-2); font-size: 14.5px; }
+.cards { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 12px; }
+@media (min-width: 700px) { .cards { grid-template-columns: 1fr 1fr; } }
+.card a { display: grid; gap: 6px; height: 100%; padding: 18px 20px; border: 1px solid var(--c-line); border-radius: var(--r-card); background: var(--c-surface); color: var(--c-text); text-decoration: none; transition: border-color .15s, transform .15s; }
+.card a:hover { border-color: var(--c-accent); transform: translateY(-1px); }
+.card b { font: 650 17px/1.3 var(--f-display); color: var(--c-heading); }
+.card span { font-size: 14.5px; line-height: 1.5; color: var(--c-text-2); }
+.doc > h2 { margin: 40px 0 14px; font: 650 22px/1.25 var(--f-display); color: var(--c-heading); }
+.choices { margin: 0 0 24px; padding: 20px; border: 1px solid var(--c-line-strong); border-radius: var(--r-card); background: var(--c-surface); }
+.choices p { margin: 0 0 12px; }
+.choices-gpc { padding: 12px 14px; border-radius: 10px; background: var(--c-callout); border: 1px solid var(--c-callout-line); }
+.choices-btns { display: flex; flex-wrap: wrap; gap: 12px; margin: 4px 0 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border-radius: 12px; font: 600 15.5px/1.2 var(--f-text); cursor: pointer; border: 1.5px solid var(--c-heading); background: transparent; color: var(--c-heading); }
+.btn:hover { background: var(--c-surface-2); }
+.btn[aria-pressed="true"] { background: var(--c-heading); color: var(--c-bg); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.choices-done { min-height: 1.6em; margin: 0 !important; font-weight: 600; color: var(--c-accent-text); }
+.foot { background: linear-gradient(160deg, #2E4363 0%, #1A2E4C 45%, #040F22 100%); color: #C2C8D1; padding: 40px 0 48px; font-size: 14.5px; }
+.foot-links { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-bottom: 18px; }
+.foot a { color: #fff; display: inline-flex; align-items: center; min-height: 40px; }
+.foot-small { margin: 0; color: #A5ABB5; }
+.foot-small a { min-height: 0; color: #fff; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+.hdr, .side, .foot, .skip-link, .toc, .anchor, .preview-bar { display: none !important; }
+body { font-size: 11pt; color: #000; background: #fff; }
+.layout { display: block; padding: 0; }
+.doc { max-width: none; }
+.prose a::after { content: " (" attr(href) ")"; font-size: 9pt; color: #444; }
+.tbl { overflow: visible; border: 0; }
+.tbl th, .tbl td { min-width: 0; }
+}</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="logo-mark" viewBox="0 0 64 64"><linearGradient id="rm-g" x1="10" y1="4" x2="54" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2BD0FF"/><stop offset=".52" stop-color="#1F86FF"/><stop offset="1" stop-color="#1A5CF0"/></linearGradient><linearGradient id="rm-s" x1="32" y1="2" x2="32" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><rect x="2" y="2" width="60" height="60" rx="17" fill="url(#rm-g)"/><rect x="2" y="2" width="60" height="60" rx="17" fill="url(#rm-s)"/><rect x="2.6" y="2.6" width="58.8" height="58.8" rx="16.4" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2"/><g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.6"><g stroke="#0A2F8F" stroke-opacity=".32" transform="translate(0 1.6)"><path d="M17.5 47V17h9c5 0 8 3.4 8 8s-3 8-8 8h-9"/><path d="M24 33l8 12.5L46.5 24"/></g><g stroke="#fff"><path d="M17.5 47V17h9c5 0 8 3.4 8 8s-3 8-8 8h-9"/><path d="M24 33l8 12.5L46.5 24"/></g></g></symbol>
+<symbol id="logo-h" viewBox="0 0 211.2 64"><use href="#logo-mark" width="64" height="64"/><path transform="translate(79.00 17.28) scale(0.04188)" style="fill:var(--c-logo-ink)" d="M171.5 409.25V303.5H334.5Q384.5 303.5 412.0 277.875Q439.5 252.25 439.5 207.25Q439.5 166.0 412.375 138.5Q385.25 111.0 335.25 111.0H171.5V0.0H347.0Q415.0 0 466.5 26.625Q518.0 53.25 546.625 99.375Q575.25 145.5 575.25 205.0Q575.25 266.75 546.5 312.5Q517.75 358.25 465.75 383.75Q413.75 409.25 344.5 409.25ZM71.75 703.0V0.0H208.0V703ZM455.75 703.0 223.5 399.0 348.75 360.0 621.25 703.0Z M916.75 713.5Q841.25 713.5 781.875 681.0Q722.5 648.5 688.25 591.125Q654.0 533.75 654.0 461.5Q654.0 389.5 687.625 332.625Q721.25 275.75 779.125 242.625Q837.0 209.5 908.25 209.5Q977.75 209.5 1031.125 240.625Q1084.5 271.75 1115.0 326.25Q1145.5 380.75 1145.5 450.5Q1145.5 463.25 1144.0 476.75Q1142.5 490.25 1139.0 507L732.5 507.75V410.25L1078.0 409.5L1024.5 449.75Q1023.0 406.75 1009.375 377.875Q995.75 349.0 970.375 333.75Q945.0 318.5 907.75 318.5Q868.75 318.5 840.0 335.75Q811.25 353.0 795.625 384.375Q780.0 415.75 780.0 459.5Q780.0 503.5 796.625 535.875Q813.25 568.25 844.0 585.625Q874.75 603.0 916.0 603Q952.5 603.0 982.75 590.375Q1013.0 577.75 1035.0 552.75L1112.0 630.25Q1076.5 671.5 1026.0 692.5Q975.5 713.5 916.75 713.5Z M1214.5 703.0V220.0H1346.0V703ZM1529.5 703.0V418.0Q1529.5 375.75 1503.25 352.25Q1477.0 328.75 1438.25 328.75Q1411.75 328.75 1391.0 339.375Q1370.25 350.0 1358.125 369.875Q1346.0 389.75 1346.0 418L1294.75 393.0Q1294.75 336.75 1319.375 296.0Q1344.0 255.25 1386.0 232.625Q1428.0 210 1480.5 210.0Q1531.25 210.0 1572.125 232.5Q1613.0 255 1637.0 295.625Q1661.0 336.25 1661.0 392.75V703ZM1844.5 703.0V418.0Q1844.5 375.75 1818.25 352.25Q1792.0 328.75 1753.25 328.75Q1727.5 328.75 1706.375 339.375Q1685.25 350.0 1673.125 369.875Q1661.0 389.75 1661.0 418L1585.75 400.25Q1589.5 341.75 1616.625 299.375Q1643.75 257.0 1687.875 233.5Q1732.0 210 1786.0 210Q1839.75 210.0 1882.625 232.75Q1925.5 255.5 1950.75 297.25Q1976.0 339 1976.0 397.5V703Z M2338.0 713Q2285.75 713.0 2243.75 691.75Q2201.75 670.5 2176.625 633.25Q2151.5 596.0 2149.5 548.5V377.0Q2151.5 329.5 2177.0 291.625Q2202.5 253.75 2244.4746376811595 231.875Q2286.449275362319 210.0 2338.0 210Q2405.0 210 2458.0 243.25Q2511.0 276.5 2541.5 333.375Q2572.0 390.25 2572.0 462.25Q2572.0 533.5 2541.5 590.25Q2511.0 647 2458.0 680.0Q2405.0 713 2338.0 713ZM2069.5 905.5V220.0H2201.0V346.88452914798205L2178.75 464.5L2199.75 581.5V905.5ZM2315.141826923077 592.0Q2351.34375 592.0 2378.921875 575.375Q2406.5 558.75 2422.25 529.2328767123288Q2438.0 499.7157534246575 2438.0 461.4075342465753Q2438.0 423 2422.25 393.625Q2406.5 364.25 2378.983009708738 347.625Q2351.4660194174758 331.0 2315.483009708738 331.0Q2279.5 331.0 2251.626811594203 347.5453296703297Q2223.753623188406 364.09065934065933 2208.376811594203 393.53846153846155Q2193.0 422.9862637362637 2193.0 461.467032967033Q2193.0 499.75 2208.25 529.25Q2223.5 558.75 2251.375 575.375Q2279.25 592.0 2315.141826923077 592.0Z M2872.5 713.5Q2799.75 713.5 2741.125 680.0Q2682.5 646.5 2648.25 589.0Q2614.0 531.5 2614.0 460.5Q2614.0 389.5 2648.125 333.0Q2682.25 276.5 2740.875 243.0Q2799.5 209.5 2872.25 209.5Q2945.75 209.5 3004.25 242.625Q3062.75 275.75 3097.0 332.625Q3131.25 389.5 3131.25 460.5Q3131.25 531.5 3097.125 589.0Q3063.0 646.5 3004.5 680.0Q2946.0 713.5 2872.5 713.5ZM2872.25 591.0Q2909.25 591.0 2937.5 574.5Q2965.75 558.0 2981.375 528.375Q2997.0 498.75 2997.0 460.75Q2997.0 422.75 2980.875 393.875Q2964.75 365.0 2937.0 348.5Q2909.25 332.0 2872.25 332.0Q2836.25 332.0 2808.0 348.625Q2779.75 365.25 2764.0 394.125Q2748.25 423.0 2748.25 461.0Q2748.25 498.75 2764.0 528.375Q2779.75 558.0 2808.0 574.5Q2836.25 591.0 2872.25 591.0Z"/></symbol>
+</defs></svg>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="preview-bar" data-tbd role="note">Preview: still to fill in legal-src/settings.mjs: the legal entity name (settings.legalName); the mailing address for notices and email (settings.address); the billing portal link for online cancellation (settings.billingPortalUrl).</div>
+<header class="hdr"><div class="wrap hdr-in"><a class="brand" href="/" aria-label="Rempo home"><svg viewBox="0 0 211.2 64" aria-hidden="true"><use href="#logo-h"/></svg></a><a class="hdr-link" href="/legal">Legal center</a></div></header>
+<div class="wrap layout">
+<nav class="side" aria-label="Legal documents"><p class="side-t">Legal documents</p><ul><li><a href="/legal/terms">Terms of Service</a></li><li><a href="/legal/privacy">Privacy Policy</a></li><li><a href="/legal/cookies">Cookie and Tracking Notice</a></li><li><a href="/legal/privacy-choices">Your Privacy Choices</a></li><li><a href="/legal/sms">SMS and Messaging Terms</a></li><li><a href="/legal/acceptable-use">Acceptable Use and Review Integrity Policy</a></li><li><a href="/legal/dpa" aria-current="page">Data Processing Addendum</a></li><li><a href="/legal/baa">Business Associate Agreement</a></li><li><a href="/legal/subprocessors">Subprocessors and Service Providers</a></li><li><a href="/legal/billing">Billing, Renewal, and Cancellation Policy</a></li><li><a href="/legal/accessibility">Accessibility Statement</a></li></ul></nav>
+<main id="main" class="doc">
+<p class="eyebrow">Legal · for clients</p>
+<h1>Data Processing Addendum</h1>
+<p class="updated">Last updated November 8, 2026</p>
+<div class="callout"><p><strong>What this is.</strong> When you use Rempo, we handle information about your customers (and sometimes your staff) for you. This addendum (&quot;DPA&quot;) sets out how. It is part of our <a href="/legal/terms">Terms of Service</a> and applies automatically whenever we process Customer Personal Data for you, with no separate signature needed. If you want a countersigned copy, email <a href="mailto:legal@rempo.io">legal@rempo.io</a>.</p></div>
+<details class="toc" open><summary>On this page</summary><ul><li><a href="#definitions">1. Definitions</a></li><li><a href="#roles">2. Roles and instructions</a></li><li><a href="#purposes">3. The business purposes</a></li><li><a href="#ccpa">4. California service provider terms</a></li><li><a href="#people">5. Confidentiality and our people</a></li><li><a href="#security">6. Security</a></li><li><a href="#subprocessors">7. Subprocessors</a></li><li><a href="#incidents">8. Security Incidents</a></li><li><a href="#assistance">9. Helping you meet your obligations</a></li><li><a href="#audits">10. Reviews of our compliance</a></li><li><a href="#deletion">11. Return and deletion</a></li><li><a href="#deidentified">12. De-identified data</a></li><li><a href="#location">13. Where data is processed</a></li><li><a href="#liability">14. Liability and order of precedence</a></li><li><a href="#annex-1">Annex 1: Details of processing</a></li><li><a href="#annex-2">Annex 2: Security measures</a></li></ul></details>
+<div class="prose">
+<h2 id="definitions">1. Definitions<a class="anchor" href="#definitions" aria-label="Link to this section">#</a></h2>
+<p>Terms defined in the Terms of Service have the same meaning here. In addition:</p>
+<ul><li><strong>&quot;Customer Personal Data&quot;</strong> means personal information within Customer Data that we process for you to provide the Services.</li><li><strong>&quot;Data Protection Laws&quot;</strong> means the United States privacy and data security laws that apply to the processing, including the California Consumer Privacy Act, as amended, and its regulations (the &quot;CCPA&quot;), other state consumer privacy laws, and state data security and breach notification laws.</li><li><strong>&quot;Security Incident&quot;</strong> means a breach of security leading to the accidental or unlawful destruction, loss, alteration, or unauthorized disclosure of, or access to, Customer Personal Data that we or our Subprocessors hold.</li><li><strong>&quot;Subprocessor&quot;</strong> means a third party we engage that processes Customer Personal Data for us to provide the Services.</li><li>&quot;Business,&quot; &quot;service provider,&quot; &quot;contractor,&quot; &quot;consumer,&quot; &quot;personal information,&quot; &quot;sell,&quot; &quot;share,&quot; and &quot;business purpose&quot; have the meanings given in the CCPA.</li></ul>
+<h2 id="roles">2. Roles and instructions<a class="anchor" href="#roles" aria-label="Link to this section">#</a></h2>
+<p>You are the business (or controller) for Customer Personal Data, and we are your service provider (or processor). We process Customer Personal Data only on your documented instructions. Your instructions are these Terms, your Order, your account configuration, and other written instructions you give that are consistent with them. We will tell you if we believe an instruction violates Data Protection Laws, and we may decline to follow it.</p>
+<p>You are responsible for the lawfulness of the Customer Personal Data you give us, including having the notices and consents needed for us to process it and to contact End Customers as the Services require.</p>
+<h2 id="purposes">3. The business purposes<a class="anchor" href="#purposes" aria-label="Link to this section">#</a></h2>
+<p>We process Customer Personal Data only for these specific business purposes (the &quot;Business Purposes&quot;):</p>
+<ul><li>sending review requests and one reminder to End Customers after completed work, and honoring opt-outs;</li><li>creating personalized request images using your photo and the End Customer&#39;s first name;</li><li>monitoring reviews on your profiles, drafting and posting replies, and sending you alerts;</li><li>showing reviews on your website widget and creating social posts from reviews;</li><li>managing your Google Business Profile and building and hosting your website, if your plan includes them;</li><li>answering and routing calls with an AI receptionist, if your plan includes it;</li><li>reporting results to you, providing support, and keeping records of messages, consent, and opt-outs;</li><li>keeping the Services secure, detecting and preventing fraud and abuse, and fixing errors; and</li><li>complying with the law.</li></ul>
+<h2 id="ccpa">4. California service provider terms<a class="anchor" href="#ccpa" aria-label="Link to this section">#</a></h2>
+<p>With respect to Customer Personal Data, we:</p>
+<ol><li>will not sell or share it;</li><li>will not retain, use, or disclose it for any purpose, including any commercial purpose, other than the Business Purposes, or as otherwise permitted for service providers by the CCPA;</li><li>will not retain, use, or disclose it outside our direct business relationship with you;</li><li>will not combine it with personal information we receive from or on behalf of anyone else, or collect from our own interactions with consumers, except as the CCPA permits service providers to do (for example, to detect security incidents or protect against fraud);</li><li>will comply with the CCPA obligations that apply to service providers and give Customer Personal Data the level of privacy protection the CCPA requires;</li><li>will notify you no later than 5 business days after we determine that we can no longer meet our obligations under the CCPA;</li><li>grant you the right, on notice, to take reasonable and appropriate steps to stop and fix any unauthorized use of Customer Personal Data;</li><li>grant you the right to take reasonable and appropriate steps to make sure we use Customer Personal Data consistently with your CCPA obligations, as described in Section 10; and</li><li>certify that we understand and will comply with these restrictions.</li></ol>
+<p>You will tell us about any consumer request under the CCPA that we must act on, and give us the information we need to act on it.</p>
+<h2 id="people">5. Confidentiality and our people<a class="anchor" href="#people" aria-label="Link to this section">#</a></h2>
+<p>We give access to Customer Personal Data only to staff and contractors who need it to provide the Services and who are bound by confidentiality obligations.</p>
+<h2 id="security">6. Security<a class="anchor" href="#security" aria-label="Link to this section">#</a></h2>
+<p>We maintain reasonable administrative, technical, and physical safeguards appropriate to the nature of Customer Personal Data, designed to protect it against Security Incidents. Our current measures are listed in <a href="#annex-2">Annex 2</a>. We may update them, but will not materially reduce the overall level of protection.</p>
+<h2 id="subprocessors">7. Subprocessors<a class="anchor" href="#subprocessors" aria-label="Link to this section">#</a></h2>
+<p>You authorize us to use Subprocessors. Our current Subprocessors are listed on our <a href="/legal/subprocessors">Subprocessors page</a>. We will:</p>
+<ul><li>bind each Subprocessor by written contract to data protection obligations at least as protective as this DPA, including the CCPA service provider restrictions;</li><li>remain responsible for each Subprocessor&#39;s performance; and</li><li>update the Subprocessors page, and email clients who have asked us to, at least 15 days before a new Subprocessor begins processing Customer Personal Data, except in an emergency.</li></ul>
+<p>If you object to a new Subprocessor on reasonable data protection grounds, tell us within those 15 days. We will try to resolve the concern. If we can&#39;t, you may end the affected Services and receive a refund of prepaid fees for the unused period.</p>
+<h2 id="incidents">8. Security Incidents<a class="anchor" href="#incidents" aria-label="Link to this section">#</a></h2>
+<p>We will notify you immediately after we discover a Security Incident, as California Civil Code section 1798.82(b) requires, and in no case later than 72 hours after discovery. Our notice will describe, as far as we know them, the nature of the incident, the data and people affected, what we are doing about it, and a contact for more information. We will update you as we learn more, take reasonable steps to contain and fix the incident, and give you the information you reasonably need to meet your own notification duties, including California&#39;s 30-day deadline to notify affected residents. Our notice is not an admission of fault.</p>
+<h2 id="assistance">9. Helping you meet your obligations<a class="anchor" href="#assistance" aria-label="Link to this section">#</a></h2>
+<p>Taking into account the nature of the processing, we will reasonably help you:</p>
+<ul><li>respond to consumer requests to know, access, correct, delete, or opt out, including by forwarding to you, within 10 business days, any request we receive directly about Customer Personal Data;</li><li>complete risk assessments and cybersecurity audits that Data Protection Laws require of you, by providing information reasonably available to us; and</li><li>respond to inquiries from regulators about the processing.</li></ul>
+<h2 id="audits">10. Reviews of our compliance<a class="anchor" href="#audits" aria-label="Link to this section">#</a></h2>
+<p>Once every 12 months, on written request, we will answer a reasonable security and privacy questionnaire and give you summaries of our relevant policies and controls, so you can confirm that we process Customer Personal Data as this DPA requires. If a regulator requires more, or after a Security Incident, we will cooperate with a reasonable audit on reasonable notice, during business hours, at your cost, under confidentiality obligations, and in a way that protects other clients&#39; data.</p>
+<h2 id="deletion">11. Return and deletion<a class="anchor" href="#deletion" aria-label="Link to this section">#</a></h2>
+<p>When the Services end, you may ask us within 30 days for an export of Customer Personal Data we still hold. We will then delete Customer Personal Data within 90 days after the Services end, except:</p>
+<ul><li>data we must keep by law;</li><li>records of End Customer opt-outs, which we keep on a do-not-contact list so that no one who opted out is ever contacted again through Rempo; and</li><li>copies in backups, which we delete on our normal backup cycle and protect under this DPA until then.</li></ul>
+<h2 id="deidentified">12. De-identified data<a class="anchor" href="#deidentified" aria-label="Link to this section">#</a></h2>
+<p>If we create or receive de-identified data from Customer Personal Data, we will take reasonable measures to keep it from being linked to a person, publicly commit to keep it de-identified, not attempt to re-identify it, and require anyone we give it to do the same.</p>
+<h2 id="location">13. Where data is processed<a class="anchor" href="#location" aria-label="Link to this section">#</a></h2>
+<p>We and our Subprocessors process Customer Personal Data in the United States and in other countries where Subprocessors operate. Wherever it is processed, this DPA&#39;s protections apply.</p>
+<h2 id="liability">14. Liability and order of precedence<a class="anchor" href="#liability" aria-label="Link to this section">#</a></h2>
+<p>Each party&#39;s liability under this DPA is subject to the limits in the <a href="/legal/terms#liability">Terms of Service</a>. If this DPA conflicts with the Terms of Service about personal information, this DPA controls. For protected health information, our <a href="/legal/baa">Business Associate Agreement</a> controls.</p>
+<h2 id="annex-1">Annex 1: Details of processing<a class="anchor" href="#annex-1" aria-label="Link to this section">#</a></h2>
+<div class="tbl" role="region" aria-label="Table" tabindex="0"><table><tbody><tr><th scope="row">Subject matter and duration</th><td>Providing the Services under the Terms, for as long as we provide them and until deletion under Section 11</td></tr><tr><th scope="row">Nature of processing</th><td>Collecting, storing, organizing, using, transmitting, and deleting, as needed for the Business Purposes</td></tr><tr><th scope="row">People whose data is processed</th><td>Your End Customers; your staff and users; people who post reviews of your business; callers to your business, if you use the AI receptionist</td></tr><tr><th scope="row">Types of personal information</th><td>Names; phone numbers; email addresses; dates and types of completed work; the staff member assigned, if your system sends it; message content and delivery status; opt-out records; public review content and reviewers&#39; public names; and, for the AI receptionist, call details, recordings, and transcripts</td></tr><tr><th scope="row">Sensitive information</th><td>None intended. Protected health information only under a signed <a href="/legal/baa">Business Associate Agreement</a>. No records protected by 42 C.F.R. Part 2</td></tr></tbody></table></div>
+<h2 id="annex-2">Annex 2: Security measures<a class="anchor" href="#annex-2" aria-label="Link to this section">#</a></h2>
+<ul><li>Encryption of data in transit (TLS) between your systems, our systems, and our Subprocessors.</li><li>Access limited to staff and contractors who need it, with unique accounts, removed promptly when no longer needed.</li><li>Multi-factor authentication on the accounts our team uses to access Customer Personal Data, where the platform supports it.</li><li>Databases configured so they are not publicly readable, with secrets kept out of our code.</li><li>Choosing Subprocessors after reviewing their security, and preferring providers with independent security certifications.</li><li>Logging and monitoring that our platforms provide, reviewed when we investigate a problem.</li><li>A written incident response process, and secure deletion when data is no longer needed.</li><li>Confidentiality commitments and privacy and security training for everyone with access.</li></ul>
+</div>
+<p class="doc-foot">Questions about this document? Email <a href="mailto:legal@rempo.io">legal@rempo.io</a>. <a href="#main">Back to top</a></p>
+</main>
+</div>
+<footer class="foot"><div class="wrap">
+<nav class="foot-links" aria-label="Legal"><a href="/legal/terms">Terms</a><a href="/legal/privacy">Privacy</a><a href="/legal/cookies">Cookies</a><a href="/legal/privacy-choices">Do Not Sell or Share My Personal Information</a><a href="/legal/sms">SMS terms</a><a href="/legal/accessibility">Accessibility</a><a href="/legal">Legal center</a></nav>
+<p class="foot-small">© 2026 Rempo · San Diego, California · <a href="mailto:privacy@rempo.io">privacy@rempo.io</a></p>
+</div></footer>
+<script src="/legal/assets/legal.js?v=4ef086786b" defer></script>
+</body>
+</html>

@@ -100,21 +100,18 @@ function scene(kind) {
   if (kind === "podium") {
     return `<div class="scene">${pic("podium", "(min-width: 900px) 600px, 100vw", "Illustration: three local companies' vans on a podium, first, second and third. Your van is on the street in front of them.", "pic", ' loading="lazy"')}
       <span class="pin rank" style="--x:41.5%;--y:22%" aria-hidden="true">2</span><span class="pin rank" style="--x:52.8%;--y:15%" aria-hidden="true">1</span><span class="pin rank" style="--x:63.5%;--y:25%" aria-hidden="true">3</span>
-      <span class="pin you" style="--x:43%;--y:57%" aria-hidden="true">You?</span></div>
-      <figcaption class="proof-chip">Illustration · the top three near you</figcaption>`;
+      <span class="pin you" style="--x:43%;--y:57%" aria-hidden="true">You?</span></div>`;
   }
   if (kind === "asked") {
     const xs = [21, 33, 45, 58, 71, 85], on = [1, 4];   // just above each roof (tools: measured on the 1440 px render)
     return `<div class="scene">${pic("street-six", "(min-width: 900px) 600px, 100vw", "Illustration: a street of six homes, each with a job done this week. Two of them were asked for a review.", "pic", ' loading="lazy"')}
       ${xs.map((x, i) => `<span class="pin ask${on.includes(i) ? " on" : ""}" style="--x:${x}%;--y:25%" aria-hidden="true">${ic("i-check")}</span>`).join("")}
-      <span class="scene-tag" style="--x:50%;--y:87%" aria-hidden="true">Asked this week: <b>2 of 6</b></span></div>
-      <figcaption class="proof-chip">Illustration · a typical week</figcaption>`;
+      <span class="scene-tag" style="--x:50%;--y:87%" aria-hidden="true">Asked this week: <b>2 of 6</b></span></div>`;
   }
   if (kind === "unanswered") {
     const stars = [1, 2, 3, 4, 5].map((n) => ic(n <= 3 ? "i-starf" : "i-star", n <= 3 ? "ic" : "ic off")).join("");
     return `<div class="scene">${pic("street", "(min-width: 900px) 600px, 100vw", "Illustration: a service van outside a customer's house after a job, with her 3-star review above the house and no reply under it.", "pic", ' loading="lazy"')}
-      <div class="rv-card waiting" style="--x:45.6%;--y:33%" aria-hidden="true"><span class="rv-av">P</span><span class="rv-head"><b>Priya S.</b><span class="stars">${stars}</span></span><p class="rv-text">Fixed it, but nobody called me back about the second visit.</p><span class="rv-reply wait">${ic("i-clock")}No reply yet · 3 weeks</span></div></div>
-      <figcaption class="proof-chip">Illustration · sample review</figcaption>`;
+      <div class="rv-card waiting" style="--x:45.6%;--y:33%" aria-hidden="true"><span class="rv-av">P</span><span class="rv-head"><b>Priya S.</b><span class="stars">${stars}</span></span><p class="rv-text">Fixed it, but nobody called me back about the second visit.</p><span class="rv-reply wait">${ic("i-clock")}No reply yet · 3 weeks</span></div></div>`;
   }
   if (kind === "phone") return phone(true);
   return "";
@@ -124,7 +121,7 @@ function scene(kind) {
 // before the first question, and the question stays in the first screen
 function miniRequest() {
   const P = C.service.phone;
-  return `<figure class="mini-req"><div class="mini-bubble">${pic("crew", "96px", P.photoAlt, "", ' loading="eager"')}<p><b>${esc(P.thanks)}</b> ${esc(P.mini)}</p></div><figcaption class="proof-chip">${esc(P.miniCaption)}</figcaption></figure>`;
+  return `<figure class="mini-req"><div class="mini-bubble">${pic("crew", "96px", P.photoAlt, "", ' loading="eager"')}<p><b>${esc(P.thanks)}</b> ${esc(P.mini)}</p></div></figure>`;
 }
 
 function phone(hero) {
@@ -134,8 +131,21 @@ function phone(hero) {
       <div class="phone-from"><span class="phone-av">M</span><b>${esc(P.from)}</b></div>
       <div class="bubble"><div class="bubble-photo">${pic("crew", "260px", P.photoAlt, "", ' loading="lazy"')}<b>${esc(P.thanks)}</b></div>
         <p>${esc(P.text.replace(/\s*g\.page\/\S+$/, ""))} <a>${esc((P.text.match(/g\.page\/\S+$/) || [""])[0])}</a></p><small>${esc(P.stop)}</small></div>
-    </div></div></div><p class="sr-only">${esc(P.photoAlt)} ${esc(P.text)} ${esc(P.stop)}</p>
-    <figcaption class="proof-chip">${esc(P.caption)}</figcaption>`;
+    </div></div></div><p class="sr-only">${esc(P.photoAlt)} ${esc(P.text)} ${esc(P.stop)}</p>`;
+}
+
+/* ---------- The legal pages (../legal-src/, served at /legal): links and the notice at collection ---------- */
+const LEGAL = SITE.legal || {};
+const TRACKERS = Boolean(SITE.metaPixelId || SITE.clarityId);
+const newTabLink = (href, label) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}<span class="sr-only"> ${esc(C.legal.newTab)}</span></a>`;
+// Under each form: the button that signals agreement, by name, with the Terms and the Privacy Policy, then what Meta
+// hears and where to opt out. Links open in a new tab so the form keeps its answers.
+function legalNotice(button) {
+  const L = C.legal;
+  if (!LEGAL.terms || !(LEGAL.privacy || SITE.privacyUrl)) return `<p class="legal-note">${tbd(C.footer.privacyTbd)}</p>`;
+  const main = fill(esc(L.notice), { button: esc(button), terms: newTabLink(LEGAL.terms, L.terms), privacy: newTabLink(LEGAL.privacy || SITE.privacyUrl, L.privacy) });
+  const meta = LEGAL.choices ? ` ${fill(esc(L.noticeMeta), { choices: newTabLink(LEGAL.choices, L.choices) })}` : "";
+  return `<p class="legal-note">${main}${meta}</p>`;
 }
 
 function stepHtml(step, i, total) {
@@ -152,15 +162,15 @@ function stepHtml(step, i, total) {
   }
   const fields = step.fields.map((f) => `<div class="field"><label for="${id(f.name)}">${esc(f.label)}</label>${f.help ? `<p class="help" id="${id(f.name)}-h">${esc(f.help)}</p>` : ""}<input id="${id(f.name)}" name="${f.name}" type="${f.type || "text"}"${f.inputmode ? ` inputmode="${f.inputmode}"` : ""} autocomplete="${f.autocomplete}" maxlength="${f.max}"${f.help ? ` aria-describedby="${id(f.name)}-h"` : ""}${f.required ? " data-req" : ""}${f.type === "email" ? ' autocapitalize="off" spellcheck="false"' : ""}></div>`).join("");
   const choice = step.choice ? `<fieldset><legend class="group-l">${esc(step.choice.label)}</legend><div class="chips" data-group="${step.choice.key}">${step.choice.options.map((o, k) => `<label class="chip-opt"><input type="radio" name="${step.choice.key}" value="${esc(o.v)}"${k === 0 ? " data-req" : ""}><span>${esc(o.label)}</span></label>`).join("")}</div></fieldset>` : "";
-  const privacy = SITE.privacyUrl ? ` <a href="${esc(SITE.privacyUrl)}" target="_blank" rel="noopener">${esc(C.check.privacy)}</a>` : ` ${tbd(C.footer.privacyTbd)}`;
-  const consent = step.consent ? `<label class="consent"><input type="checkbox" name="${step.consent.name}"${step.consent.required ? " data-req" : ""}><span>${esc(step.consent.label)}${privacy}</span></label>` : "";
+  const consent = step.consent ? `<label class="consent"><input type="checkbox" name="${step.consent.name}"${step.consent.required ? " data-req" : ""}><span>${esc(step.consent.label)}</span></label>` : "";
+  const notice = step.last ? legalNotice(C.check.submit) : "";
   const hp = step.last ? `<div class="hp" aria-hidden="true"><label>Leave this empty <input name="hp" tabindex="-1" autocomplete="off"></label></div>` : "";
   const submit = step.last
     ? `<button type="submit" class="btn btn-primary">${esc(C.check.submit)}${ic("i-arrow")}</button>`
     : `<button type="button" class="btn btn-primary gc-next">${esc(C.check.next)}${ic("i-arrow")}</button>`;
   return `<fieldset class="gc-step" data-key="${step.key}" data-kind="fields"${i ? " hidden" : ""}>
       <legend class="gc-q" tabindex="-1">${esc(step.q)}</legend>${step.hint ? `<p class="gc-hint">${esc(step.hint)}</p>` : ""}
-      ${fields}${choice}${consent}${hp}
+      ${fields}${choice}${consent}${notice}${hp}
       <p class="err" role="alert"></p>
       <div class="gc-nav">${back}${submit}</div>
     </fieldset>`;
@@ -172,7 +182,7 @@ function checkCard() {
   <div class="gc" id="gap-check" role="region" aria-labelledby="gc-title">
     <div class="gc-top"><span class="gc-label" id="gc-title">${ic("i-file")}${esc(C.check.label)}</span><span class="gc-count" aria-live="polite">${esc(fill(C.check.progress, { n: 1, total }))}</span></div>
     <div class="gc-bar" aria-hidden="true"><i></i></div>
-    <p class="gc-frame">${esc(C.check.frame)}</p>
+    <p class="gc-frame">${C.check.frameShort ? `<span class="m-hide">${esc(C.check.frame)}</span><span class="m-only">${esc(C.check.frameShort)}</span>` : esc(C.check.frame)}</p>
     <noscript><p class="err">${esc(C.check.noscript)}</p></noscript>
     <form class="gc-form" novalidate>
       ${SURVEY.steps.map((s, i) => stepHtml(s, i, total)).join("\n      ")}
@@ -188,7 +198,7 @@ function hero(v) {
     <div class="hero-copy">
       <p class="pill">${esc(C.hero.eyebrow)}</p>
       <h1 class="display" id="hero-h">${esc(v.h1)}</h1>
-      <p class="lead">${esc(v.lead)}</p>${v.scene === "phone" ? miniRequest() : ""}
+      ${v.leadShort ? `<p class="lead m-hide">${esc(v.lead)}</p><p class="lead m-only">${esc(v.leadShort)}</p>` : `<p class="lead">${esc(v.lead)}</p>`}${v.scene === "phone" ? miniRequest() : ""}
     </div>
     ${checkCard()}
     <div class="hero-vis">
@@ -216,14 +226,13 @@ function report(v) {
     <ul class="pts">${R.points.map((p) => { const [im, alt] = pick(p, v); return `<li class="pt reveal"><div class="pt-img">${pic(im, "220px", alt, "", ' loading="lazy"')}</div><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`; }).join("")}</ul>
     <div class="report-grid">
       <figure class="reveal">
-        <div class="rep" aria-label="${esc(S.caption)}">
+        <div class="rep">
           <div class="rep-top"><div><p class="rep-tag">${esc(S.label)}</p><p class="rep-biz">${esc(S.business)}</p><p class="rep-search">${esc(S.search)}</p></div>
             <div class="rep-score"><b>${esc(S.score)}<small>/100</small></b><span class="tier">${esc(S.tier)}</span></div></div>
           <p class="rep-legend"><span class="mine">${esc(S.you)}</span><span class="theirs">${esc(S.top)}</span></p>
           <dl class="rep-rows">${rows}</dl>
           <p class="rep-theme">${esc(S.theme)}</p>
         </div>
-        <figcaption class="proof-chip">${esc(S.caption)}</figcaption>
       </figure>
       <div class="reveal">
         <p class="list-t">${esc(R.checksTitle)}</p>
@@ -321,32 +330,44 @@ function footer() {
   const F = C.footer;
   const company = SITE.company ? esc(SITE.company) : `Rempo ${tbd(F.companyTbd)}`;
   const privacy = SITE.privacyUrl ? `<a href="${esc(SITE.privacyUrl)}">${esc(F.privacy)}</a>` : tbd(F.privacyTbd);
+  const link = (href, label) => (href ? `<a href="${esc(href)}">${esc(label)}</a>` : "");
+  const legal = [link(LEGAL.terms, F.terms), link(LEGAL.cookies, F.cookies), link(LEGAL.sms, F.sms), link(LEGAL.accessibility, F.accessibility), link(LEGAL.hub, F.hub)].join("");
+  const choices = link(LEGAL.choices, F.choices);
+  const settings = TRACKERS ? `<button type="button" class="foot-btn" data-cookie-settings>${esc(F.settings)}</button>` : "";
   return `<footer class="foot">
   <div class="wrap foot-grid">
     <span class="brand" aria-label="Rempo"><svg viewBox="0 0 211.2 64" role="img" aria-label="Rempo"><use href="#logo-h"/></svg></span>
     <p>${esc(F.about)}</p>
     <p class="foot-links">${SITE.masterUrl ? `<a href="${esc(SITE.masterUrl)}">${esc(F.master)}</a>` : ""}${privacy}</p>
+    ${legal || choices ? `<nav class="foot-legal" aria-label="${esc(F.legalLabel)}">${legal}${choices}${settings}</nav>` : ""}
     <p class="foot-small">${company}</p>
   </div>
 </footer>`;
 }
 
-/* ---------- Tracking snippets: only when an id is set, and never for a browser sending Global Privacy Control ---------- */
-function pixelSnippet() {
-  if (!SITE.metaPixelId) return "";
-  const id = String(SITE.metaPixelId).replace(/\D/g, "");
-  return `<script>if(navigator.globalPrivacyControl!==true){!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${id}');fbq('track','PageView');}</script>
-<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=${id}&amp;ev=PageView&amp;noscript=1"></noscript>`;
-}
-function claritySnippet() {
-  if (!SITE.clarityId) return "";
-  const id = String(SITE.clarityId).replace(/[^a-z0-9]/gi, "");
-  return `<script>if(navigator.globalPrivacyControl!==true){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${id}");}</script>`;
+/* ---------- The cookie notice: only when a pixel or Clarity id is set. The tools themselves load from the page's
+   script (src/js/app.js), and only as site.trackingConsent allows: never with Global Privacy Control ---------- */
+const TOOLS = [SITE.metaPixelId && C.cookie.pixel, SITE.clarityId && C.cookie.clarity].filter(Boolean);
+function cookieNotice() {
+  if (!TRACKERS) return "";
+  const K = C.cookie, optIn = SITE.trackingConsent !== "notice";
+  const tools = TOOLS.join(` ${K.and} `);
+  const text = fill(esc(optIn ? K.optIn : K.notice), { tools: esc(tools) });
+  const [no, yes] = optIn ? [K.decline, K.allow] : [K.optOut, K.ok];
+  return `<section class="cookie" id="cookie-notice" aria-label="${esc(K.label)}" hidden>
+  <p><b>${esc(K.title)}</b> ${text} <a href="${esc(LEGAL.cookies || SITE.privacyUrl || "")}">${esc(K.link)}</a></p>
+  <div class="cookie-btns"><button type="button" class="btn btn-line" data-consent="denied">${esc(no)}</button><button type="button" class="btn btn-line" data-consent="granted">${esc(yes)}</button></div>
+</section>`;
 }
 
 /* ---------- The page ---------- */
-const PUBLIC_SITE = { name: SITE.name, endpoint: SITE.endpoint, reportTurnaround: SITE.reportTurnaround, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl };
-const UI = { check: C.check, result: C.result };
+const TRACKING = {
+  pixel: SITE.metaPixelId ? String(SITE.metaPixelId).replace(/\D/g, "") : null,
+  clarity: SITE.clarityId ? String(SITE.clarityId).replace(/[^a-z0-9]/gi, "") : null,
+  mode: SITE.trackingConsent === "notice" ? "notice" : "opt-in"
+};
+const PUBLIC_SITE = { name: SITE.name, endpoint: SITE.endpoint, reportTurnaround: SITE.reportTurnaround, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl, legal: LEGAL, noticeVersion: SITE.noticeVersion || null, tracking: TRACKING };
+const UI = { check: C.check, result: C.result, legal: C.legal };
 
 function page(v) {
   const urlPath = v.slug ? `${BASE}/${v.slug}` : BASE;
@@ -375,8 +396,6 @@ ${canonical ? `<link rel="canonical" href="${esc(canonical)}">\n` : ""}<meta pro
 <link rel="icon" href="${A("/assets/favicon.svg")}" type="image/svg+xml">
 <link rel="preload" href="${A("/assets/fonts/outfit.woff2")}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${A("/assets/fonts/geist.woff2")}" as="font" type="font/woff2" crossorigin>
-${pixelSnippet()}
-${claritySnippet()}
 <style>${CSS}</style>
 </head>
 <body>
@@ -397,6 +416,7 @@ ${final()}
 ${footer()}
 <div class="sticky-bar">${openBtn(C.sticky, "sticky", "btn btn-primary")}</div>
 <dialog class="dlg" id="gc-sheet" aria-label="${esc(C.check.label)}"><div class="dlg-in"><div class="dlg-head"><button class="dlg-x" type="button" aria-label="Close">${ic("i-x")}</button></div><div class="dlg-body"></div></div></dialog>
+${cookieNotice()}
 <script type="application/json" id="rm-data">${data}</script>
 <script src="${V["/assets/app.js"]}" defer></script>
 </body>

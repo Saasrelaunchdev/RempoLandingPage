@@ -8,7 +8,7 @@ import path from "node:path";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const checks = ["check-gapcheck.mjs", "check-copy.mjs", "check-shared.mjs", "check-api.mjs", "check-build.mjs", "check-sql.mjs"];
-try { createRequire(import.meta.url).resolve("playwright"); checks.push("check-page.mjs"); } catch { console.log("skip check-page.mjs: Playwright is not installed"); }
+try { createRequire(import.meta.url).resolve("playwright"); checks.push("check-page.mjs", "check-consent.mjs"); } catch { console.log("skip check-page.mjs and check-consent.mjs: Playwright is not installed"); }
 let failed = 0;
 for (const c of checks) {
   const r = spawnSync(process.execPath, [path.join(HERE, c)], { encoding: "utf8" });

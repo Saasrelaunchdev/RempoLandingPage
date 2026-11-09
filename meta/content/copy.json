@@ -16,6 +16,7 @@
   "check": {
     "label": "Free Gap Report",
     "frame": "A few quick questions, about a minute. Your score shows right after; the full report comes by email.",
+    "frameShort": "About a minute. Score shows right after.",
     "progress": "Question {n} of {total}",
     "next": "Next",
     "back": "Back",
@@ -35,7 +36,6 @@
       "send": "That didn't send. Check your connection and try again.",
       "rate": "Too many tries from this connection. Please try again in an hour."
     },
-    "privacy": "Privacy notice",
     "noscript": "The Gap Check needs JavaScript. Turn it on in your browser to take it.",
     "done": "Your score"
   },
@@ -142,8 +142,7 @@
           "topPct": 100
         }
       ],
-      "theme": "Complaint theme: 3 of the last 30 reviews mention a call that was not returned.",
-      "caption": "Illustration · sample report, demo data"
+      "theme": "Complaint theme: 3 of the last 30 reviews mention a call that was not returned."
     },
     "checksTitle": "What it checks, next to the top three",
     "checks": [
@@ -202,9 +201,7 @@
       "thanks": "Thanks, Dana!",
       "text": "Would you share an honest review of your visit? g.page/maple-street",
       "stop": "Reply STOP to opt out.",
-      "caption": "Illustration · sample thank-you, sent after the job",
-      "mini": "Would you share an honest review of your visit?",
-      "miniCaption": "Illustration · sample thank-you"
+      "mini": "Would you share an honest review of your visit?"
     },
     "listTitle": "Done for you, every month",
     "list": [
@@ -367,12 +364,46 @@
     "cta": "Get my free Gap Report"
   },
   "sticky": "Get my free Gap Report",
+  "legal": {
+    "_note": "The notice at collection under each form (CCPA, CalOPPA) and the links it carries. {button} is the form's own button label, so the notice names the exact button that signals agreement (the Ninth Circuit's test for sign-in wrap). The pages are built from ../legal-src/.",
+    "notice": "By tapping {button}, you agree to our {terms} and acknowledge our {privacy}, which explains what we collect and how we use it.",
+    "noticeMeta": "Unless you opt out, we also tell Meta when a form like this is sent, to measure our ads. {choices}",
+    "noticeSms": "Texts follow our {sms}.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "choices": "Your privacy choices",
+    "sms": "SMS terms",
+    "newTab": "(opens in a new tab)"
+  },
+  "cookie": {
+    "_note": "The cookie notice. Shown only when site.metaPixelId or site.clarityId is set, and never to a browser sending Global Privacy Control. Both buttons look the same (CCPA regulations, section 7004: symmetry in choice). {tools} names the tools that are set.",
+    "label": "Cookie notice",
+    "title": "Cookies and ads.",
+    "optIn": "We'd like to use {tools} to measure our ads and improve this page. Nothing runs unless you allow it.",
+    "notice": "We use {tools} to measure our ads and improve this page. You can opt out at any time.",
+    "link": "How we use cookies",
+    "allow": "Allow",
+    "decline": "Decline",
+    "ok": "OK",
+    "optOut": "Opt out",
+    "pixel": "Meta's pixel",
+    "clarity": "Microsoft Clarity",
+    "and": "and"
+  },
   "footer": {
     "about": "Rempo runs Google review requests and replies for home-service businesses.",
     "master": "See the full story at rempo.io",
-    "privacy": "Privacy notice",
+    "privacy": "Privacy Policy",
     "companyTbd": "{TBD · legal name and city, in site.company}",
     "privacyTbd": "{TBD · privacy notice, in site.privacyUrl}",
-    "offerTbd": "{TBD · the offer is being decided, in site.offer}"
+    "offerTbd": "{TBD · the offer is being decided, in site.offer}",
+    "terms": "Terms of Service",
+    "cookies": "Cookies",
+    "sms": "SMS terms",
+    "accessibility": "Accessibility",
+    "hub": "Legal center",
+    "choices": "Do Not Sell or Share My Personal Information",
+    "settings": "Cookie settings",
+    "legalLabel": "Legal"
   }
 }

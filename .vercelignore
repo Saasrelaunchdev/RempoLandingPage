@@ -1,4 +1,6 @@
 lead-capture/
+# The legal pages: their built pages are in legal/; the sources, build and tests stay out of the deployment.
+legal-src/
 # The Meta ads page: its built pages are in customers/ and its function is api/meta-lead.mjs. From meta/, only what
 # that function imports is uploaded (meta/api, meta/content, meta/lib); vercel.json redirects /meta/* away so none
 # of it is served as a file.
@@ -11,3 +13,10 @@ meta/sql/
 meta/*.md
 meta/package.json
 meta/.gitignore
+# The proof system (/admin, case studies): its docs, tests and tools stay out of the deployment.
+PROOF.md
+tests/
+tools/
+# Repository rules and the session hook are for the people and agents working on the repo, not the site.
+CLAUDE.md
+.claude/
