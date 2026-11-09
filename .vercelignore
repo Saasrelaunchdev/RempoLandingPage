@@ -13,3 +13,7 @@ meta/sql/
 meta/*.md
 meta/package.json
 meta/.gitignore
+# The proof system (/admin, case studies): its docs, tests and tools stay out of the deployment.
+PROOF.md
+tests/
+tools/

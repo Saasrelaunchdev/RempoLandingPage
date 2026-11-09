@@ -1,11 +1,11 @@
 {
   "functions": {
-    "api/lead.mjs": {
-      "maxDuration": 30
-    },
-    "api/meta-lead.mjs": {
-      "maxDuration": 30
-    }
+    "api/lead.mjs": { "maxDuration": 30 },
+    "api/meta-lead.mjs": { "maxDuration": 30 },
+    "api/admin.mjs": { "maxDuration": 60 },
+    "api/admin-ingest.mjs": { "maxDuration": 300, "includeFiles": "node_modules/ffmpeg-static/ffmpeg" },
+    "api/proof.mjs": { "maxDuration": 15 },
+    "api/case-study.mjs": { "maxDuration": 15 }
   },
   "redirects": [
     { "source": "/meta/:path*", "destination": "/", "permanent": false },
@@ -24,7 +24,10 @@
     { "source": "/customers", "destination": "/customers/index.html" },
     { "source": "/customers/:page", "destination": "/customers/:page/index.html" },
     { "source": "/legal", "destination": "/legal/index.html" },
-    { "source": "/legal/:page", "destination": "/legal/:page/index.html" }
+    { "source": "/legal/:page", "destination": "/legal/:page/index.html" },
+    { "source": "/case-studies/:slug", "destination": "/api/case-study?slug=:slug" },
+    { "source": "/case-studies/:slug/", "destination": "/api/case-study?slug=:slug" },
+    { "source": "/admin", "destination": "/admin/index.html" }
   ],
   "headers": [
     {
@@ -51,6 +54,19 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
+    },
+    {
+      "source": "/admin/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "same-origin" }
+      ]
+    },
+    {
+      "source": "/api/admin(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ]
 }
