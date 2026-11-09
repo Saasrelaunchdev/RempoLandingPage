@@ -17,3 +17,6 @@ meta/.gitignore
 PROOF.md
 tests/
 tools/
+# Repository rules and the session hook are for the people and agents working on the repo, not the site.
+CLAUDE.md
+.claude/
