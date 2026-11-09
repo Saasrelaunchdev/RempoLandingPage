@@ -79,7 +79,7 @@ Mobile is the design target (390 px). On a PC the hero becomes two columns: the 
 | 6 | Straight answers (FAQ) | Answers the questions they would leave to ask | 14 questions in four groups: the report, getting started, results and expectations, objections |
 | 7 | Who reads your report (founder) | A real face, once the founder supplies one | Hidden until `site.founder` is filled (shown as {TBD} in the preview view) |
 | 8 | Final call | Back to emotion before the ask, then the action | A short problem stack, the button, the trust line |
-| 9 | Footer | Who runs this, privacy | Logo, company line, privacy notice link |
+| 9 | Footer | Who runs this, privacy | Logo, company line, the legal pages (`/legal`: Terms, Privacy, Cookies, SMS terms, Accessibility, Do Not Sell or Share), Cookie settings when a tracker is set |
 | - | Sticky bar (phones) | The action is one tap from anywhere | "Get my free Gap Report", shown once the hero card is off screen, hidden at the final call and once the check is done |
 
 Every button opens the same Gap Check: on a phone it rises as a bottom sheet (the master page's pattern: one form, moved into the sheet and back), on a PC the page glides to the hero card.
@@ -131,7 +131,7 @@ Everything below the hero is shared, so a test compares one variable: the angle 
 
 ## 7. Tracking
 
-- **Meta pixel** (only when `site.metaPixelId` is set, and never for a visitor whose browser sends Global Privacy Control): `PageView`; custom `GapCheckStart`, `GapCheckStep` (step number and name, to see the drop-off slide by slide, M3), `GapReportRequested` and `CallRequested` (with `fit`, for everyone); standard `Lead` and `Schedule` for qualified visitors only; `InitiateCheckout` on the checkout link.
+- **Meta pixel** (only when `site.metaPixelId` is set, only after the visitor taps Allow in the cookie notice (`site.trackingConsent`), and never for a visitor whose browser sends Global Privacy Control): `PageView`; custom `GapCheckStart`, `GapCheckStep` (step number and name, to see the drop-off slide by slide, M3), `GapReportRequested` and `CallRequested` (with `fit`, for everyone); standard `Lead` and `Schedule` for qualified visitors only; `InitiateCheckout` on the checkout link.
 - **Conversions API** (only when `META_PIXEL_ID` and `META_CAPI_TOKEN` are set): the server sends `Lead` and `Schedule` for qualified visitors with the same event id as the browser, so Meta counts each once. Email, phone, first name, city, country and the visit id are hashed with SHA-256; `fbc`, `fbp`, IP and user agent are sent as Meta requires, unhashed. `META_TEST_EVENT_CODE` routes events to Events Manager's test tab.
 - **Attribution:** `utm_*`, `fbclid` and the variant are kept for the visit and stored with each lead, with `fbc` and `fbp`.
 - **Microsoft Clarity** (optional, `site.clarityId`): session recordings to see how visitors scroll and where they stop (M3).
@@ -176,7 +176,7 @@ Vercel: the master page's project, with nothing to set up. `node tools/build.mjs
 |---|---|---|
 | The offer (price, setup fee, guarantee, terms) | Hidden; the FAQ says the call covers the numbers | `content/site.mjs` `offer` |
 | Checkout link | No checkout link anywhere | `site.checkoutUrl` |
-| Privacy notice | Footer and consent link shown as {TBD} in preview | `site.privacyUrl` |
+| Privacy notice | Done: `/legal/privacy` and the other legal pages, built from `../legal-src/` | `site.privacyUrl`, `site.legal` |
 | Company line (legal name, city) | Footer shows "Rempo · rempo.io" | `site.company` |
 | Meta pixel and Conversions API | No tracking | `site.metaPixelId`; Vercel `META_PIXEL_ID`, `META_CAPI_TOKEN` |
 | The founder's face and name | Founder section hidden | `site.founder` |

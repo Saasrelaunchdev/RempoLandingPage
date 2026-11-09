@@ -27,5 +27,7 @@ export default {
     ]
   },
   "signoff": "The Rempo team",
-  "unsubscribe": "Reply \"unsubscribe\" and we won't email you again."
+  "unsubscribe": "Reply \"unsubscribe\" and we won't email you again.",
+  // Followed by the full address of the privacy policy (site.url or site.masterUrl, then site.legal.privacy)
+  "privacy": "Privacy Policy:"
 };

@@ -134,6 +134,20 @@ function phone(hero) {
     </div></div></div><p class="sr-only">${esc(P.photoAlt)} ${esc(P.text)} ${esc(P.stop)}</p>`;
 }
 
+/* ---------- The legal pages (../legal-src/, served at /legal): links and the notice at collection ---------- */
+const LEGAL = SITE.legal || {};
+const TRACKERS = Boolean(SITE.metaPixelId || SITE.clarityId);
+const newTabLink = (href, label) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}<span class="sr-only"> ${esc(C.legal.newTab)}</span></a>`;
+// Under each form: the button that signals agreement, by name, with the Terms and the Privacy Policy, then what Meta
+// hears and where to opt out. Links open in a new tab so the form keeps its answers.
+function legalNotice(button) {
+  const L = C.legal;
+  if (!LEGAL.terms || !(LEGAL.privacy || SITE.privacyUrl)) return `<p class="legal-note">${tbd(C.footer.privacyTbd)}</p>`;
+  const main = fill(esc(L.notice), { button: esc(button), terms: newTabLink(LEGAL.terms, L.terms), privacy: newTabLink(LEGAL.privacy || SITE.privacyUrl, L.privacy) });
+  const meta = LEGAL.choices ? ` ${fill(esc(L.noticeMeta), { choices: newTabLink(LEGAL.choices, L.choices) })}` : "";
+  return `<p class="legal-note">${main}${meta}</p>`;
+}
+
 function stepHtml(step, i, total) {
   const back = `<button type="button" class="gc-back"${i === 0 ? " hidden" : ""}>${ic("i-back")}${esc(C.check.back)}</button>`;
   const id = (n) => `gc-${n}`;
@@ -148,15 +162,15 @@ function stepHtml(step, i, total) {
   }
   const fields = step.fields.map((f) => `<div class="field"><label for="${id(f.name)}">${esc(f.label)}</label>${f.help ? `<p class="help" id="${id(f.name)}-h">${esc(f.help)}</p>` : ""}<input id="${id(f.name)}" name="${f.name}" type="${f.type || "text"}"${f.inputmode ? ` inputmode="${f.inputmode}"` : ""} autocomplete="${f.autocomplete}" maxlength="${f.max}"${f.help ? ` aria-describedby="${id(f.name)}-h"` : ""}${f.required ? " data-req" : ""}${f.type === "email" ? ' autocapitalize="off" spellcheck="false"' : ""}></div>`).join("");
   const choice = step.choice ? `<fieldset><legend class="group-l">${esc(step.choice.label)}</legend><div class="chips" data-group="${step.choice.key}">${step.choice.options.map((o, k) => `<label class="chip-opt"><input type="radio" name="${step.choice.key}" value="${esc(o.v)}"${k === 0 ? " data-req" : ""}><span>${esc(o.label)}</span></label>`).join("")}</div></fieldset>` : "";
-  const privacy = SITE.privacyUrl ? ` <a href="${esc(SITE.privacyUrl)}" target="_blank" rel="noopener">${esc(C.check.privacy)}</a>` : ` ${tbd(C.footer.privacyTbd)}`;
-  const consent = step.consent ? `<label class="consent"><input type="checkbox" name="${step.consent.name}"${step.consent.required ? " data-req" : ""}><span>${esc(step.consent.label)}${privacy}</span></label>` : "";
+  const consent = step.consent ? `<label class="consent"><input type="checkbox" name="${step.consent.name}"${step.consent.required ? " data-req" : ""}><span>${esc(step.consent.label)}</span></label>` : "";
+  const notice = step.last ? legalNotice(C.check.submit) : "";
   const hp = step.last ? `<div class="hp" aria-hidden="true"><label>Leave this empty <input name="hp" tabindex="-1" autocomplete="off"></label></div>` : "";
   const submit = step.last
     ? `<button type="submit" class="btn btn-primary">${esc(C.check.submit)}${ic("i-arrow")}</button>`
     : `<button type="button" class="btn btn-primary gc-next">${esc(C.check.next)}${ic("i-arrow")}</button>`;
   return `<fieldset class="gc-step" data-key="${step.key}" data-kind="fields"${i ? " hidden" : ""}>
       <legend class="gc-q" tabindex="-1">${esc(step.q)}</legend>${step.hint ? `<p class="gc-hint">${esc(step.hint)}</p>` : ""}
-      ${fields}${choice}${consent}${hp}
+      ${fields}${choice}${consent}${notice}${hp}
       <p class="err" role="alert"></p>
       <div class="gc-nav">${back}${submit}</div>
     </fieldset>`;
@@ -316,32 +330,44 @@ function footer() {
   const F = C.footer;
   const company = SITE.company ? esc(SITE.company) : `Rempo ${tbd(F.companyTbd)}`;
   const privacy = SITE.privacyUrl ? `<a href="${esc(SITE.privacyUrl)}">${esc(F.privacy)}</a>` : tbd(F.privacyTbd);
+  const link = (href, label) => (href ? `<a href="${esc(href)}">${esc(label)}</a>` : "");
+  const legal = [link(LEGAL.terms, F.terms), link(LEGAL.cookies, F.cookies), link(LEGAL.sms, F.sms), link(LEGAL.accessibility, F.accessibility), link(LEGAL.hub, F.hub)].join("");
+  const choices = link(LEGAL.choices, F.choices);
+  const settings = TRACKERS ? `<button type="button" class="foot-btn" data-cookie-settings>${esc(F.settings)}</button>` : "";
   return `<footer class="foot">
   <div class="wrap foot-grid">
     <span class="brand" aria-label="Rempo"><svg viewBox="0 0 211.2 64" role="img" aria-label="Rempo"><use href="#logo-h"/></svg></span>
     <p>${esc(F.about)}</p>
     <p class="foot-links">${SITE.masterUrl ? `<a href="${esc(SITE.masterUrl)}">${esc(F.master)}</a>` : ""}${privacy}</p>
+    ${legal || choices ? `<nav class="foot-legal" aria-label="${esc(F.legalLabel)}">${legal}${choices}${settings}</nav>` : ""}
     <p class="foot-small">${company}</p>
   </div>
 </footer>`;
 }
 
-/* ---------- Tracking snippets: only when an id is set, and never for a browser sending Global Privacy Control ---------- */
-function pixelSnippet() {
-  if (!SITE.metaPixelId) return "";
-  const id = String(SITE.metaPixelId).replace(/\D/g, "");
-  return `<script>if(navigator.globalPrivacyControl!==true){!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${id}');fbq('track','PageView');}</script>
-<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=${id}&amp;ev=PageView&amp;noscript=1"></noscript>`;
-}
-function claritySnippet() {
-  if (!SITE.clarityId) return "";
-  const id = String(SITE.clarityId).replace(/[^a-z0-9]/gi, "");
-  return `<script>if(navigator.globalPrivacyControl!==true){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${id}");}</script>`;
+/* ---------- The cookie notice: only when a pixel or Clarity id is set. The tools themselves load from the page's
+   script (src/js/app.js), and only as site.trackingConsent allows: never with Global Privacy Control ---------- */
+const TOOLS = [SITE.metaPixelId && C.cookie.pixel, SITE.clarityId && C.cookie.clarity].filter(Boolean);
+function cookieNotice() {
+  if (!TRACKERS) return "";
+  const K = C.cookie, optIn = SITE.trackingConsent !== "notice";
+  const tools = TOOLS.join(` ${K.and} `);
+  const text = fill(esc(optIn ? K.optIn : K.notice), { tools: esc(tools) });
+  const [no, yes] = optIn ? [K.decline, K.allow] : [K.optOut, K.ok];
+  return `<section class="cookie" id="cookie-notice" aria-label="${esc(K.label)}" hidden>
+  <p><b>${esc(K.title)}</b> ${text} <a href="${esc(LEGAL.cookies || SITE.privacyUrl || "")}">${esc(K.link)}</a></p>
+  <div class="cookie-btns"><button type="button" class="btn btn-line" data-consent="denied">${esc(no)}</button><button type="button" class="btn btn-line" data-consent="granted">${esc(yes)}</button></div>
+</section>`;
 }
 
 /* ---------- The page ---------- */
-const PUBLIC_SITE = { name: SITE.name, endpoint: SITE.endpoint, reportTurnaround: SITE.reportTurnaround, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl };
-const UI = { check: C.check, result: C.result };
+const TRACKING = {
+  pixel: SITE.metaPixelId ? String(SITE.metaPixelId).replace(/\D/g, "") : null,
+  clarity: SITE.clarityId ? String(SITE.clarityId).replace(/[^a-z0-9]/gi, "") : null,
+  mode: SITE.trackingConsent === "notice" ? "notice" : "opt-in"
+};
+const PUBLIC_SITE = { name: SITE.name, endpoint: SITE.endpoint, reportTurnaround: SITE.reportTurnaround, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl, legal: LEGAL, noticeVersion: SITE.noticeVersion || null, tracking: TRACKING };
+const UI = { check: C.check, result: C.result, legal: C.legal };
 
 function page(v) {
   const urlPath = v.slug ? `${BASE}/${v.slug}` : BASE;
@@ -370,8 +396,6 @@ ${canonical ? `<link rel="canonical" href="${esc(canonical)}">\n` : ""}<meta pro
 <link rel="icon" href="${A("/assets/favicon.svg")}" type="image/svg+xml">
 <link rel="preload" href="${A("/assets/fonts/outfit.woff2")}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${A("/assets/fonts/geist.woff2")}" as="font" type="font/woff2" crossorigin>
-${pixelSnippet()}
-${claritySnippet()}
 <style>${CSS}</style>
 </head>
 <body>
@@ -392,6 +416,7 @@ ${final()}
 ${footer()}
 <div class="sticky-bar">${openBtn(C.sticky, "sticky", "btn btn-primary")}</div>
 <dialog class="dlg" id="gc-sheet" aria-label="${esc(C.check.label)}"><div class="dlg-in"><div class="dlg-head"><button class="dlg-x" type="button" aria-label="Close">${ic("i-x")}</button></div><div class="dlg-body"></div></div></dialog>
+${cookieNotice()}
 <script type="application/json" id="rm-data">${data}</script>
 <script src="${V["/assets/app.js"]}" defer></script>
 </body>

@@ -787,6 +787,11 @@ main > section[id]{scroll-margin-top:calc(var(--header-h) - 1px)}
 .foot-cta a:not(.btn){font-weight:600}
 .foot-co{grid-column:1 / -1}
 .foot-note{margin-top:40px;padding-top:20px;border-top:1px solid var(--c-line);color:var(--c-neutral-400);font:400 13px/1.5 var(--f-text)}
+/* The legal links (legal/, built from legal-src/) */
+.foot-legal{grid-column:1 / -1}
+.foot .foot-legal dd{gap:2px 20px}
+.legal-note{margin:4px 0 0;font-size:14px;line-height:1.5;color:var(--c-text)}
+.legal-note a{color:var(--c-accent-text);text-decoration:underline;text-underline-offset:2px}
 @media (min-width:900px){.foot{padding-bottom:64px}.foot-grid{grid-template-columns:4fr 8fr}.foot dl{grid-template-columns:repeat(3,1fr);gap:24px}}
 
 /* ============================================================
@@ -1683,6 +1688,7 @@ li{text-wrap:pretty}
             </div>
             <label class="consent"><input type="checkbox" name="consentEmail" id="s-consent" aria-describedby="e-s-consent"><span>Email me my scorecard and the occasional tip. Unsubscribe any time.</span></label>
             <p class="err" id="e-s-consent"></p>
+            <p class="legal-note">By tapping Get my scorecard, you agree to our <a href="/legal/terms" target="_blank" rel="noopener">Terms of Service<span class="sr-only"> (opens in a new tab)</span></a> and acknowledge our <a href="/legal/privacy" target="_blank" rel="noopener">Privacy Policy<span class="sr-only"> (opens in a new tab)</span></a>, which explains what we collect and how we use it.</p>
             <div class="hp" aria-hidden="true"><label for="s-hp">Leave this empty</label><input id="s-hp" name="hp" tabindex="-1" autocomplete="off"></div>
             <div class="f-actions"><button class="btn btn-primary" type="submit">Get my scorecard</button></div>
             <div class="sent" id="s-sent" role="status" tabindex="-1" hidden>
@@ -1970,9 +1976,10 @@ li{text-wrap:pretty}
               <p class="err" id="e-time"></p>
             </div>
             </div>
-            <label class="consent"><input type="checkbox" name="consentPhone" id="l-cphone" aria-describedby="e-cphone"><span>You may call me about Rempo.</span></label>
+            <label class="consent"><input type="checkbox" name="consentPhone" id="l-cphone" aria-describedby="e-cphone"><span>Rempo may call me at this number about my request and Rempo's service.</span></label>
             <p class="err" id="e-cphone"></p>
-            <label class="consent m-hide"><input type="checkbox" name="consentEmail" id="l-cemail"><span>You may email me about Rempo.</span></label>
+            <label class="consent m-hide"><input type="checkbox" name="consentEmail" id="l-cemail"><span>Rempo may email me about Rempo's service. Unsubscribe any time.</span></label>
+            <p class="legal-note">By tapping Book my call, you agree to our <a href="/legal/terms" target="_blank" rel="noopener">Terms of Service<span class="sr-only"> (opens in a new tab)</span></a> and acknowledge our <a href="/legal/privacy" target="_blank" rel="noopener">Privacy Policy<span class="sr-only"> (opens in a new tab)</span></a>, which explains what we collect and how we use it.</p>
             <div class="hp" aria-hidden="true"><label for="l-web">Website</label><input id="l-web" name="website" tabindex="-1" autocomplete="off"></div>
             <div class="f-actions"><button class="btn btn-line f-back" type="button" id="f-back">Back</button><button class="btn btn-primary" type="submit">Book my call</button></div>
             <div class="sent" id="sent" role="status" tabindex="-1" hidden>
@@ -2004,9 +2011,11 @@ li{text-wrap:pretty}
       <dl>
         <div class="foot-co"><dt>Company</dt><dd>Rempo · rempo.io</dd></div>
         
-        <div data-tbd><dt>Legal</dt><dd><span class="tbd">{TBD · privacy notice}</span></dd></div>
+        <div class="foot-legal"><dt>Legal</dt><dd><a href="/legal/terms">Terms of Service</a><a href="/legal/privacy">Privacy Policy</a><a href="/legal/cookies">Cookies</a><a href="/legal/sms">SMS terms</a><a href="/legal/accessibility">Accessibility</a><a href="/legal">Legal center</a></dd></div>
+        <div class="foot-legal"><dt>Your privacy</dt><dd><a href="/legal/privacy-choices">Do Not Sell or Share My Personal Information</a></dd></div>
       </dl>
     </div>
+    <p class="foot-note">© 2026 Rempo · San Diego, California</p>
   </div>
 </footer>
 
@@ -2033,8 +2042,8 @@ li{text-wrap:pretty}
   const params = new URLSearchParams(location.search);
   // Words and data the script needs, from src/content/copy.json (rendered in by tools/build.mjs)
   const T = {"kicker":{"partner":"Recommended to you by {name}.","event":"Good to meet you at {name}.","article":"Read the article? Here is the whole picture.","sms":"As promised on the phone."},"form":{"trade":"Please choose your trade.","techs":"Please choose how many technicians.","loc":"Please choose how many locations.","name":"Please enter your first name.","company":"Please enter your business name.","city":"Please enter your city or town.","phone":"Please enter a 10-digit phone number.","email":"Please check the email address.","consent":"We need your permission to call you.","scoreEmail":"Please enter your email, so we can send your scorecard.","scoreConsent":"We need your permission to email your scorecard."}};
-  const SITE = {"name":"Rempo","url":null,"phone":null,"phoneHref":null,"signinUrl":null,"callUrl":null,"trialUrl":null,"formEndpoint":"/api/lead","checkoutUrl":null,"scorecardUrl":null,"appStore":null,"googlePlay":null,"privacyUrl":null,"termsUrl":null,"company":"Rempo","noindex":true,"platforms":"Web"};
-  const FORM = {"title":"Book a 15-minute call","lead":"Three quick questions about your business, then the best number to reach you. We call you for a 15-minute talk.","step1":"Your business","step2":"How to reach you","count1":"Step 1 of 2","count2":"Step 2 of 2","trade":"What is your trade?","tradeOptions":["HVAC","Plumbing","HVAC and plumbing","Other home service"],"techs":"How many technicians?","techsHint":"Count the people in the field, not the office.","techsOptions":["1 to 3","4 to 9","10 to 19","20 or more"],"loc":"How many locations?","locOptions":["1","2","3 or more"],"next":"Next","back":"Back","name":"First name","company":"Business name","companyHint":"As it shows on Google.","phone":"Best phone number","phonePrefix":"+1","phoneDigits":10,"city":"City or town","cityHint":"Where your business is based.","email":"Email","emailOpt":"(optional)","time":"Best time to call","timeOptions":["Morning","Midday","Afternoon","Any time"],"consentPhone":"You may call me about Rempo.","consentEmail":"You may email me about Rempo.","submit":"Book my call","thanks":"Thanks{name}. We'll call you{phone} for your 15-minute call.","failed":"Something went wrong. Please try again in a minute.","notSent":"Preview: nothing was sent. Set site.formEndpoint to receive start requests."};
+  const SITE = {"name":"Rempo","url":null,"phone":null,"phoneHref":null,"signinUrl":null,"callUrl":null,"trialUrl":null,"formEndpoint":"/api/lead","checkoutUrl":null,"scorecardUrl":null,"appStore":null,"googlePlay":null,"privacyUrl":"/legal/privacy","termsUrl":"/legal/terms","company":"Rempo","noindex":true,"platforms":"Web"};
+  const FORM = {"title":"Book a 15-minute call","lead":"Three quick questions about your business, then the best number to reach you. We call you for a 15-minute talk.","step1":"Your business","step2":"How to reach you","count1":"Step 1 of 2","count2":"Step 2 of 2","trade":"What is your trade?","tradeOptions":["HVAC","Plumbing","HVAC and plumbing","Other home service"],"techs":"How many technicians?","techsHint":"Count the people in the field, not the office.","techsOptions":["1 to 3","4 to 9","10 to 19","20 or more"],"loc":"How many locations?","locOptions":["1","2","3 or more"],"next":"Next","back":"Back","name":"First name","company":"Business name","companyHint":"As it shows on Google.","phone":"Best phone number","phonePrefix":"+1","phoneDigits":10,"city":"City or town","cityHint":"Where your business is based.","email":"Email","emailOpt":"(optional)","time":"Best time to call","timeOptions":["Morning","Midday","Afternoon","Any time"],"consentPhone":"Rempo may call me at this number about my request and Rempo's service.","consentEmail":"Rempo may email me about Rempo's service. Unsubscribe any time.","submit":"Book my call","thanks":"Thanks{name}. We'll call you{phone} for your 15-minute call.","failed":"Something went wrong. Please try again in a minute.","notSent":"Preview: nothing was sent. Set site.formEndpoint to receive start requests."};
 
   /* ---------- View flags: the production page by default; ?view=preview shows the open facts ({TBD}) ---------- */
   if (params.get("view") === "preview") html.classList.add("is-preview");
@@ -2454,6 +2463,7 @@ li{text-wrap:pretty}
     passThrough.forEach((k) => { if (params.has(k)) data[k] = params.get(k); });
     data.page = location.href;
     data.form = "book-call";   // names this form in the lead notices and in public.leads.form
+    data.noticeVersion = "2026-11-08";   // the consent and policy wording this lead agreed to (legal-src/settings.mjs)
     data.visit = visitId;
     $("#e-send").textContent = "";
     if (SITE.formEndpoint) {
@@ -2503,6 +2513,7 @@ li{text-wrap:pretty}
       passThrough.forEach((k) => { if (params.has(k)) data[k] = params.get(k); });
       data.page = location.href;
       data.form = "scorecard";
+      data.noticeVersion = "2026-11-08";
       data.visit = visitId;
       $("#e-ssend").textContent = "";
       if (SITE.formEndpoint) {

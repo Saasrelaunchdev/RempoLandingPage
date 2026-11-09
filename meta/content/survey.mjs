@@ -186,7 +186,10 @@ export default {
       { v: "afternoon", label: "Afternoon", hint: "2 to 5 pm", start: 14, end: 17 }
     ],
     phone: { name: "phone", label: "Best number to call", prefix: "+1", autocomplete: "tel-national", inputmode: "tel" },
-    consentPhone: { name: "consentPhone", label: "You may call me about Rempo.", required: true },
-    consentText: { name: "consentText", label: "You may text me to confirm or move the call.", required: false }
+    // Consent in Rempo's name and for this number (a written agreement to be called, 47 C.F.R. 64.1200(c)(2)(ii)).
+    // Texts: a separate, optional, unticked box with what carriers check for (A2P 10DLC, CTIA): the sender, the
+    // purpose, how many, rates, STOP and HELP, not required; the SMS terms and privacy links sit under it.
+    consentPhone: { name: "consentPhone", label: "Rempo may call me at this number about my Gap Report and Rempo's service.", required: true },
+    consentText: { name: "consentText", label: "Rempo may text this number to confirm or move my call, up to 3 texts. Msg & data rates may apply. Reply STOP to opt out, HELP for help. Not required to book.", required: false }
   }
 };

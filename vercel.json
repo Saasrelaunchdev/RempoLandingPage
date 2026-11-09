@@ -8,16 +8,40 @@
     }
   },
   "redirects": [
-    { "source": "/meta/:path*", "destination": "/", "permanent": false }
+    { "source": "/meta/:path*", "destination": "/", "permanent": false },
+    { "source": "/privacy", "destination": "/legal/privacy", "permanent": false },
+    { "source": "/privacy-policy", "destination": "/legal/privacy", "permanent": false },
+    { "source": "/terms", "destination": "/legal/terms", "permanent": false },
+    { "source": "/terms-of-service", "destination": "/legal/terms", "permanent": false },
+    { "source": "/cookies", "destination": "/legal/cookies", "permanent": false },
+    { "source": "/sms", "destination": "/legal/sms", "permanent": false },
+    { "source": "/sms-terms", "destination": "/legal/sms", "permanent": false },
+    { "source": "/do-not-sell", "destination": "/legal/privacy-choices", "permanent": false },
+    { "source": "/privacy-choices", "destination": "/legal/privacy-choices", "permanent": false },
+    { "source": "/accessibility", "destination": "/legal/accessibility", "permanent": false }
   ],
   "rewrites": [
     { "source": "/customers", "destination": "/customers/index.html" },
-    { "source": "/customers/:page", "destination": "/customers/:page/index.html" }
+    { "source": "/customers/:page", "destination": "/customers/:page/index.html" },
+    { "source": "/legal", "destination": "/legal/index.html" },
+    { "source": "/legal/:page", "destination": "/legal/:page/index.html" }
   ],
   "headers": [
     {
       "source": "/customers/assets/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/legal/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/legal(/.*)?",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
     },
     {
       "source": "/customers(/.*)?",
