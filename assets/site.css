@@ -290,6 +290,9 @@ h1,h2,h3{margin:0;font-family:var(--f-display);color:var(--c-heading);letter-spa
 .foot-cta{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
 .foot-cta a:not(.btn){font-weight:600}
 .foot-co{grid-column:1 / -1}
+/* The legal links (legal/, built from legal-src/), as on index.html */
+.foot-legal{grid-column:1 / -1}
+.foot .foot-legal dd{gap:2px 20px}
 .foot-note{margin-top:40px;padding-top:20px;border-top:1px solid var(--c-line);color:var(--c-neutral-400);font:400 13px/1.5 var(--f-text)}
 @media (min-width:900px){.foot{padding-bottom:64px}.foot-grid{grid-template-columns:4fr 8fr}.foot dl{grid-template-columns:repeat(3,1fr);gap:24px}}
 

@@ -318,6 +318,8 @@ ${body}
       </div>
       <dl>
         <div class="foot-co"><dt>Company</dt><dd>Rempo · rempo.io</dd></div>
+        <div class="foot-legal"><dt>Legal</dt><dd><a href="/legal/terms">Terms of Service</a><a href="/legal/privacy">Privacy Policy</a><a href="/legal/cookies">Cookies</a><a href="/legal/sms">SMS terms</a><a href="/legal/accessibility">Accessibility</a><a href="/legal">Legal center</a></dd></div>
+        <div class="foot-legal"><dt>Your privacy</dt><dd><a href="/legal/privacy-choices">Do Not Sell or Share My Personal Information</a></dd></div>
       </dl>
     </div>
   </div>
