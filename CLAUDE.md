@@ -76,6 +76,7 @@ open and say so plainly. The start-of-session hook will keep flagging it until i
 | 2026-11-07 | Case studies (Junkaway & Movers, Ranchero Plumbing) and German Aquino's video testimonial | `index.html#results`, `/case-studies/*` |
 | 2026-11-08 | `/admin` publishes proof (videos, case studies) behind `ADMIN_PASSWORD` | `admin/`, `api/admin*.mjs`, `PROOF.md` |
 | 2026-11-08 | Legal pages at `/legal`, linked from every footer; consent and a notice at collection on every form | `legal-src/` builds into `legal/` |
+| 2026-11-10 | Self-serve checkout at `/start` (Stripe); every paid buyer is handed to the founder's GoHighLevel automatically, and the thank-you page shows the onboarding link at once. Delivery after that is the founder's, in GoHighLevel | `start/`, `api/checkout.mjs`, `api/stripe-webhook.mjs`, `checkout/` |
 
 ## Generated files: rebuild them, never merge them by hand
 
@@ -97,6 +98,7 @@ node meta/tests/run.mjs                    # the /customers pages
 node legal-src/tests/check-legal.mjs       # the legal pages and consent
 node lead-capture/tests/check-forms.mjs    # the landing page's forms
 node lead-capture/tests/check-api.mjs      # the lead endpoint
+node checkout/tests/check-sql.mjs          # the purchases SQL in a local Postgres (the checkout's own tests run in npm test)
 ```
 
 ## Other repositories
