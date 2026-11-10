@@ -72,3 +72,29 @@ test("every page area keeps its route and function in vercel.json (merging must 
   }
   assert.ok(existsSync(ROOT + "customers/index.html"), "customers/ (the Meta ads page) is missing");
 });
+
+test("2026-11-10: the self-serve checkout at /start hands every buyer to GoHighLevel, with the onboarding link at once", () => {
+  for (const p of ["start/index.html", "start/welcome/index.html", "start/start.css", "start/start.mjs", "start/welcome.mjs", "api/checkout.mjs",
+    "api/stripe-webhook.mjs", "checkout/checkout.sql", "checkout/README.md"]) {
+    assert.ok(existsSync(ROOT + p), `${p} is missing`);
+  }
+  for (const p of ["start/index.html", "start/welcome/index.html"]) {
+    const src = read(p);
+    has(src, /href="\/legal\/terms"/, `${p}: the footer lost its Terms link`);
+    has(src, /href="\/legal\/privacy"/, `${p}: the footer lost its Privacy Policy link`);
+    has(src, /href="\/legal\/privacy-choices"/, `${p}: the footer lost "Do Not Sell or Share My Personal Information"`);
+  }
+  const page = read("start/index.html");
+  has(page, /class="legal-note"/, "start/index.html: the notice at collection above the pay button is gone");
+  has(page, /name="consentEmail"/, "start/index.html: the email consent box is gone");
+  has(page, /name="consentPhone"/, "start/index.html: the text consent box is gone");
+  has(read("start/start.css"), /max-width:\s*599px/, "start/start.css: the phone layout rules are gone");
+  has(read("start/welcome/index.html"), /data-onboarding/, "the thank-you page no longer shows the onboarding link");
+  const hook = read("api/stripe-webhook.mjs");
+  has(hook, /verifySignature\(/, "api/stripe-webhook.mjs no longer checks Stripe's signature");
+  has(hook, /handOffPurchase\(/, "api/stripe-webhook.mjs no longer hands the buyer to GoHighLevel");
+  const v = JSON.parse(read("vercel.json"));
+  for (const f of ["api/checkout.mjs", "api/stripe-webhook.mjs"]) assert.ok(Object.keys(v.functions || {}).includes(f), `vercel.json: the function ${f} is gone`);
+  const rewrites = (v.rewrites || []).map((r) => r.source);
+  for (const s of ["/start", "/start/welcome"]) assert.ok(rewrites.includes(s), `vercel.json: the rewrite for ${s} is gone`);
+});

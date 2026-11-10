@@ -1,0 +1,94 @@
+/* The checkout pages (/start and /start/welcome). Tokens, type, buttons, header and footer come from /assets/site.css;
+   the form's fields, options, consent boxes and notice are the landing page's call form rules (index.html), so the
+   checkout reads as the same site. Phone first: one column, big targets, the button within reach. */
+/* The header scrolls away with the page here: the whole screen for the form, nothing floating over it */
+.hdr{position:relative}
+.st-main{padding:28px 0 72px}
+.st-wrap{max-width:760px}
+.st-head{display:grid;gap:12px;margin-bottom:22px}
+.st-h1{font:800 clamp(34px,5vw,52px)/1.02 var(--f-display);font-stretch:var(--f-stretch-sm,100%);color:var(--c-heading);margin:0;text-wrap:balance}
+.st-head .lead{margin:0}
+.st-card{display:grid;gap:18px;padding:24px;border-radius:var(--r-card);background:var(--c-surface);border:1px solid var(--c-line);box-shadow:var(--shadow-soft)}
+/* hidden means hidden, whatever display a class sets (the form, the billing choice and the guarantee are shown by script) */
+.st-main [hidden]{display:none!important}
+.st-flow{display:grid;gap:18px}
+.st-legend{display:flex;align-items:baseline;justify-content:space-between;gap:12px;width:100%;padding:0;margin:0 0 2px;font:700 22px/1.2 var(--f-display);color:var(--c-heading)}
+.st-legend small{font:500 14px/1.2 var(--f-text);color:var(--c-text-2)}
+fieldset.st-card{margin:0;min-width:0}
+/* A floated legend is laid out like any other child: inside the card, not on its border */
+fieldset.st-card > .st-legend{float:left}
+.hdr-cta{margin-left:auto}
+.st-banner{margin:0 0 18px;padding:14px 16px;border-radius:12px;background:color-mix(in srgb,var(--c-accent) 12%,transparent);border:1px solid var(--c-accent);color:var(--c-heading);font-size:15.5px}
+.st-route{display:grid;gap:12px}
+.st-route p{margin:0}
+.st-plan-name{margin:0;font:700 24px/1.2 var(--f-display);color:var(--c-heading)}
+.st-plan-blurb{margin:-8px 0 0;color:var(--c-text)}
+.st-sum{display:grid;gap:8px;margin:0;padding:16px;border-radius:14px;background:var(--c-bg);border:1px solid var(--c-line)}
+.st-sum div{display:flex;justify-content:space-between;gap:16px;align-items:baseline}
+.st-sum dt{color:var(--c-text)}
+.st-sum dd{margin:0;font-weight:600;color:var(--c-heading);text-align:right;white-space:nowrap}
+.st-sum .st-total{padding-top:8px;border-top:1px solid var(--c-line)}
+.st-sum .st-total dt,.st-sum .st-total dd{font-weight:700;color:var(--c-heading)}
+.st-terms,.st-bump,.st-guarantee,.st-secure{margin:0;font-size:14.5px;line-height:1.5;color:var(--c-text)}
+.st-guarantee{display:flex;gap:10px;align-items:flex-start;font-weight:600;color:var(--c-heading)}
+.st-secure{display:flex;gap:8px;align-items:center;color:var(--c-text-2)}
+.st-secure .ic{width:18px;height:18px}
+.st-pay{width:100%}
+.st-pay[aria-busy="true"]{opacity:.75;pointer-events:none}
+.st-closed{display:grid;gap:14px}
+.st-closed p{margin:0}
+.st-next{display:grid;gap:14px;padding:22px;border-radius:var(--r-card);background:color-mix(in srgb,var(--c-accent) 10%,var(--c-surface));border:1.5px solid var(--c-accent)}
+.st-next h2{margin:0;font:700 22px/1.2 var(--f-display);color:var(--c-heading)}
+.st-next p{margin:0}
+.st-muted{color:var(--c-text-2);font-size:14.5px}
+.st-test{display:inline-flex;align-self:start;padding:4px 10px;border-radius:999px;background:var(--c-signal-100);color:var(--c-signal-800);font:600 13px/1.3 var(--f-text)}
+
+/* The call form's rules, from index.html */
+.form{display:grid;gap:14px}
+.form .row{display:grid;gap:14px}
+.field{display:grid;gap:6px;align-content:start}
+.field label{font-weight:600;font-size:15px;color:var(--c-heading)}
+.field input{width:100%;min-height:48px;padding:0 14px;border-radius:10px;border:1px solid var(--field-line);background:var(--c-bg);font-size:17px;color:var(--c-text)}
+.field input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.field[aria-invalid="true"] input{border-color:var(--c-signal)}
+.phone-in{display:flex;align-items:center;gap:0}
+.phone-in span{display:grid;place-items:center;min-height:48px;padding:0 12px;border-radius:10px 0 0 10px;border:1px solid var(--field-line);border-right:0;background:var(--c-surface-2);font:500 16px var(--f-text);color:var(--c-text)}
+.phone-in input{border-radius:0 10px 10px 0!important}
+.opts{display:grid;gap:10px}
+.opts-l{margin:0;font-weight:600;font-size:15px;color:var(--c-heading)}
+.opts-h{margin:-4px 0 0;font-size:13.5px;line-height:1.35;color:var(--c-text-2)}
+.opt-row{display:flex;flex-wrap:wrap;gap:8px}
+.opt{position:relative;display:inline-flex}
+.opt input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.opt span{display:inline-flex;align-items:center;min-height:46px;padding:0 16px;border-radius:12px;border:1.5px solid var(--field-line);background:var(--c-bg);font:600 15.5px/1.2 var(--f-text);color:var(--c-heading);transition:border-color var(--t-ui,.15s) ease,background-color var(--t-ui,.15s) ease,transform var(--t-press,.1s) var(--ease-out,ease)}
+.opt:active span{transform:scale(.97)}
+.opt input:checked + span{border-color:var(--c-accent);background:color-mix(in srgb,var(--c-accent) 14%,var(--c-bg));box-shadow:inset 0 0 0 1px var(--c-accent)}
+.opt input:focus-visible + span{outline:2px solid var(--focus);outline-offset:2px}
+.opts[aria-invalid="true"] .opt span{border-color:var(--c-signal)}
+.opt-t{color:var(--c-text-2);font-weight:400}
+.err{margin:0;color:var(--c-signal-text);font-size:14px;min-height:0}
+.err:empty{display:none}
+.consent{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;font-size:15px;color:var(--c-text);cursor:pointer}
+.consent input{width:22px;height:22px;margin:1px 0 0;accent-color:var(--c-primary-500)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.legal-note{margin:4px 0 0;font-size:14px;line-height:1.5;color:var(--c-text)}
+.legal-note a{color:var(--c-accent-text);text-decoration:underline;text-underline-offset:2px}
+
+@media (min-width:600px){
+  .st-main{padding:48px 0 96px}
+  .st-card{padding:30px}
+  .form .row{grid-template-columns:1fr 1fr}
+  .st-pay{width:auto;justify-self:start}
+}
+
+/* Phones: bigger targets, as on the landing page's phone pass */
+@media (max-width:599px){
+  .st-head{margin-bottom:16px}
+  .st-card{padding:20px 18px;border-radius:18px}
+  .st-legend{font-size:20px}
+  .field input,.phone-in span{min-height:52px}
+  .opt span{min-height:50px;padding:0 18px}
+  .consent{grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;font-size:15.5px}
+  .consent input{width:32px;height:32px;margin:0}
+  .st-pay{min-height:56px}
+}

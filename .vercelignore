@@ -1,4 +1,7 @@
 lead-capture/
+# The checkout's SQL, setup guide and checks (checkout/README.md); its pages are start/, its functions api/checkout.mjs and
+# api/stripe-webhook.mjs.
+checkout/
 # The legal pages: their built pages are in legal/; the sources, build and tests stay out of the deployment.
 legal-src/
 # The Meta ads page: its built pages are in customers/ and its function is api/meta-lead.mjs. From meta/, only what

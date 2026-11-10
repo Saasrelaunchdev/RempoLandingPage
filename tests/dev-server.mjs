@@ -52,8 +52,33 @@ function serveFile(req, res, file) {
 
 const handlers = new Map();
 async function api(name) {
-  if (!handlers.has(name)) handlers.set(name, (await import(pathToFileURL(join(ROOT, "api", `${name}.mjs`)).href)).default);
+  if (!handlers.has(name)) {
+    const mod = await import(pathToFileURL(join(ROOT, "api", `${name}.mjs`)).href);
+    handlers.set(name, typeof mod.default === "function" ? mod.default : webHandler(mod));
+  }
   return handlers.get(name);
+}
+
+// A function written the Web way (export async function POST(request) { return new Response(...) }), as Vercel runs it:
+// the request becomes a Request with its raw body, and the Response is written back. api/stripe-webhook.mjs is one.
+const HOP = new Set(["connection", "keep-alive", "transfer-encoding", "upgrade", "expect", "host", "content-length"]);
+function webHandler(mod) {
+  return async (req, res) => {
+    const fn = mod[req.method] || (req.method === "HEAD" ? mod.GET : undefined);
+    if (typeof fn !== "function") {
+      res.writeHead(405, { allow: Object.keys(mod).filter((k) => /^[A-Z]+$/.test(k)).join(", ") });
+      return res.end();
+    }
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    const headers = Object.entries(req.headers).filter(([k]) => !HOP.has(k)).map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : String(v)]);
+    const request = new Request(new URL(req.url, `http://${req.headers.host || "localhost"}`), {
+      method: req.method, headers, body: req.method === "GET" || req.method === "HEAD" ? undefined : Buffer.concat(chunks)
+    });
+    const response = await fn(request);
+    res.writeHead(response.status, Object.fromEntries(response.headers));
+    res.end(req.method === "HEAD" ? undefined : Buffer.from(await response.arrayBuffer()));
+  };
 }
 
 export function start(port = Number(process.env.PORT) || 3000) {
