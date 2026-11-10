@@ -31,7 +31,7 @@ export function config() {
     notifyTo: env("LEAD_NOTIFY_TO").split(",").map((s) => s.trim()).filter(Boolean),
     slackWebhook: env("SLACK_WEBHOOK_URL"),
     ghl: {
-      token: env("GHL_PRIVATE_TOKEN"),
+      token: env("GHL_TOKEN") || env("GHL_PRIVATE_TOKEN"), // GHL_TOKEN is the landing page's own name for it
       locationId: env("GHL_LOCATION_ID"),
       calendarId: env("GHL_CALENDAR_ID"),
       version: env("GHL_API_VERSION") || "2021-07-28",

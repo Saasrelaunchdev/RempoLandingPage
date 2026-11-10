@@ -56,7 +56,7 @@ To see the whole flow before any key is set, add `RACE_FAKE=1`. The page shows "
 | `RACE_POSTAL_ADDRESS` | for emails | The postal address commercial email must carry (CAN-SPAM) |
 | `LEAD_NOTIFY_FROM`, `LEAD_NOTIFY_TO` | for the team alert | Same values as on the landing page |
 | `SLACK_WEBHOOK_URL` | optional | Same value as on the landing page |
-| `GHL_PRIVATE_TOKEN` | for the CRM and calendar | GoHighLevel > Settings > Private Integrations > Create, with scopes `contacts.write`, `contacts.readonly`, `calendars.readonly`, `calendars/events.write` |
+| `GHL_TOKEN` | for the CRM and calendar | The landing page's variable of the same name (its checkout uses it). GoHighLevel > Settings > Private Integrations, with scopes `contacts.write`, `contacts.readonly`, `calendars.readonly`, `calendars/events.write` |
 | `GHL_LOCATION_ID` | for the CRM and calendar | Settings > Business Profile > Location ID |
 | `GHL_CALENDAR_ID` | for the calendar | Calendars > your 15-minute call calendar > its ID |
 | `GHL_BOOKING_URL` | optional | The calendar's public booking link, shown if the in-page calendar can't load |
@@ -99,7 +99,7 @@ The tool is built so this is a copy, not a rewrite. When you decide where it goe
    <section id="review-race" data-review-race></section>
    ```
 4. Add the two functions and the cron from this folder's `vercel.json` to the landing page's `vercel.json`.
-5. Add the race's environment variables to the landing page's Vercel project. `RESEND_API_KEY`, `LEAD_NOTIFY_*`, `SLACK_WEBHOOK_URL` and `ANTHROPIC_API_KEY` are already there.
+5. Add only the race's new environment variables to the landing page's Vercel project (the race reads the same names the landing page uses, so `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `LEAD_NOTIFY_*`, `SLACK_WEBHOOK_URL`, `GHL_TOKEN`, `GHL_LOCATION_ID` and `LEAD_HASH_SALT` are already there). Give the GoHighLevel token the two calendar scopes, and add the landing page's domain to the Turnstile widget. Then delete the separate Vercel project.
 6. Add SerpApi, Google (Maps Platform), Anthropic and Cloudflare (Turnstile) to the subprocessors page in `legal-src/`, and rebuild the legal pages.
 7. The landing page's own scorecard choice still applies: this tool or ScoreApp, not both (owner decision pending).
 
