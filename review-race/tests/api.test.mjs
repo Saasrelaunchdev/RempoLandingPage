@@ -222,6 +222,36 @@ await section("the endpoint's guards", async () => {
   ok("the daily job runs with it", (await call(cronHandler, { url: "/api/race-cron", headers: { authorization: "Bearer cron-secret" } })).status === 200);
 });
 
+await section("find: the business search on SerpApi (no Google key)", async () => {
+  process.env.RACE_SEARCH = "maps";
+  try {
+    const cm = config();
+    ok("SerpApi search mode", cm.searchMode === "maps");
+    const conf = (await call(handler, { url: "/api/race?action=config" })).json;
+    ok("the page is told to use Find", conf.search === "maps" && conf.ready === true, conf);
+    const health = (await call(handler, { url: "/api/race?action=health" })).json;
+    ok("health needs no Google key", !("places" in health.required) && health.ready === true, health.required);
+    const list = await core.find({ c: cm, svc, q: "Cardinal Heating Springfield" });
+    ok("find lists the business", list.length >= 1 && list[0].main === "Cardinal Heating & Air", list.map((l) => l.main));
+    ok("each listing is signed", list.every((l) => l.listing && l.sig && l.id));
+    const short = (await call(handler, { url: "/api/race?action=find&q=ab" })).json;
+    ok("too short: nothing searched", Array.isArray(short.suggestions) && short.suggestions.length === 0);
+    const viaApi = (await call(handler, { url: "/api/race?action=find&q=Prairie%20Drain" })).json;
+    ok("the endpoint finds too", viaApi.suggestions[0] && viaApi.suggestions[0].main === "Prairie Drain Pros");
+    const v = await core.start({ c: cm, store, svc, body: { listing: list[0].listing, sig: list[0].sig, main: list[0].main, secondary: list[0].secondary }, ipHash: "ip-find" });
+    ok("start uses the picked listing", v.preview.owner.name === "Cardinal Heating & Air" && v.preview.rivals.length === 3, v.preview.owner);
+    const row = await store.getRun(v.token);
+    ok("no second lookup", !row.cost || row.cost.cached || row.cost.serpapi <= 1, row.cost);
+    const forged = Buffer.from(JSON.stringify({ name: "Not Theirs", placeId: "fake-maple" })).toString("base64url");
+    const e1 = await err(core.start({ c: cm, store, svc, body: { listing: forged, sig: list[0].sig }, ipHash: "ip-find" }));
+    ok("a listing SerpApi didn't return is refused", e1 && e1.code === "bad-place", e1 && e1.code);
+    const e2 = await err(core.start({ c: cm, store, svc, body: { listing: list[0].listing, sig: "x".repeat(32) }, ipHash: "ip-find" }));
+    ok("a wrong signature is refused", e2 && e2.code === "bad-place");
+  } finally {
+    delete process.env.RACE_SEARCH;
+  }
+});
+
 await section("config: the address in email links", async () => {
   const names = ["RACE_PUBLIC_URL", "VERCEL_ENV", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"];
   const kept = Object.fromEntries(names.map((n) => [n, process.env[n]]));

@@ -16,22 +16,28 @@ import { openStore } from "./_lib/race/store.mjs";
 import * as core from "./_lib/race/core.mjs";
 import { unsubscribePage } from "./_lib/race/copy.mjs";
 
-// A light limit on the search box, per server instance: 90 suggestions per network per 10 minutes
-const typing = new Map();
-function typingAllowed(key) {
-  const now = Date.now();
-  const t = typing.get(key);
-  if (!t || t.reset < now) { typing.set(key, { n: 1, reset: now + 600000 }); return true; }
-  t.n += 1;
-  if (typing.size > 5000) typing.clear();
-  return t.n <= 90;
+// Light limits on the search box, per server instance: 90 suggestions per network per 10 minutes (Google Places),
+// 15 Finds per network per hour (SerpApi, where each Find is one search)
+function limiter(max, ms) {
+  const seen = new Map();
+  return (key) => {
+    const now = Date.now();
+    const t = seen.get(key);
+    if (!t || t.reset < now) { seen.set(key, { n: 1, reset: now + ms }); return true; }
+    t.n += 1;
+    if (seen.size > 5000) seen.clear();
+    return t.n <= max;
+  };
 }
+const typingAllowed = limiter(90, 600000);
+const findAllowed = limiter(15, 3600000);
 
 function publicConfig(c) {
   const p = parts(c);
   return {
     demo: c.fake,
-    ready: p.serpapi && p.places && p.claude && p.database,
+    ready: p.serpapi && (c.searchMode === "maps" || p.places) && p.claude && p.database,
+    search: c.searchMode,
     turnstileSiteKey: c.fake ? null : c.turnstile.siteKey || null,
     calendar: p.calendar,
     bookingUrl: c.ghl.bookingUrl || null,
@@ -51,10 +57,11 @@ async function health(c, res) {
   } catch (e) {
     database = { ok: false, fix: e.supabaseStatus === 404 ? "Run sql/race.sql in the Supabase project SUPABASE_URL names." : e.message };
   }
-  const required = { serpapi: p.serpapi, places: p.places, claude: p.claude, database: database.ok };
+  const required = { serpapi: p.serpapi, ...(c.searchMode === "places" ? { places: p.places } : {}), claude: p.claude, database: database.ok };
   send(res, 200, {
     ready: Object.values(required).every(Boolean),
     required,
+    search: c.searchMode === "places" ? "Google Places, as the owner types" : "SerpApi, when the owner presses Find (no Google key)",
     optional: { resultsEmail: p.resultsEmail, teamEmail: p.teamEmail, slack: p.slack, crm: p.crm, calendar: p.calendar, botCheck: p.botCheck, cron: p.cron, links: p.links, postalAddress: p.postalAddress },
     database,
     demo: c.fake,
@@ -84,6 +91,12 @@ export default async function handler(req, res) {
         if (!typingAllowed(ipH || "anon")) return send(res, 429, { error: "Slow down a little, then try again.", code: "rate-limit" });
         const suggestions = await svc.suggest(q, /^[A-Za-z0-9_-]{8,64}$/.test(s) ? s : undefined);
         return send(res, 200, { suggestions });
+      }
+      if (action === "find") {
+        const q = clean(url.searchParams.get("q"), 120);
+        if (q.length < 3) return send(res, 200, { suggestions: [] });
+        if (!findAllowed(ipH || "anon")) return send(res, 429, { error: "That's a lot of searches. Wait a few minutes, then try again.", code: "rate-limit" });
+        return send(res, 200, { suggestions: await core.find({ c, svc, q }) });
       }
       if (action === "result") {
         const t = clean(url.searchParams.get("t"), 64);

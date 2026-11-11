@@ -27,7 +27,15 @@ export default {
     attribution: "Business search powered by Google",
     error: "The search isn't working right now. Try again in a minute.",
     change: "Change business",
-    pick: "Pick your business from the list first."
+    pick: "Pick your business from the list first.",
+    // When the search runs on SerpApi (no Google key): type, press Find, pick
+    find: "Find",
+    findPlaceholder: "Your business name and town",
+    findHint: "Type your business name and town, then press Find.",
+    findSearching: "Searching Google Maps...",
+    findNone: "No match. Try your business name and town as they show on Google Maps.",
+    findPick: "Pick your business from the list.",
+    findAttribution: "Results from public Google Maps listings"
   },
   loading: {
     title: "Finding the three shops homeowners see first",

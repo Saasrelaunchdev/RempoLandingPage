@@ -9,6 +9,7 @@ import { ok, section, report } from "./harness.mjs";
 
 process.env.RACE_FAKE = "1";
 process.env.RACE_STORE = "memory";
+process.env.RACE_IP_DAILY = "50"; // every race in this file comes from the same network
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SHOTS = path.join(ROOT, "tests/shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -111,6 +112,37 @@ async function run(name, ctxOptions) {
     ok(`${name}: keyboard pick works`, /Cardinal Heating/.test(await page.locator(".rr-board-row.is-you").innerText()));
     const unlabelled = await page.evaluate(() => [...document.querySelectorAll(".rr input:not(.rr-hp):not([type=checkbox])")].filter((i) => !i.labels || !i.labels.length).map((i) => i.id));
     ok(`${name}: every field has a label`, unlabelled.length === 0, unlabelled);
+  });
+  await section(`${name}: the SerpApi search (no Google key): type, Find, pick`, async () => {
+    process.env.RACE_SEARCH = "maps";
+    try {
+      await page.goto(`${BASE}/`);
+      const input = page.locator("#review-race-search-input");
+      await page.locator(".rr-search .rr-btn-find").waitFor();
+      ok(`${name}: the Find button shows`, await page.locator(".rr-search .rr-btn-find").isVisible());
+      await input.fill("Cardinal Heating Springfield");
+      await page.waitForTimeout(400);
+      ok(`${name}: nothing searched while typing`, (await page.locator("#review-race-search-list .rr-option").count()) === 0);
+      await page.locator(".rr-search .rr-btn-find").click();
+      await page.locator("#review-race-search-list .rr-option").first().waitFor();
+      await page.locator("#review-race-search-list .rr-option").first().click();
+      await page.locator(".rr-board-row").nth(3).waitFor({ timeout: 10000 });
+      ok(`${name}: Find then pick starts the race`, /Cardinal Heating/.test(await page.locator(".rr-board-row.is-you").innerText()));
+      await page.goto(`${BASE}/`);
+      const hero = page.locator("#hero-race-input");
+      await hero.fill("Maple Street Springfield");
+      await hero.press("Enter");
+      await page.locator("#hero-race-list .rr-option").first().waitFor();
+      await page.locator("#hero-race-list .rr-option").first().click();
+      await page.locator(".rr-board-row").nth(3).waitFor({ timeout: 10000 });
+      ok(`${name}: the hero finds and starts too`, /Maple Street Plumbing/.test(await page.locator(".rr-board-row.is-you").innerText()));
+      if (ctxOptions.isMobile) {
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        ok(`${name}: no sideways scroll`, overflow <= 0, overflow);
+      }
+    } finally {
+      delete process.env.RACE_SEARCH;
+    }
   });
   ok(`${name}: no errors in the console`, errors.length === 0, errors);
   await ctx.close();

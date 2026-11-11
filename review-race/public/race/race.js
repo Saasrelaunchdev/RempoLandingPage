@@ -86,7 +86,17 @@ function searchBox({ base, session, onPick, compact, idPrefix }) {
   const input = h("input", { class: "rr-input", type: "text", id: `${idPrefix}-input`, name: "business", autocomplete: "off", spellcheck: "false", role: "combobox", "aria-autocomplete": "list", "aria-expanded": "false", "aria-controls": listId, "aria-describedby": `${idPrefix}-status`, placeholder: compact ? COPY.hero.placeholder : COPY.search.placeholder, enterkeyhint: "search" });
   const list = h("ul", { class: "rr-list", id: listId, role: "listbox", "aria-label": COPY.search.label, hidden: true });
   const status = h("p", { class: "rr-search-status", id: `${idPrefix}-status`, "aria-live": "polite" });
-  let items = [], active = -1, timer = null, seq = 0, chosen = null;
+  const attrib = h("p", { class: "rr-attrib", text: COPY.search.attribution });
+  // Shown only when the search runs on SerpApi: nothing is searched while typing, only when Find is pressed
+  const button = h("button", { type: "button", class: "rr-btn rr-btn-find", hidden: true, text: COPY.search.find });
+  let items = [], active = -1, timer = null, seq = 0, chosen = null, mode = "places";
+  getConfig(base).then((c) => {
+    if (!c || c.search !== "maps") return;
+    mode = "maps";
+    input.placeholder = COPY.search.findPlaceholder;
+    attrib.textContent = COPY.search.findAttribution;
+    if (!compact) button.hidden = false;
+  });
   const close = () => { list.hidden = true; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); };
   const render = () => {
     list.replaceChildren(...items.map((it, i) => h("li", {
@@ -108,19 +118,16 @@ function searchBox({ base, session, onPick, compact, idPrefix }) {
     status.textContent = "";
     onPick(it);
   };
-  const query = async () => {
-    const q = input.value.trim();
-    chosen = null;
-    if (q.length < 2) { items = []; render(); status.textContent = ""; return; }
+  const lookup = async (action, params, texts) => {
     const mine = ++seq;
-    status.textContent = COPY.search.searching;
+    status.textContent = texts.searching;
     try {
-      const d = await api(base, "suggest", { params: { q, s: session() } });
+      const d = await api(base, action, { params });
       if (mine !== seq) return;
       items = (d && d.suggestions) || [];
       active = items.length ? 0 : -1;
       render();
-      status.textContent = items.length ? "" : COPY.search.none;
+      status.textContent = items.length ? texts.found : texts.none;
     } catch (e) {
       if (mine !== seq) return;
       items = [];
@@ -128,17 +135,39 @@ function searchBox({ base, session, onPick, compact, idPrefix }) {
       status.textContent = e.message || COPY.search.error;
     }
   };
-  input.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(query, 220); });
+  const query = () => {
+    const q = input.value.trim();
+    chosen = null;
+    if (q.length < 2) { items = []; render(); status.textContent = ""; return; }
+    return lookup("suggest", { q, s: session() }, { searching: COPY.search.searching, none: COPY.search.none, found: "" });
+  };
+  const find = () => {
+    const q = input.value.trim();
+    chosen = null;
+    if (q.length < 3) { status.textContent = COPY.search.findHint; input.focus(); return; }
+    return lookup("find", { q }, { searching: COPY.search.findSearching, none: COPY.search.findNone, found: COPY.search.findPick });
+  };
+  input.addEventListener("input", () => {
+    clearTimeout(timer);
+    if (mode === "maps") { chosen = null; if (items.length) { items = []; render(); } return; }
+    timer = setTimeout(query, 220);
+  });
   input.addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown") { e.preventDefault(); if (items.length) { active = (active + 1) % items.length; render(); } }
     else if (e.key === "ArrowUp") { e.preventDefault(); if (items.length) { active = (active - 1 + items.length) % items.length; render(); } }
-    else if (e.key === "Enter") { if (items.length && active >= 0) { e.preventDefault(); pick(active); } }
+    else if (e.key === "Enter") {
+      if (items.length && active >= 0) { e.preventDefault(); pick(active); }
+      else if (mode === "maps" && !compact) { e.preventDefault(); find(); }
+    }
     else if (e.key === "Escape") close();
   });
+  button.addEventListener("click", () => find());
   input.addEventListener("blur", () => setTimeout(close, 160));
   input.addEventListener("focus", () => { emit("search_focus"); if (items.length) render(); });
   return {
-    input, list, status,
+    input, list, status, attrib, button,
+    get mode() { return mode; },
+    find,
     get chosen() { return chosen; },
     pickFirst() { if (items.length) { pick(Math.max(0, active)); return true; } return false; },
     hint(t) { status.textContent = t; }
@@ -183,10 +212,10 @@ class Race {
     const box = searchBox({ base: this.base, session: () => this.session(), onPick: (sel) => this.begin(sel), idPrefix: `${this.uid}-search` });
     this.show(h("div", { class: "rr-card rr-search" },
       h("label", { class: "rr-label", for: box.input.id, text: COPY.search.label }),
-      h("div", { class: "rr-combo" }, box.input, box.list),
+      h("div", { class: "rr-cta-row" }, h("div", { class: "rr-combo" }, box.input, box.list), box.button),
       box.status,
       message ? h("p", { class: "rr-error", role: "alert", text: message }) : null,
-      h("p", { class: "rr-attrib", text: COPY.search.attribution }),
+      box.attrib,
       h("ul", { class: "rr-trust" }, COPY.section.trust.map((t) => h("li", { text: t })))));
   }
 
@@ -237,7 +266,7 @@ class Race {
     try {
       await this.ready;
       const turnstile = await this.humanToken();
-      const d = await api(this.base, "start", { method: "POST", body: { placeId: sel.id, main: sel.main, secondary: sel.secondary || "", turnstile, visit: visitId(), utm: utm(), page: location.href.split("#")[0].slice(0, 300) } });
+      const d = await api(this.base, "start", { method: "POST", body: { placeId: sel.id, listing: sel.listing, sig: sel.sig, main: sel.main, secondary: sel.secondary || "", turnstile, visit: visitId(), utm: utm(), page: location.href.split("#")[0].slice(0, 300) } });
       this.data = d;
       this.showPreview();
       emit("preview_shown", { rivals: (d.preview && d.preview.rivals || []).length });
@@ -588,10 +617,12 @@ function mountCta(el) {
     h("label", { class: "rr-label", for: box.input.id, text: COPY.hero.label }),
     h("div", { class: "rr-cta-row" }, h("div", { class: "rr-combo" }, box.input, box.list), button),
     box.status,
-    h("p", { class: "rr-attrib", text: COPY.search.attribution }));
+    box.attrib);
+  // The hero has one button: with SerpApi it finds first (the list opens), and a pick from the list starts the race
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (box.chosen) return go(box.chosen);
+    if (box.mode === "maps") return box.find();
     if (!box.pickFirst()) { box.hint(COPY.search.pick); box.input.focus(); }
   });
   el.classList.add("rr", "rr-cta");

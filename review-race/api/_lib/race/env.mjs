@@ -22,6 +22,9 @@ export function config() {
     store: env("RACE_STORE") === "memory" || (fake && !env("SUPABASE_URL")) ? "memory" : "supabase",
     serpapiKey: env("SERPAPI_API_KEY"),
     placesKey: env("GOOGLE_PLACES_API_KEY"),
+    // The business search: Google Places as the owner types, when its key is set; otherwise SerpApi, once the owner
+    // presses Find (one search each). RACE_SEARCH=maps uses SerpApi even when the Google key is set.
+    searchMode: env("RACE_SEARCH").toLowerCase() === "maps" || !(fake || env("GOOGLE_PLACES_API_KEY")) ? "maps" : "places",
     anthropicKey: env("ANTHROPIC_API_KEY"),
     supabase: { url: url("SUPABASE_URL"), key: env("SUPABASE_SECRET_KEY") || env("SUPABASE_SERVICE_ROLE_KEY") },
     resendKey: env("RESEND_API_KEY"),

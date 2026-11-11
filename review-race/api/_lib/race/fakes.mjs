@@ -29,7 +29,15 @@ export function suggest(input) {
   return hit.length ? hit : all;
 }
 
-export const placeLookup = (placeId) => (PLACES[placeId] ? structuredClone(PLACES[placeId]) : null);
+// The SerpApi business search (no Google key): the sample businesses whose name shares a word with the search
+export function find(q) {
+  const words = String(q || "").toLowerCase().split(/\s+/).filter((w) => w.length > 2);
+  const all = Object.values(PLACES).map((p, i) => ({ ...structuredClone(p), position: i + 1 }));
+  const hit = all.filter((p) => words.some((w) => p.name.toLowerCase().includes(w)));
+  return hit.length ? hit : all;
+}
+
+export const placeLookup =(placeId) => (PLACES[placeId] ? structuredClone(PLACES[placeId]) : null);
 
 export function mapSearch({ q }) {
   const category = /hvac|heat|air/i.test(q) ? "HVAC contractor" : "Plumber";

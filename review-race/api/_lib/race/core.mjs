@@ -2,7 +2,8 @@
 // steps that spend money (reading reviews, asking Claude) are claimed in the database first, so a second request waits
 // for the first instead of paying again.
 //
-//   start    the business, the search, the three rivals: the free preview         (2 SerpApi searches)
+//   find     the business search on SerpApi, when there is no Google Places key     (1 SerpApi search)
+//   start    the business, the search, the three rivals: the free preview         (2 SerpApi searches; 1 after a find)
 //   reviews  the newest reviews of all four, the numbers, the 3 reviews to answer  (about 9 SerpApi searches)
 //   unlock   the lead (Supabase, GoHighLevel, the team), then Claude, then the results email and the follow-ups
 //   slots / book   the GoHighLevel calendar
@@ -17,7 +18,7 @@ import { verifyHuman } from "./turnstile.mjs";
 import { buildRace, headline, pickRivals, pickReviews, recentForClaude, share, DAY } from "./metrics.mjs";
 import { ruleFixes, ruleSummary, resultsEmail, nurtureEmail, teamAlert, bookedAlert } from "./copy.mjs";
 import { parts } from "./env.mjs";
-import { newToken, sign, clean, EMAIL, usPhone } from "./http.mjs";
+import { newToken, sign, verifySig, clean, EMAIL, usPhone } from "./http.mjs";
 
 export const fail = (status, message, code = "error", extra = {}) => Object.assign(new Error(message), { status, code, ...extra });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -29,6 +30,7 @@ export function services(c, outbox = []) {
     return {
       outbox,
       suggest: async (q) => fakes.suggest(q),
+      find: async (q) => fakes.find(q),
       placeLookup: async (id) => fakes.placeLookup(id),
       mapSearch: async (o) => fakes.mapSearch(o),
       fetchReviews: async (ids, o) => fakes.fetchReviews(ids, o),
@@ -45,6 +47,7 @@ export function services(c, outbox = []) {
   return {
     outbox,
     suggest: async (q, s) => { need(p.places, "The business search (GOOGLE_PLACES_API_KEY)"); return places.suggest(c.placesKey, q, s); },
+    find: async (q, counter) => { need(p.serpapi, "SerpApi (SERPAPI_API_KEY)"); return serp.mapSearch(c.serpapiKey, { q }, counter); },
     placeLookup: async (id, counter) => { need(p.serpapi, "SerpApi (SERPAPI_API_KEY)"); return serp.placeLookup(c.serpapiKey, id, counter); },
     mapSearch: async (o, counter) => { need(p.serpapi, "SerpApi (SERPAPI_API_KEY)"); return serp.mapSearch(c.serpapiKey, o, counter); },
     fetchReviews: async (ids, o, counter) => serp.fetchReviews(c.serpapiKey, ids, o, counter),
@@ -103,8 +106,30 @@ const tradeFallback = (o, hint) => {
 };
 
 /* ---------- start ---------- */
+/* ---------- find: the business search on SerpApi, when there is no Google Places key ---------- */
+// One SerpApi search for what the owner typed (name and town). Each listing goes back to the page signed, so start
+// can use it as it is, with no second search, and nobody can hand start a listing SerpApi didn't return.
+const LISTING = "listing:";
+export async function find({ c, svc, q }) {
+  const results = await svc.find(q, { searches: 0 });
+  return (results || []).filter((p) => p && p.placeId && p.name).slice(0, 6).map((p) => {
+    const listing = Buffer.from(JSON.stringify({ ...p, position: null })).toString("base64url");
+    return { id: p.placeId, main: p.name, secondary: p.address || p.category || "", listing, sig: sign(LISTING + listing, c.linkSecret) };
+  });
+}
+
+function pickedListing(c, body) {
+  if (!body.listing) return null;
+  const listing = String(body.listing).slice(0, 12000);
+  let p = null;
+  if (verifySig(LISTING + listing, body.sig, c.linkSecret)) { try { p = JSON.parse(Buffer.from(listing, "base64url").toString("utf8")); } catch { p = null; } }
+  if (!p || !p.name || !p.placeId) throw fail(400, "Search for your business again, then pick it from the list.", "bad-place");
+  return p;
+}
+
 export async function start({ c, store, svc, body, ip, ipHash, now = Date.now(), origin }) {
-  const placeId = clean(body.placeId, 300);
+  const picked = pickedListing(c, body);
+  const placeId = clean(picked ? picked.placeId : body.placeId, 300);
   if (!/^[A-Za-z0-9_:-]{6,300}$/.test(placeId)) throw fail(400, "Pick your business from the list.", "bad-place");
   const main = clean(body.main, 160), secondary = clean(body.secondary, 160);
   const human = await svc.human(body.turnstile, ip);
@@ -124,7 +149,7 @@ export async function start({ c, store, svc, body, ip, ipHash, now = Date.now(),
   }
 
   const counter = { searches: 0 };
-  const owner = await svc.placeLookup(placeId, counter);
+  const owner = picked || (await svc.placeLookup(placeId, counter));
   if (!owner || !owner.name) throw fail(404, "We couldn't find that business on Google Maps. Check the name, or leave your email and we'll look it up for you.", "not-found", { later: true });
   owner.category = owner.category || tradeFallback(owner, main);
   const where = places.cityFrom(secondary) || places.cityFrom(owner.address || "");
