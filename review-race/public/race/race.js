@@ -360,7 +360,7 @@ class Race {
       h("div", { class: "rr-row" },
         this.field(id("first"), COPY.locked.firstName, { name: "firstName", autocomplete: "given-name", maxlength: "60", required: true }),
         this.field(id("email"), COPY.locked.email, { name: "email", type: "email", autocomplete: "email", inputmode: "email", maxlength: "254", required: true })),
-      h("input", { type: "text", name: "website", class: "rr-hp", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" }),
+      h("input", { type: "text", name: "rr_trap", class: "rr-hp", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" }),
       h("label", { class: "rr-check" }, h("input", { type: "checkbox", name: "consentEmail", required: true }), h("span", { text: COPY.locked.consentEmail })),
       this.consentNotice(),
       err,
@@ -382,7 +382,8 @@ class Race {
       form.hidden = true;
       form.after(progress);
       try {
-        const d = await api(this.base, "unlock", { method: "POST", body: { token: this.data.token, firstName, email, consentEmail: true, website: String(f.get("website") || "") } });
+        const d = await api(this.base, "unlock", { method: "POST", body: { token: this.data.token, firstName, email, consentEmail: true, trap: String(f.get("rr_trap") || "") } });
+        if (!d || !d.result) throw new Error(COPY.errors.generic);
         this.data = d;
         try { const u = new URL(location.href); u.searchParams.set("r", d.token); history.replaceState(null, "", u.pathname + u.search + "#review-race"); } catch { /* no history */ }
         this.showResults();
@@ -416,7 +417,7 @@ class Race {
       h("div", { class: "rr-row" },
         this.field(id("first"), COPY.locked.firstName, { name: "firstName", autocomplete: "given-name", maxlength: "60", required: true }),
         this.field(id("email"), COPY.locked.email, { name: "email", type: "email", autocomplete: "email", inputmode: "email", maxlength: "254", required: true })),
-      h("input", { type: "text", name: "website", class: "rr-hp", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" }),
+      h("input", { type: "text", name: "rr_trap", class: "rr-hp", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" }),
       h("label", { class: "rr-check" }, h("input", { type: "checkbox", name: "consentEmail", required: true }), h("span", { text: COPY.locked.consentEmail })),
       this.consentNotice(), err, button);
     const card = h("div", { class: "rr-card rr-later" }, message ? h("p", { class: "rr-error", text: message }) : null, h("h3", { class: "rr-h3", text: COPY.later.title }), h("p", { class: "rr-lead", text: COPY.later.lead }), form);
@@ -430,7 +431,7 @@ class Race {
       if (f.get("consentEmail") !== "on") { err.textContent = COPY.locked.errors.consent; return; }
       button.disabled = true;
       try {
-        await api(this.base, "later", { method: "POST", body: { firstName, email, consentEmail: true, main: this.sel && this.sel.main, secondary: this.sel && this.sel.secondary, reason: e && e.code, website: String(f.get("website") || "") } });
+        await api(this.base, "later", { method: "POST", body: { firstName, email, consentEmail: true, main: this.sel && this.sel.main, secondary: this.sel && this.sel.secondary, reason: e && e.code, trap: String(f.get("rr_trap") || "") } });
         card.replaceChildren(h("p", { class: "rr-done", role: "status", text: fill(COPY.later.done, { name: firstName }) }));
       } catch (ex) { button.disabled = false; err.textContent = ex.message; }
     });

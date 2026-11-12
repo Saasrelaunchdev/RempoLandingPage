@@ -202,8 +202,11 @@ await section("the endpoint's guards", async () => {
   const health = await call(handler, { url: "/api/race?action=health" });
   ok("health: names only", health.json.ready === true && !JSON.stringify(health.json).includes("secret"));
   ok("another site can't post", (await call(handler, { method: "POST", headers: { origin: "https://evil.example" }, body: { action: "start", ...START } })).status === 403);
-  const hp = await call(handler, { method: "POST", body: { action: "start", ...START, website: "spam" } });
+  const hp = await call(handler, { method: "POST", body: { action: "start", ...START, trap: "spam" } });
   ok("the bot trap answers like a success and does nothing", hp.status === 200 && mem.runs.length === 0);
+  const auto = await call(handler, { method: "POST", headers: { origin: "https://race.example.com" }, body: { action: "start", ...START, website: "https://owner-site.example" } });
+  ok("an autofilled website field is not taken for a bot", auto.status === 200 && auto.json.preview && mem.runs.length === 1, auto.json);
+  resetMemory();
   ok("unknown action", (await call(handler, { method: "POST", body: { action: "dance" } })).status === 404);
   const sug = await call(handler, { url: "/api/race?action=suggest&q=ma&s=abcdefgh123" });
   ok("suggest", sug.json.suggestions.length >= 1);

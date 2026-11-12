@@ -120,8 +120,9 @@ export default async function handler(req, res) {
     if (!sameOrigin(req)) return send(res, 403, { error: "forbidden" });
     const body = await readBody(req);
     action = action || clean(body.action, 20);
-    // A bot filled the field people never see: answer like a success, do nothing
-    if (typeof body.website === "string" && body.website.trim()) return send(res, 200, { ok: true });
+    // A bot filled the field people never see: answer like a success, do nothing. The field has a name no browser
+    // autofills (it was "website" at first, and autofill filled it in for real people, who then got no race).
+    if (typeof body.trap === "string" && body.trap.trim()) return send(res, 200, { ok: true });
     const store = openStore(c);
     const svc = core.services(c);
     const token = clean(body.token, 64);
