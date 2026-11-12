@@ -98,3 +98,13 @@ test("2026-11-10: the self-serve checkout at /start hands every buyer to GoHighL
   const rewrites = (v.rewrites || []).map((r) => r.source);
   for (const s of ["/start", "/start/welcome"]) assert.ok(rewrites.includes(s), `vercel.json: the rewrite for ${s} is gone`);
 });
+
+test("2026-11-12: the Meta ads page (/customers) shows the real case studies and German Aquino's video testimonial", () => {
+  for (const p of LANDING.filter((x) => x.startsWith("customers/"))) {
+    const html = read(p);
+    has(html, /<section id="results"/, `${p}: the case studies section is gone`);
+    has(html, /href="\/case-studies\/junkaway-movers\/"/, `${p}: the Junkaway & Movers case study is gone`);
+    has(html, /href="\/case-studies\/ranchero-plumbing\/"/, `${p}: the Ranchero Plumbing case study is gone`);
+    has(html, /<section id="testimonials"[\s\S]*german-aquino\.mp4/, `${p}: German Aquino's video testimonial is gone`);
+  }
+});

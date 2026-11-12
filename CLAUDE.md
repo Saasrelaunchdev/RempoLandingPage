@@ -77,6 +77,7 @@ open and say so plainly. The start-of-session hook will keep flagging it until i
 | 2026-11-08 | `/admin` publishes proof (videos, case studies) behind `ADMIN_PASSWORD` | `admin/`, `api/admin*.mjs`, `PROOF.md` |
 | 2026-11-08 | Legal pages at `/legal`, linked from every footer; consent and a notice at collection on every form | `legal-src/` builds into `legal/` |
 | 2026-11-10 | Self-serve checkout at `/start` (Stripe); every paid buyer is handed to the founder's GoHighLevel automatically, and the thank-you page shows the onboarding link at once. Delivery after that is the founder's, in GoHighLevel | `start/`, `api/checkout.mjs`, `api/stripe-webhook.mjs`, `checkout/` |
+| 2026-11-12 | The Meta ads page (`/customers`) shows the real case studies and German Aquino's video testimonial, the same set as the landing page (what `/admin` publishes shows on both) | `meta/tools/build.mjs`, `customers/` |
 
 ## Generated files: rebuild them, never merge them by hand
 
