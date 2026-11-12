@@ -42,8 +42,18 @@ for (const v of variants) {
   ok(`${label}: the PC hero line and the phone one, each marked for its screen`, html.includes(`<p class="lead m-hide">${v.lead.replace(/'/g, "&#39;")}</p>`) && (!v.leadShort || html.includes(`<p class="lead m-only">${v.leadShort.replace(/'/g, "&#39;")}</p>`)));
   ok(`${label}: every question in the HTML (Meta's crawler reads the page)`, SURVEY.steps.every((s) => html.includes(s.q.replace(/'/g, "&#39;"))));
   const links = [...html.matchAll(/(?:src|href|srcset)="([^"]+)"/g), ...html.matchAll(/url\(([^)]+)\)/g)].flatMap((m) => m[1].split(",").map((x) => x.trim().split(" ")[0]));
-  const outside = links.filter((u) => u.startsWith("/") && u !== BASE && !u.startsWith(`${BASE}/`) && !/^\/legal(\/|$)/.test(u));
-  ok(`${label}: every link on this site stays under ${BASE} or /legal`, outside.length === 0, outside.join(", "));
+  // The master page's proof is shared with it on the one site: its styles and script, its media, its case study pages
+  const SHARED = /^\/(assets\/proof\.(css|js)\?v=[a-f0-9]{10}|media\/[a-z0-9/._-]+|case-studies\/[a-z0-9-]+\/)$/;
+  const outside = links.filter((u) => u.startsWith("/") && u !== BASE && !u.startsWith(`${BASE}/`) && !/^\/legal(\/|$)/.test(u) && !SHARED.test(u));
+  ok(`${label}: every link on this site stays under ${BASE}, /legal or the shared proof`, outside.length === 0, outside.join(", "));
+  const shared = links.filter((u) => SHARED.test(u) && !u.startsWith("/case-studies/"));
+  const noFile = shared.filter((u) => !existsSync(path.join(REPO, u.split("?")[0])));
+  ok(`${label}: every shared proof file is in the repository (${shared.length})`, shared.length >= 5 && noFile.length === 0, noFile.join(", "));
+  const cards = [...html.matchAll(/<a class="cs-card" href="\/case-studies\/([a-z0-9-]+)\/"/g)].map((m) => m[1]);
+  ok(`${label}: the real case studies, linked to their pages (${cards.join(", ")})`, cards.includes("junkaway-movers") && cards.includes("ranchero-plumbing"));
+  ok(`${label}: German Aquino's video testimonial`, /<section id="testimonials"/.test(html) && html.includes("/media/testimonials/german-aquino.mp4") && html.includes("German Aquino"));
+  ok(`${label}: the proof sits after the service and before what we won't do`, html.indexOf('id="service"') < html.indexOf('id="results"') && html.indexOf('id="testimonials"') < html.indexOf('id="honest"'));
+  ok(`${label}: the proof script, after the page's own`, /<script src="\/assets\/proof\.js\?v=[a-f0-9]{10}" defer><\/script>/.test(html));
   const legal = [...new Set(links.filter((u) => /^\/legal(\/|$)/.test(u)).map((u) => u.split("#")[0]))];
   const noPage = legal.filter((u) => !existsSync(path.join(REPO, u, "index.html")));
   ok(`${label}: every /legal link is a built legal page (${legal.length})`, legal.length >= 7 && noPage.length === 0, noPage.join(", "));

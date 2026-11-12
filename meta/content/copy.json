@@ -234,6 +234,12 @@
     ],
     "cta": "Start with my free Gap Report"
   },
+  "cases": {
+    "eyebrow": "Case studies",
+    "h2": "What happens when someone runs it.",
+    "note": "Review counts from each business's Google Business Profile. Every business is different, and we never promise a number of reviews.",
+    "cta": "Start my free Gap Report"
+  },
   "honest": {
     "eyebrow": "No surprises",
     "h2": "What we won't do.",

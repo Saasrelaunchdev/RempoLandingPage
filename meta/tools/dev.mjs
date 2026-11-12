@@ -49,7 +49,14 @@ if (STUB) {
 
 const handler = (await import(pathToFileURL(path.join(ROOT, "..", "api", "meta-lead.mjs")).href)).default;
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml",
-  ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".json": "application/json", ".ics": "text/calendar" };
+  ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".json": "application/json", ".ics": "text/calendar",
+  ".mjs": "text/javascript; charset=utf-8", ".mp4": "video/mp4", ".webm": "video/webm", ".vtt": "text/vtt; charset=utf-8" };
+// The master page's proof, which the pages share in production (one Vercel project): its styles and script
+// (/assets/proof.*), its pictures and films (/media/...), and /api/proof (here: the seed, the set the pages are built with)
+const MASTER = path.join(ROOT, "..");
+const MASTER_FILES = /^\/(assets\/(proof\.css|proof\.js|proof-render\.mjs)|media\/[a-z0-9/._-]+)$/;
+const { buildPublished } = await import(pathToFileURL(path.join(MASTER, "api", "_lib", "proof", "store.mjs")).href);
+const { seedContent } = await import(pathToFileURL(path.join(MASTER, "api", "_lib", "proof", "seed.mjs")).href);
 
 async function file(res, p, status = 200) {
   const body = await readFile(p);
@@ -67,6 +74,8 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify(calls));
     }
     if (url.pathname === "/") { res.writeHead(302, { location: BASE }); return res.end(); }
+    if (url.pathname === "/api/proof") { res.writeHead(200, { "content-type": "application/json" }); return res.end(JSON.stringify(buildPublished(seedContent()))); }
+    if (MASTER_FILES.test(url.pathname) && !url.pathname.includes("..")) return await file(res, path.join(MASTER, url.pathname));
     const notFound = () => { res.writeHead(404, { "content-type": "text/plain; charset=utf-8" }); res.end("not found"); };
     const legal = url.pathname === "/legal" || url.pathname.startsWith("/legal/");
     if (!legal && url.pathname !== BASE && !url.pathname.startsWith(`${BASE}/`)) return notFound();

@@ -2,7 +2,7 @@
 /**
  * The cookie notice and the consent gate, in a real browser, on a copy of the site built with a Meta pixel and a
  * Clarity id set (the real site has neither yet, so it shows no notice). The copy lives in a temporary folder:
- * meta/, api/ and legal/ are copied, site.mjs gets the two ids, and the copy's own build and dev server run there.
+ * meta/, api/, legal/, assets/ and media/ are copied, site.mjs gets the two ids, and the copy's own build and dev server run there.
  *
  *   node tests/check-consent.mjs
  *
@@ -27,7 +27,8 @@ const ok = (name, cond, info = "") => { if (cond) { pass++; console.log(`ok   ${
 
 /* ---------- A copy of the site with both trackers set ---------- */
 const TMP = mkdtempSync(path.join(os.tmpdir(), "rempo-consent-"));
-for (const dir of ["meta", "api", "legal"]) cpSync(path.join(REPO, dir), path.join(TMP, dir), { recursive: true, filter: (src) => !src.includes(`${path.sep}shots`) && !src.includes("node_modules") });
+// assets/ and media/: the master page's proof, which the pages share (its renderer, styles, script and films)
+for (const dir of ["meta", "api", "legal", "assets", "media"]) cpSync(path.join(REPO, dir), path.join(TMP, dir), { recursive: true, filter: (src) => !src.includes(`${path.sep}shots`) && !src.includes("node_modules") });
 const siteFile = path.join(TMP, "meta", "content", "site.mjs");
 const site = readFileSync(siteFile, "utf8").replace("metaPixelId: null", 'metaPixelId: "1234567890"').replace("clarityId: null", 'clarityId: "abcde12345"');
 if (!site.includes('"1234567890"') || !site.includes('"abcde12345"')) { console.log("FAIL could not set the tracker ids in the copy"); process.exit(1); }
