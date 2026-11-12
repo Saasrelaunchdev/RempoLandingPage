@@ -91,7 +91,26 @@ const fontFace = (fam, file) => `@font-face{font-family:"${fam}";font-style:norm
 const CSS = [fontFace("Outfit", "outfit.woff2"), fontFace("Geist", "geist.woff2"), read("src/styles/tokens.css"), read("src/styles/page.css")]
   .join("\n").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n\s*\n/g, "\n").replace(/^\s+/gm, "").trim();
 
-const SYMBOLS = read("src/partials/symbols.svg") + read("src/partials/symbols-extra.svg").replace(/<!--[\s\S]*?-->/g, "");
+const PAGE_SYMBOLS = read("src/partials/symbols.svg") + read("src/partials/symbols-extra.svg").replace(/<!--[\s\S]*?-->/g, "");
+
+/* ---------- Proof: the master page's case studies and video testimonials ----------
+   The same cards and video as the master page (../index.html#results, #testimonials), rendered with its renderer
+   (../assets/proof-render.mjs) from the same published set (the seed, as tools/render-landing.mjs does there). The
+   master page's Vercel project serves this folder, so its proof styles, script, media and case study pages are on the
+   same site: /assets/proof.css, /assets/proof.js, /media/..., /case-studies/... And like the master page, the script
+   swaps in what /admin has published since (data-proof-version). Real proof only: nothing here is a sample. */
+const MASTER = path.join(ROOT, "..");
+const masterMod = (p) => import(pathToFileURL(path.join(MASTER, p)).href);
+const PR = await masterMod("assets/proof-render.mjs");
+const { buildPublished } = await masterMod("api/_lib/proof/store.mjs");
+const { seedContent } = await masterMod("api/_lib/proof/seed.mjs");
+const { SPRITE } = await masterMod("assets/proof-shell.mjs");
+const PUB = buildPublished(seedContent());
+const masterAsset = (p) => `${p}?v=${hash(readFileSync(path.join(MASTER, p)))}`;
+// The icons the proof uses (its cards, and what its script draws) that this page's own set lacks, from the master's
+const proofIcons = new Set(`${readFileSync(path.join(MASTER, "assets/proof.js"), "utf8")}${readFileSync(path.join(MASTER, "assets/proof-render.mjs"), "utf8")}`.match(/\bi-[a-z0-9]+(?:-[a-z0-9]+)*/g));
+const SYMBOLS = PAGE_SYMBOLS + (SPRITE.match(/<symbol id="i-[^"]+"[\s\S]*?<\/symbol>/g) || [])
+  .filter((sym) => { const id = sym.match(/id="([^"]+)"/)[1]; return proofIcons.has(id) && !PAGE_SYMBOLS.includes(`id="${id}"`); }).join("");
 
 /* ---------- Sections ---------- */
 const C = COPY;
@@ -276,6 +295,27 @@ function service() {
 </section>`;
 }
 
+function cases() {
+  const K = C.cases;
+  if (!PUB.cases.length && !PUB.testimonials.length) return "";
+  return `<link rel="stylesheet" href="${masterAsset("/assets/proof.css")}">
+<section id="results" class="proof sec" aria-labelledby="results-h" data-proof-version="${esc(PUB.version)}"${PUB.cases.length ? "" : " hidden"}>
+  <div class="wrap">
+    <header class="sec-head"><p class="eyebrow">${esc(K.eyebrow)}</p><h2 class="h2" id="results-h">${esc(K.h2)}</h2><p class="lead">${esc(PR.resultsLead(PUB.cases))}</p></header>
+    <div class="cs-grid">
+${PR.caseCardsHTML(PUB.cases, PUB.testimonials)}
+    </div>
+    <p class="cs-note">${esc(K.note)}</p>
+    <div class="sec-cta">${openBtn(K.cta, "cases")}</div>
+  </div>
+</section>
+<section id="testimonials" class="vt-sec${PUB.testimonials.length > 1 ? " vt-many" : ""}" aria-labelledby="vt-h" data-proof-version="${esc(PUB.version)}"${PUB.testimonials.length ? "" : " hidden"}>
+  <div class="wrap vt-sec-grid">
+    ${PR.testimonialsInnerHTML(PUB.testimonials, PUB.cases)}
+  </div>
+</section>`;
+}
+
 function honest() {
   const H = C.honest;
   return `<section class="proof sec tint" id="honest" aria-labelledby="honest-h">
@@ -408,6 +448,7 @@ ${hero(v)}
 ${report(v)}
 ${leaks(v)}
 ${service()}
+${cases()}
 ${honest()}
 ${faq()}
 ${founder()}
@@ -419,6 +460,7 @@ ${footer()}
 ${cookieNotice()}
 <script type="application/json" id="rm-data">${data}</script>
 <script src="${V["/assets/app.js"]}" defer></script>
+${PUB.cases.length || PUB.testimonials.length ? `<script src="${masterAsset("/assets/proof.js")}" defer></script>` : ""}
 </body>
 </html>
 `;

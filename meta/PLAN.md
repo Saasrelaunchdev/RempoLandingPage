@@ -28,7 +28,7 @@ Sources: the three methodologies the founder supplied (summarized in section 1),
 | Never close the loop early | After the score: "Last step: pick a time"; no "thank you" until the call is booked | M3 |
 | Images over text | Every value point is led by an illustration from the master page | M3 (thought) |
 | Lean into the negatives | "What we won't do", and "a review tool costs less, and we'll tell you so" | M3 (construct the argument; talk about the worst) |
-| No fake proof | No testimonials, counts or logos (none on file). A sample report, plainly the product's own example, instead | GTM claim rules, M1 |
+| No fake proof | Real proof only: the master page's case studies and German Aquino's video testimonial (added 2026-11-12, at the owner's request, once they were on file), placed with the closing points. Never an invented testimonial, count or logo. The sample report stays plainly the product's own example | GTM claim rules, M1 |
 | Quality over quantity | Qualifying questions from the GTM's own floor; Meta is told only about qualified leads | M1, M3 (pixel conditioning) |
 | Transparency | What's in the report, who checks it, when it arrives, what starting takes | M1 (supporting value points) |
 | Show-up rate | Booking window of 5 business days, never same day or weekends; an add-to-calendar; an expectations note | M3 (booking page, thank-you page) |
