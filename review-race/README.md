@@ -16,6 +16,7 @@ business search (Google Places, or SerpApi with Find)  ->  free preview (2 SerpA
 | Path | What it is |
 |---|---|
 | `public/index.html` | A plain test page with both mount points: the hero CTA and the section |
+| `public/assets/`, `public/media/`, and the proof part of `public/index.html` | The landing page's case studies and German Aquino's video, copied from its `index.html` by `node tools/proof.mjs` so the test page shows the same proof. Don't edit them here: rerun the script when the landing page's proof changes (`npm test` fails until you do) |
 | `public/race/race.js`, `race.css`, `copy.js` | The tool itself, framework free. Every visitor-facing word is in `copy.js` |
 | `api/race.mjs` | The one endpoint: config, suggestions, start, reviews, unlock, result, slots, book, later, unsubscribe, health |
 | `api/race-cron.mjs` | The daily job: follow-up emails, race updates, clearing old review text |
@@ -103,7 +104,8 @@ The tool is built so this is a copy, not a rewrite. When you decide where it goe
 4. Add the two functions and the cron from this folder's `vercel.json` to the landing page's `vercel.json`.
 5. Add only the race's new environment variables to the landing page's Vercel project (the race reads the same names the landing page uses, so `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `LEAD_NOTIFY_*`, `SLACK_WEBHOOK_URL`, `GHL_TOKEN`, `GHL_LOCATION_ID` and `LEAD_HASH_SALT` are already there). Give the GoHighLevel token the two calendar scopes, and add the landing page's domain to the Turnstile widget. Then delete the separate Vercel project.
 6. Add SerpApi, Google (Maps Platform), Anthropic and Cloudflare (Turnstile) to the subprocessors page in `legal-src/`, and rebuild the legal pages.
-7. The landing page's own scorecard choice still applies: this tool or ScoreApp, not both (owner decision pending).
+7. Don't copy `public/assets/`, `public/media/` or the proof part of `public/index.html`: the landing page has its own case studies and video already.
+8. The landing page's own scorecard choice still applies: this tool or ScoreApp, not both (owner decision pending).
 
 The widget is scoped to `.rr` classes and `--rr-*` variables, uses the same Outfit and Geist fonts, and announces each step as a `reviewrace` window event, so the landing page can map them to its Meta pixel later.
 

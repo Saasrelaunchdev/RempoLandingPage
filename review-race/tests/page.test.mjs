@@ -113,6 +113,22 @@ async function run(name, ctxOptions) {
     const unlabelled = await page.evaluate(() => [...document.querySelectorAll(".rr input:not(.rr-hp):not([type=checkbox])")].filter((i) => !i.labels || !i.labels.length).map((i) => i.id));
     ok(`${name}: every field has a label`, unlabelled.length === 0, unlabelled);
   });
+  await section(`${name}: the case studies and the owner's video`, async () => {
+    await page.locator("#results .cs-card").first().scrollIntoViewIfNeeded();
+    ok(`${name}: two case studies`, (await page.locator("#results .cs-card").count()) === 2);
+    ok(`${name}: Junkaway and Ranchero`, /Junkaway/.test(await page.locator("#results").innerText()) && /Ranchero Plumbing/.test(await page.locator("#results").innerText()));
+    const hrefs = await page.locator("#results .cs-card").evaluateAll((els) => els.map((e) => e.getAttribute("href")));
+    ok(`${name}: the case studies open on the landing page`, hrefs.every((h) => /^https:\/\/rempo\.io\/case-studies\/[a-z-]+\/$/.test(h)), hrefs);
+    await page.locator("#testimonials").scrollIntoViewIfNeeded();
+    ok(`${name}: German Aquino's video`, (await page.locator("#testimonials video").count()) >= 1 && /German Aquino/.test(await page.locator("#testimonials").innerText()));
+    const poster = await page.locator("#testimonials video").first().getAttribute("poster");
+    const res = await page.request.get(`${BASE}${poster}`);
+    ok(`${name}: the video's picture loads`, res.ok(), poster);
+    if (ctxOptions.isMobile) {
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      ok(`${name}: no sideways scroll with the proof`, overflow <= 0, overflow);
+    }
+  });
   await section(`${name}: the SerpApi search (no Google key): type, Find, pick`, async () => {
     process.env.RACE_SEARCH = "maps";
     try {

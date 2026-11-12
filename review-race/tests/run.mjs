@@ -6,6 +6,10 @@ import { fileURLToPath } from "node:url";
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const files = ["metrics.test.mjs", "copy.test.mjs", "api.test.mjs", "page.test.mjs"];
 let failed = 0;
+// The test page's case studies and video must match the landing page's (tools/proof.mjs copies them)
+const proof = spawnSync(process.execPath, [path.join(DIR, "../tools/proof.mjs"), "--check"], { encoding: "utf8" });
+console.log(`${proof.stdout || ""}${proof.stderr || ""}`.trim());
+if (proof.status !== 0) failed += 1;
 for (const f of files) {
   const r = spawnSync(process.execPath, [path.join(DIR, f)], { stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env: { ...process.env } });
   const out = `${r.stdout || ""}${r.stderr || ""}`;
