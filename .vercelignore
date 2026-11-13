@@ -20,6 +20,8 @@ meta/.gitignore
 PROOF.md
 tests/
 tools/
+# The story film's sources (script, voiceover, 3D scenes, tools): only what they build, in media/hero-video/, is served.
+hero-video/
 # Repository rules and the session hook are for the people and agents working on the repo, not the site.
 CLAUDE.md
 .claude/

@@ -1,0 +1,7 @@
+.cache
+.venv
+node_modules/
+out/
+audio/lines/
+audio/mix.wav
+audio/narration.wav

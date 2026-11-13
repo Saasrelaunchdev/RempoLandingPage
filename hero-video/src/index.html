@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rempo: your reputation, as good as your work (render page)</title>
+<link rel="stylesheet" href="ui.css">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="bg"></div><div id="bgn"></div>
+<canvas id="gl" width="1920" height="1080"></canvas>
+<div id="veil"></div>
+<div id="ov"><svg id="beams" viewBox="0 0 1920 1080" aria-hidden="true"></svg></div>
+<div id="sprite" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"></div>
+<script type="module">
+// The render page: tools/render.mjs opens it, calls seek(t) for every frame and takes a screenshot.
+// Open it in a browser too: /src/?t=33.5 shows that moment, ?play plays the story in real time (no sound).
+import * as THREE from 'three';
+import { makeStage } from './stage.js';
+import { buildTown, buildBasement, buildCrewPhoto } from './town.js';
+import { createStory } from './story.js';
+
+// the landing page's own icons and logo, so the video draws them exactly as the page does
+const page = await (await fetch('/site/index.html')).text();
+const sprite = page.match(/<svg width="0" height="0" style="position:absolute"[\s\S]*?<\/svg>/);
+if (sprite) document.getElementById('sprite').innerHTML = sprite[0];
+await Promise.all(['700 40px Outfit', '600 40px Outfit', '500 20px Geist', '600 20px Geist', '700 20px Geist'].map((f) => document.fonts.load(f)));
+await document.fonts.ready;
+
+const timings = await (await fetch('/audio/timings.json')).json();
+const S = makeStage(document.getElementById('gl'));
+const T = buildTown(S.scene);
+const B = buildBasement(S.scene, new THREE.Vector3(90, 0, 0));
+const crewPhoto = buildCrewPhoto(S.scene, new THREE.Vector3(-90, 0, 0));
+S.glow.windows.push(...T.windows, ...T.houses.map((h) => h.inside).filter(() => false));
+S.glow.lamps.push(...T.lamps);
+S.glow.vans.push(T.vans.yours, T.vans.rival, T.vans.rival2);
+S.glow.shops.push(T.yours, T.rival);
+const story = createStory({ S, T, B, crewPhoto, timings });
+
+window.duration = story.duration;
+window.shots = story.shots;
+window.seek = (t) => story.update(t);
+const q = new URLSearchParams(location.search);
+if (q.has('play')) {
+  const t0 = performance.now() - (+q.get('t') || 0) * 1000;
+  const loop = () => { story.update((performance.now() - t0) / 1000); if ((performance.now() - t0) / 1000 < story.duration) requestAnimationFrame(loop); };
+  loop();
+} else story.update(+q.get('t') || 0);
+window.ready = true;
+</script>
+</body>
+</html>
