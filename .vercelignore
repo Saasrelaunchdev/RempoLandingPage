@@ -1,9 +1,12 @@
-lead-capture/
+# What Vercel does not upload. A leading / means "this folder at the root". Without it a folder name matches at any
+# depth: hero-video/ also dropped media/hero-video/ (the film) and checkout/ dropped api/_lib/checkout/.
+# tests/unit/deploy-files.test.mjs checks that everything the site serves or its functions import is uploaded.
+/lead-capture/
 # The checkout's SQL, setup guide and checks (checkout/README.md); its pages are start/, its functions api/checkout.mjs and
 # api/stripe-webhook.mjs.
-checkout/
+/checkout/
 # The legal pages: their built pages are in legal/; the sources, build and tests stay out of the deployment.
-legal-src/
+/legal-src/
 # The Meta ads page: its built pages are in customers/ and its function is api/meta-lead.mjs. From meta/, only what
 # that function imports is uploaded (meta/api, meta/content, meta/lib); vercel.json redirects /meta/* away so none
 # of it is served as a file.
@@ -18,10 +21,10 @@ meta/package.json
 meta/.gitignore
 # The proof system (/admin, case studies): its docs, tests and tools stay out of the deployment.
 PROOF.md
-tests/
-tools/
+/tests/
+/tools/
 # The story film's sources (script, voiceover, 3D scenes, tools): only what they build, in media/hero-video/, is served.
-hero-video/
+/hero-video/
 # Repository rules and the session hook are for the people and agents working on the repo, not the site.
 CLAUDE.md
 .claude/

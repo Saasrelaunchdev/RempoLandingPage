@@ -154,7 +154,8 @@ ok("vercel.json: /legal and its pages resolve to their index.html", rw("/legal")
 const rd = (src) => (vercel.redirects || []).find((r) => r.source === src);
 ok("vercel.json: /privacy, /terms, /sms-terms and /do-not-sell lead to the pages", rd("/privacy").destination === "/legal/privacy" && rd("/terms").destination === "/legal/terms" && rd("/sms-terms").destination === "/legal/sms" && rd("/do-not-sell").destination === "/legal/privacy-choices");
 ok("vercel.json: /legal/assets cached for a year", (vercel.headers || []).some((h) => h.source === "/legal/assets/(.*)" && JSON.stringify(h.headers).includes("immutable")));
-ok(".vercelignore: the sources stay out of the deployment, the pages go in", /^legal-src\/$/m.test(read(".vercelignore")) && !/^legal\/$/m.test(read(".vercelignore")));
+// The line may be anchored to the root (/legal-src/), as .vercelignore's root folders are
+ok(".vercelignore: the sources stay out of the deployment, the pages go in", /^\/?legal-src\/$/m.test(read(".vercelignore")) && !/^\/?legal\/$/m.test(read(".vercelignore")));
 
 /* ---------- In a browser ---------- */
 let playwright = null;
