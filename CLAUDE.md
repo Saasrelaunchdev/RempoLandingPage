@@ -79,6 +79,7 @@ open and say so plainly. The start-of-session hook will keep flagging it until i
 | 2026-11-10 | Self-serve checkout at `/start` (Stripe); every paid buyer is handed to the founder's GoHighLevel automatically, and the thank-you page shows the onboarding link at once. Delivery after that is the founder's, in GoHighLevel | `start/`, `api/checkout.mjs`, `api/stripe-webhook.mjs`, `checkout/` |
 | 2026-11-12 | The Meta ads page (`/customers`) shows the real case studies and German Aquino's video testimonial, the same set as the landing page (what `/admin` publishes shows on both) | `meta/tools/build.mjs`, `customers/` |
 | 2026-11-13 | The hero picture is the poster of a story film with a male voiceover (great work and no reviews, losing the night call to a shop with fresher reviews, then Rempo's process and the after). A click opens it with sound and captions in the page's video dialog; phones get a "Watch the story" link | `index.html#hero`, `hero-video/` builds into `media/hero-video/` |
+| 2026-11-13 | The story film does not flicker: each flat ground layer has a height of its own above the grass (the sidewalks), and every frame is drawn anew, whichever browser draws it (the cards' text). The site plays the film rendered from the scenes as they are (`hero-video/rendered-from.json`; `npm test` fails while they differ) | `hero-video/src/town.js`, `hero-video/tools/render.mjs`, `media/hero-video/` |
 
 ## Generated files: rebuild them, never merge them by hand
 
@@ -87,7 +88,7 @@ open and say so plainly. The start-of-session hook will keep flagging it until i
 | `customers/` | `meta/` | `node meta/tools/build.mjs` |
 | `legal/` | `legal-src/` | `node legal-src/tools/build.mjs` |
 | The case studies section of `index.html` | the published proof seed | `node tools/render-landing.mjs` |
-| `media/hero-video/` (the story film, its captions and poster) | `hero-video/` (the script, the voiceover, the 3D scenes) | `node hero-video/tools/render.mjs` (about an hour; see `hero-video/README.md` for the voice and the sound) |
+| `media/hero-video/` (the story film, its captions and poster) | `hero-video/` (the script, the voiceover, the 3D scenes) | `node hero-video/tools/render.mjs` (about an hour; see `hero-video/README.md` for the voice and the sound; `--keep-sound` for a change to the picture only) |
 
 The built files are committed: Vercel serves them as they are and runs no build for them.
 
