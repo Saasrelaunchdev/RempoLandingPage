@@ -83,9 +83,9 @@ async function encode() {
     console.log('mp4 written');
   }
   if (!flag('mp4-only')) {
-    // VP9 for browsers without H.264
-    await ff([...input, '-map', '0:v', '-map', '1:a', '-c:v', 'libvpx-vp9', '-crf', '37', '-b:v', '0', '-row-mt', '1',
-      '-deadline', 'good', '-cpu-used', '2', '-pix_fmt', 'yuv420p', '-g', String(FPS * 2),
+    // VP9 for the few browsers without H.264: constrained quality, capped near 900 kbps (about 13 MB)
+    await ff([...input, '-map', '0:v', '-map', '1:a', '-c:v', 'libvpx-vp9', '-crf', '38', '-b:v', '900k', '-maxrate', '1400k',
+      '-bufsize', '2800k', '-row-mt', '1', '-deadline', 'good', '-cpu-used', '3', '-pix_fmt', 'yuv420p', '-g', String(FPS * 2),
       '-c:a', 'libopus', '-b:a', '112k', '-ar', '48000', '-shortest', OUT + 'rempo-story.webm']);
     await place('rempo-story.webm');
     console.log('webm written');

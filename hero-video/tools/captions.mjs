@@ -1,5 +1,6 @@
-// The captions, from the narration's timing: one cue per phrase, split at sentence ends and commas so a cue stays
-// short enough for the page to draw in one or two lines (the testimonial's captions are cut the same way).
+// The captions, from the narration's timing: one cue per phrase, split at sentence ends and commas, and a phrase
+// still too long split near its middle (at a comma when one is close), so a cue stays short enough for the page to
+// draw in one or two lines and no cue is a stray word or two (the testimonial's captions are cut the same way).
 const MAX = 58;
 
 const stamp = (s) => {
@@ -16,17 +17,36 @@ function wordsOf(line) {
   return ws.map((w) => { const t = line.start + ((line.end - line.start) * at) / total; at += w.length + 1; return { w, t }; });
 }
 
+const len = (a) => a.map((x) => x.w).join(' ').length;
+
+// split a phrase that is too long in two, at the word boundary nearest its middle: a comma near the middle wins,
+// a cue does not end on a small word ("the", "for"), and a new cue may start on one ("from", "with", "that")
+const WEAK_END = new Set(['a', 'an', 'the', 'to', 'of', 'at', 'for', 'with', 'and', 'that', 'on', 'in', 'your', 'their', 'her', 'his', 'our', 'my']);
+const GOOD_START = new Set(['from', 'with', 'that', 'and', 'to', 'for', 'in', 'on', 'at', 'who', 'which', 'when', 'so', 'but', 'is']);
+const bare = (w) => w.toLowerCase().replace(/[^a-z']/g, '');
+function halve(p) {
+  if (len(p) <= MAX || p.length < 4) return [p];
+  const total = len(p);
+  let best = 1, score = Infinity;
+  for (let i = 1; i < p.length; i++) {
+    let s = Math.abs(len(p.slice(0, i)) - total / 2);
+    if (/,$/.test(p[i - 1].w)) s -= total * 0.18;
+    if (WEAK_END.has(bare(p[i - 1].w))) s += total * 0.25;
+    if (GOOD_START.has(bare(p[i].w))) s -= total * 0.12;
+    if (s < score) { score = s; best = i; }
+  }
+  return [...halve(p.slice(0, best)), ...halve(p.slice(best))];
+}
+
 export function phrases(line) {
   const ws = wordsOf(line), out = [];
   let cur = [];
-  const len = (a) => a.map((x) => x.w).join(' ').length;
   ws.forEach((x, i) => {
     cur.push(x);
     const next = ws[i + 1];
     const endsClause = /[.,!?]$/.test(x.w);
-    const tooLong = next && len([...cur, next]) > MAX;
-    if (!next || (endsClause && len(cur) >= 16 && (/[.!?]$/.test(x.w) || len(cur) >= 26)) || tooLong) {
-      out.push(cur);
+    if (!next || (endsClause && len(cur) >= 16 && (/[.!?]$/.test(x.w) || len(cur) >= 26))) {
+      out.push(...halve(cur));
       cur = [];
     }
   });
