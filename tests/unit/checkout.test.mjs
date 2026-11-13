@@ -3,7 +3,7 @@
 import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { formEncode, verifySignature, buildCatalog, sessionParams } from "../../api/_lib/checkout/stripe.mjs";
+import { formEncode, verifySignature, buildCatalog, sessionParams, publicPlan } from "../../api/_lib/checkout/stripe.mjs";
 import { routeFor, renewalText, priceSummary } from "../../assets/checkout-shared.mjs";
 import { purchaseTags, e164 } from "../../api/_lib/checkout/ghl.mjs";
 import checkout from "../../api/checkout.mjs";
@@ -164,6 +164,17 @@ test("the Checkout Session: profiles as quantity, setup only on monthly, the add
   assert.deepEqual(once.line_items, [{ price: "price_js", quantity: 1 }]);
   assert.equal(once.customer_creation, "always");
   assert.equal(once.subscription_data, undefined);
+  assert.equal(p.automatic_tax, undefined, "no sales tax unless the business turns it on");
+  const taxed = sessionParams({ plan, billing: "monthly", profiles: 1, buyer, origin: "https://rempo.io", tax: true });
+  assert.deepEqual(taxed.automatic_tax, { enabled: true });
+  assert.equal(taxed.billing_address_collection, "required");
+});
+
+test("each plan has its line and what it includes, and the catalog passes them to the page", () => {
+  const plan = buildCatalog(Object.fromEntries(PRICES.map((p) => [p.lookup_key, p]))).plans["done-for-you"];
+  assert.ok(plan.blurb.length > 20);
+  assert.ok(plan.includes.length >= 3);
+  assert.deepEqual(publicPlan(plan).includes, plan.includes);
 });
 
 test("GoHighLevel gets the paid tag first, then the plan, and US phones as +1", () => {

@@ -60,6 +60,14 @@ function renderPlan() {
   const profiles = plan.mode === "payment" ? 1 : Number(a.profiles) || 1;
   $("#st-plan-name").textContent = plan.label;
   $("#st-plan-blurb").textContent = plan.blurb || "";
+  const list = $("#st-includes");
+  list.replaceChildren(...(plan.includes || []).map((text) => {
+    const li = document.createElement("li");
+    li.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>';
+    li.append(text);
+    return li;
+  }));
+  show(list, Boolean(plan.includes && plan.includes.length));
   const both = plan.mode === "subscription" && plan.monthly && plan.annual;
   show($("#g-billing"), both);
   if (both) {

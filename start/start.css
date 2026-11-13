@@ -22,7 +22,10 @@ fieldset.st-card > .st-legend{float:left}
 .st-route{display:grid;gap:12px}
 .st-route p{margin:0}
 .st-plan-name{margin:0;font:700 24px/1.2 var(--f-display);color:var(--c-heading)}
-.st-plan-blurb{margin:-8px 0 0;color:var(--c-text)}
+.st-plan-blurb{margin:4px 0 0;color:var(--c-text)}
+.st-includes{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.st-includes li{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;color:var(--c-heading);font-size:15.5px;line-height:1.4}
+.st-includes .ic{width:20px;height:20px;margin-top:1px;color:var(--c-accent);stroke-width:2.2}
 .st-sum{display:grid;gap:8px;margin:0;padding:16px;border-radius:14px;background:var(--c-bg);border:1px solid var(--c-line)}
 .st-sum div{display:flex;justify-content:space-between;gap:16px;align-items:baseline}
 .st-sum dt{color:var(--c-text)}

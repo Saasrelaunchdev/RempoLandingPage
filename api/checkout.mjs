@@ -21,7 +21,7 @@ import { storeConfig, storeHealth, storeNotConnected } from "./_lib/checkout/sto
 import { routeFor } from "../assets/checkout-shared.mjs";
 
 const env = (n) => (process.env[n] ? String(process.env[n]).trim() : "");
-const VARS = ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "CHECKOUT_OPEN", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SECRET_KEY",
+const VARS = ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_AUTOMATIC_TAX", "CHECKOUT_OPEN", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SECRET_KEY",
   "GHL_TOKEN", "GHL_LOCATION_ID", "GHL_CUSTOM_FIELDS", "ONBOARDING_URL", "RESEND_API_KEY", "LEAD_NOTIFY_FROM", "LEAD_NOTIFY_TO", "SLACK_WEBHOOK_URL"];
 const UTM = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid"];
 const COULD_NOT_START = "Checkout could not open. Please try again in a minute, or book a 15-minute call.";
@@ -198,7 +198,8 @@ async function create(req, res) {
   const billing = plan.mode === "payment" ? "once" : input.billing === "annual" && plan.annual ? "annual" : plan.monthly ? "monthly" : "annual";
 
   const leadId = await storeLead(req, input, route.plan, billing);
-  const params = sessionParams({ plan, billing, profiles: Number(input.answers.profiles), buyer: input, visit: input.visit, leadId, origin: originOf(req) });
+  const params = sessionParams({ plan, billing, profiles: Number(input.answers.profiles), buyer: input, visit: input.visit, leadId, origin: originOf(req),
+    tax: cfg.automaticTax });
   let r;
   try { r = await stripe(cfg, "POST", "/v1/checkout/sessions", params); } catch (e) {
     console.error("checkout session: Stripe did not answer:", e && e.message);
