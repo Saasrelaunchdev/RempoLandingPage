@@ -4,8 +4,9 @@
 //   node tools/render.mjs --frames-only   frames only
 //   node tools/render.mjs --encode-only   encode from the frames on disk
 //   options: --workers 3  --fps 30  --quality 94  --mp4-only  --webm-only
-//            --keep-sound   for a change to the picture only: the sound is copied, as it is, from the films already in
-//                           ../media/hero-video/, so audio/mix.wav (and the Python tools that make it) are not needed
+//            --keep-sound   for a change to the picture only: each film keeps its sound and its length (the films
+//                           already in ../media/hero-video/), so audio/mix.wav (and the Python tools that make it) are
+//                           not needed
 //
 // Writes ../media/hero-video/: rempo-story.mp4 (H.264 High, AAC), rempo-story.webm (VP9, Opus),
 // rempo-story.en.vtt (the captions, from audio/timings.json) and rempo-story-poster.webp.
@@ -14,7 +15,7 @@
 // the timing or three.js differ from it, as the site would still be playing the film made before the change.
 import { createRequire } from 'node:module';
 import { mkdir, readdir, writeFile, readFile, access, rename } from 'node:fs/promises';
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
 import { serve } from './serve.mjs';
 import { captions } from './captions.mjs';
 import { sourcesHash } from './sources.mjs';
@@ -30,6 +31,18 @@ const FPS = +arg('fps', 30), WORKERS = +arg('workers', 3), Q = +arg('quality', 9
 const timings = JSON.parse(await readFile(HERE + 'audio/timings.json', 'utf8'));
 const N = Math.ceil(timings.duration * FPS);
 const name = (i) => `f_${String(i).padStart(5, '0')}.jpg`;
+
+// Runs in the page after seek(t), before the screenshot. The cards of the 2D layer have layers of their own (will-change,
+// ui.css): Chromium draws such a layer once and then only moves that drawing, so a card standing still shows the scale
+// and the fraction of a pixel it was drawn at, which depend on the frames that browser drew before. The browsers share
+// the frames, so a still card came out up to half a pixel apart from one frame to the next, and its text shimmered.
+// Taking the 2D layer out for one frame has it drawn anew: every frame depends on its time only, whichever browser
+// draws it, and matches a frame drawn on its own.
+const redraw = () => new Promise((done) => {
+  const ov = document.getElementById('ov');
+  ov.style.display = 'none';
+  requestAnimationFrame(() => requestAnimationFrame(() => { ov.style.display = ''; done(); }));
+});
 
 async function frames() {
   await mkdir(FRAMES, { recursive: true });
@@ -51,6 +64,7 @@ async function frames() {
     while (next < todo.length) {
       const i = todo[next++];
       await page.evaluate((t) => window.seek(t), i / FPS);
+      await page.evaluate(redraw);
       await page.screenshot({ path: FRAMES + name(i), type: 'jpeg', quality: Q });
       if (++done % 60 === 0) {
         const per = (Date.now() - t0) / done;
@@ -64,6 +78,10 @@ async function frames() {
   console.log(`frames done in ${((Date.now() - t0) / 60000).toFixed(1)} min`);
 }
 
+// the number of pictures (frames) in a film
+const pictures = (film) => new Promise((ok, no) => execFile('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-count_packets',
+  '-show_entries', 'stream=nb_read_packets', '-of', 'csv=p=0', film], (e, out) => (e ? no(e) : ok(+out.trim()))));
+
 function ff(args) {
   return new Promise((ok, no) => {
     const p = spawn('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', ...args], { stdio: 'inherit' });
@@ -76,9 +94,12 @@ async function encode() {
   const keep = flag('keep-sound');
   const audio = HERE + 'audio/mix.wav';
   if (!keep) try { await access(audio); } catch { throw new Error('audio/mix.wav is missing: run .venv/bin/python tools/mix.py first'); }
-  // the sound: audio/mix.wav, encoded; or with --keep-sound, the track of the film being replaced, copied as it is
-  const input = (film) => ['-framerate', String(FPS), '-i', FRAMES + 'f_%05d.jpg', '-i', keep ? MEDIA + film : audio];
-  const sound = (encode) => (keep ? ['-c:a', 'copy'] : encode);
+  // The sound: audio/mix.wav, encoded, and the picture cut where it ends. Or with --keep-sound, the film being replaced
+  // keeps its sound and its length: its track is copied, packet for packet, at the times it had (-copyts: otherwise
+  // ffmpeg moves the WebM's Opus track, which starts 7 ms before the picture, to start with it), and the picture ends on
+  // the frame the film's picture ended on.
+  const input = (film) => [...(keep ? ['-copyts'] : []), '-framerate', String(FPS), '-i', FRAMES + 'f_%05d.jpg', '-i', keep ? MEDIA + film : audio];
+  const sound = async (film, encode) => (keep ? ['-vf', `trim=end_frame=${await pictures(MEDIA + film)}`, '-c:a', 'copy'] : [...encode, '-shortest']);
   // each file is written in out/ and moved into media/ only once it is whole
   const OUT = HERE + 'out/';
   const place = (f) => rename(OUT + f, MEDIA + f);
@@ -86,7 +107,7 @@ async function encode() {
     // H.264 High 4.0 at CRF 26: flat, clean shading compresses well, and the film stays near 19 MB (about 1.4 Mbps)
     await ff([...input('rempo-story.mp4'), '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', '26',
       '-profile:v', 'high', '-level', '4.0', '-pix_fmt', 'yuv420p', '-g', String(FPS * 2), '-movflags', '+faststart',
-      ...sound(['-c:a', 'aac', '-b:a', '160k', '-ar', '48000']), '-shortest', OUT + 'rempo-story.mp4']);
+      ...(await sound('rempo-story.mp4', ['-c:a', 'aac', '-b:a', '160k', '-ar', '48000'])), OUT + 'rempo-story.mp4']);
     await place('rempo-story.mp4');
     console.log('mp4 written');
   }
@@ -94,7 +115,7 @@ async function encode() {
     // VP9 for the few browsers without H.264: constrained quality, capped near 900 kbps (about 13 MB)
     await ff([...input('rempo-story.webm'), '-map', '0:v', '-map', '1:a', '-c:v', 'libvpx-vp9', '-crf', '38', '-b:v', '900k', '-maxrate', '1400k',
       '-bufsize', '2800k', '-row-mt', '1', '-deadline', 'good', '-cpu-used', '3', '-pix_fmt', 'yuv420p', '-g', String(FPS * 2),
-      ...sound(['-c:a', 'libopus', '-b:a', '112k', '-ar', '48000']), '-shortest', OUT + 'rempo-story.webm']);
+      ...(await sound('rempo-story.webm', ['-c:a', 'libopus', '-b:a', '112k', '-ar', '48000'])), OUT + 'rempo-story.webm']);
     await place('rempo-story.webm');
     console.log('webm written');
   }

@@ -89,6 +89,18 @@ test("no flat layer of the town shares a height with the grass or with the layer
   });
 });
 
+test("every frame is drawn anew, whichever browser draws it, so still cards do not shimmer", () => {
+  // Chromium keeps a card on a layer of its own as it drew it in an earlier frame (up to half a pixel off), so frames
+  // drawn by different browsers alternated and the text shimmered, until the renderer redrew the 2D layer each frame.
+  const render = read("hero-video/tools/render.mjs");
+  const seek = render.indexOf("window.seek(t)"), shot = render.indexOf("page.screenshot(", seek);
+  assert.ok(seek > 0 && shot > seek, "hero-video/tools/render.mjs: no longer seeks and then takes the screenshot");
+  assert.match(render.slice(seek, shot), /await page\.evaluate\(redraw\)/,
+    "hero-video/tools/render.mjs: the frames are taken without redrawing the 2D layer first, so still cards can shimmer");
+  assert.match(render, /const redraw = \(\) => new Promise\([\s\S]*?getElementById\('ov'\)[\s\S]*?display = 'none'[\s\S]*?requestAnimationFrame\(\(\) => requestAnimationFrame\(/,
+    "hero-video/tools/render.mjs: redraw no longer takes the 2D layer (#ov) out for a frame");
+});
+
 test("the film the site plays was rendered from the scenes, timing and three.js as they are", async () => {
   const { sourcesHash } = await import("../../hero-video/tools/sources.mjs");
   assert.ok(existsSync(ROOT + "hero-video/rendered-from.json"), "hero-video/rendered-from.json is missing: run node hero-video/tools/render.mjs");

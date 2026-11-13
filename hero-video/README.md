@@ -67,8 +67,13 @@ python3 -m venv .venv && .venv/bin/pip install kokoro-onnx soundfile numpy scipy
 node tools/render.mjs                         # every frame (about an hour on 4 CPU cores), then ../media/hero-video/
 ```
 
-For a change to the picture only (the scenes, not the words or the voice), `node tools/render.mjs --keep-sound` copies
-the sound, as it is, from the film already in `../media/hero-video/`: no Python and no `audio/mix.wav` needed.
+For a change to the picture only (the scenes, not the words or the voice), `node tools/render.mjs --keep-sound` keeps
+each film's sound and length: the sound is copied, packet for packet, from the films already in `../media/hero-video/`,
+and the picture ends on the frame theirs did. No Python and no `audio/mix.wav` needed.
+
+Every frame depends on its time only, whichever of the browsers draws it. Before each screenshot the renderer takes the
+2D layer out for one frame, so the browser draws the cards anew. Chromium otherwise keeps a card as it drew it in an
+earlier frame, up to half a pixel off, and frames from different browsers made still text shimmer.
 
 `node tools/preview.mjs 12 34.5 80` saves the frames at those seconds to `out/` (a few seconds each), and
 `node tools/serve.mjs` serves `http://127.0.0.1:8790/src/?t=34.5` (any moment) or `?play` to watch it run.
