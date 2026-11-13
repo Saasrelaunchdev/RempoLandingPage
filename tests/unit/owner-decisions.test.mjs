@@ -121,3 +121,14 @@ test("2026-11-13: the hero picture opens the story film (male voiceover, caption
   has(read("assets/proof.js"), /const initFilm = /, "assets/proof.js no longer opens the hero's film");
   assert.ok(existsSync(ROOT + "hero-video/script.json"), "hero-video/ (the film's sources) is missing");
 });
+
+test("2026-11-13: the story film's sidewalks do not flicker, and the site plays the film rendered from the scenes as they are", async () => {
+  const town = read("hero-video/src/town.js");
+  has(town, /export const GRASS = \{ y: -?[\d.]+, h: [\d.]+ \}/, "hero-video/src/town.js: the grass's height (GRASS) is gone");
+  const walk = town.match(/\bwalk: GROUND \+ ([\d.]+)/);
+  assert.ok(walk && +walk[1] >= 0.004, "hero-video/src/town.js: the sidewalks sit on the grass top again, so the film flickers white and green");
+  const { sourcesHash } = await import("../../hero-video/tools/sources.mjs");
+  assert.ok(existsSync(ROOT + "hero-video/rendered-from.json"), "hero-video/rendered-from.json is missing: render the film (node hero-video/tools/render.mjs)");
+  assert.equal(JSON.parse(read("hero-video/rendered-from.json")).sources, sourcesHash(),
+    "media/hero-video/ was rendered from older scenes than hero-video/ holds: render the film again (node hero-video/tools/render.mjs)");
+});
