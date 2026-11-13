@@ -20,22 +20,43 @@ Health report: https://<the-site>/api/checkout?health=1
 always works, so the whole path can be tried with Stripe's test cards. The landing page's "Get started" buttons keep
 opening the call form until they are switched to `/start` (see "Go live").
 
-## Placeholders (TBD): what to give, and where it goes
+## What is settled, and what the business gives
 
-| # | Placeholder | Where it lives | Until it is set | What to give |
-|---|---|---|---|---|
-| 1 | The plans and their prices | Stripe, by lookup key (table below) | No plan on sale: `/start` says online checkout opens soon | Create the prices in Stripe (or give a test key and I create the test ones) |
-| 2 | The onboarding link | `ONBOARDING_URL` in Vercel | The thank-you page says the team will email the link | The founder's GoHighLevel onboarding form, survey or calendar link |
-| 3 | Which details fill the onboarding link | `SETTINGS.onboardingPrefill` in `api/_lib/checkout/config.mjs` | `first_name`, `email`, `phone`, `company_name` are added to the link | Confirm the founder's form reads these names, or tell me its names |
-| 4 | The guarantee line | `SETTINGS.guarantee` in `api/_lib/checkout/config.mjs` | No guarantee is shown anywhere | The exact sentence, once settled with counsel |
-| 5 | Setup fee and add-on per order or per Google profile | `SETTINGS.setupPerProfile`, `SETTINGS.bumpPerProfile` | Once per order | Your decision |
-| 6 | The line under each plan's name | `PLANS[...].blurb` in `api/_lib/checkout/config.mjs` | The landing page's own words (Done For You); short neutral lines (the others) | Final lines from the marketing session |
-| 7 | Page words: headline, questions, thank-you text | `start/index.html`, `start/welcome/index.html` | Plain working copy | Final copy from the marketing session |
-| 8 | GoHighLevel tag names | `GHL_PAID_TAG`, `GHL_ABANDONED_TAG` in Vercel | `rempo-paid`, `rempo-checkout-abandoned` | Only if the founder wants other names |
-| 9 | GoHighLevel custom fields | `GHL_CUSTOM_FIELDS` in Vercel (JSON) | Details go in a note on the contact; no field is filled | The ids of the fields to fill, for example the recovery link for the abandoned email |
-| 10 | The billing portal link | `billingPortalUrl` in `legal-src/settings.mjs` | The billing policy says to cancel by email | Stripe's customer portal link, once it is turned on |
-| 11 | Legal facts | `legal-src/settings.mjs`, see `legal-src/README.md` "Before launch" | The legal pages name "Rempo" and no address | The legal entity name, the mailing address, the attorney review |
-| 12 | Go live | `CHECKOUT_OPEN` in Vercel, and the "Get started" switch | Closed with a live key; "Get started" opens the call form | Say "open checkout" once the health report says ready |
+### Settled on our side
+
+| What | Where | Now |
+|---|---|---|
+| The line under each plan's name, and what each plan includes | `PLANS` in `api/_lib/checkout/config.mjs` | Written, in the landing page's words, within the claim rules |
+| The page words: headline, questions, hints, plan screen, call messages, thank-you page | `start/index.html`, `start/welcome/index.html`, `start/start.mjs` | Written |
+| The renewal terms by the pay button and in Stripe's checkout | `assets/checkout-shared.mjs` | Built from the prices in Stripe |
+| Setup fee and tune-up: once per order, setup waived on yearly plans | `SETTINGS` in `api/_lib/checkout/config.mjs` | As in the go-to-market offer |
+| The details that fill the onboarding link | `SETTINGS.onboardingPrefill` | GoHighLevel's standard fields; checked against the form once its link is in |
+| GoHighLevel tag names | `GHL_PAID_TAG`, `GHL_ABANDONED_TAG` (optional) | `rempo-paid`, `rempo-checkout-abandoned` |
+| Stripe lookup keys | `PLANS[...].prices` | Fixed (table under "Stripe") |
+| Stripe settings, the webhook, the Supabase SQL, the Vercel variables | The sections below | Done by whoever holds the access, once the answers are in |
+
+### Needed from the business
+
+These are the items in the spreadsheet shared with the business. Each answer goes here:
+
+| Item | Where the answer goes |
+|---|---|
+| Plans to sell online | Stripe: prices are created only for those plans (a plan with no prices is not on sale) |
+| Done For You: monthly, yearly and setup prices; the tune-up add-on | Stripe prices with the lookup keys `rempo_dfy_monthly`, `rempo_dfy_annual`, `rempo_dfy_setup`, `rempo_gbp_tuneup` |
+| Engine software and 7-Day Jumpstart prices (only if sold online) | Stripe prices: `rempo_engine_*`, `rempo_jumpstart`, `rempo_reply_catchup` |
+| Guarantee | `SETTINGS.guarantee` in `api/_lib/checkout/config.mjs` (none is shown until it is set) |
+| Sales tax | If yes: Stripe Tax set up in Stripe, then `STRIPE_AUTOMATIC_TAX=true` in Vercel |
+| Legal business name, mailing address | `legal-src/settings.mjs` (`legalName`, `address`) and `meta/content/site.mjs` (`company`, `postalAddress`), then both builds |
+| Support email addresses | `legal-src/settings.mjs` (`emails`) and `SETTINGS.supportEmail` |
+| Attorney review, Stripe account ready | Go-live gates: checkout opens only after both |
+| Onboarding link | `ONBOARDING_URL` in Vercel |
+| Sub-account ID | `GHL_LOCATION_ID` in Vercel |
+| Private integration token | `GHL_TOKEN` in Vercel (Sensitive). Never in the spreadsheet or the repository |
+| Onboarding automation on `rempo-paid` | Go-live gate: a test purchase must start it |
+| Unfinished checkout reminder (optional) | `GHL_CUSTOM_FIELDS` in Vercel: `{"recovery_url":"<field id>"}` |
+
+The billing portal link (`billingPortalUrl` in `legal-src/settings.mjs`) comes from Stripe once the customer portal is on.
+Opening checkout: `CHECKOUT_OPEN=true` in Vercel, then "Get started" is pointed at `/start` (see "Go live").
 
 ## Stripe
 
@@ -106,6 +127,7 @@ live key on Preview. Mark the secrets **Sensitive**, then redeploy.
 | `GHL_CUSTOM_FIELDS` | `{"recovery_url":"<field id>"}` | optional | optional | no |
 | `GHL_PAID_TAG`, `GHL_ABANDONED_TAG` | other tag names | optional | optional | no |
 | `STRIPE_API_VERSION` | pins Stripe's API version | optional | optional | no |
+| `STRIPE_AUTOMATIC_TAX` | `true` adds sales tax at checkout (Stripe Tax set up first) | if the business charges tax | same as Production | no |
 
 Already set for the lead forms and reused here: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `RESEND_API_KEY`,
 `LEAD_NOTIFY_FROM`, `LEAD_NOTIFY_TO`, `SLACK_WEBHOOK_URL`.

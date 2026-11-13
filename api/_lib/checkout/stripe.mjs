@@ -6,6 +6,7 @@
 //   STRIPE_SECRET_KEY      sk_test_... while testing, sk_live_... in production (a restricted rk_ key works too)
 //   STRIPE_WEBHOOK_SECRET  whsec_..., the signing secret of the webhook endpoint (two, comma separated, while rolling it)
 //   STRIPE_API_VERSION     optional: pins the API version of every call; without it, the account's default is used
+//   STRIPE_AUTOMATIC_TAX   optional: true adds sales tax at checkout with Stripe Tax (set Stripe Tax up in Stripe first)
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { PLANS, SETTINGS, SOURCE, lookupKeys } from "./config.mjs";
 import { renewalText } from "../../../assets/checkout-shared.mjs";
@@ -18,7 +19,8 @@ export function stripeConfig() {
   const mode = /^(sk|rk)_live_/.test(key) ? "live" : /^(sk|rk)_test_/.test(key) ? "test" : null;
   const problem = !key ? "missing" : !mode ? "bad-key" : null;
   const webhookSecrets = env("STRIPE_WEBHOOK_SECRET").split(",").map((s) => s.trim()).filter((s) => /^whsec_/.test(s));
-  return { key, mode, ok: !problem, problem, version: env("STRIPE_API_VERSION"), webhookSecrets };
+  const automaticTax = /^(1|true|yes|on)$/i.test(env("STRIPE_AUTOMATIC_TAX"));
+  return { key, mode, ok: !problem, problem, version: env("STRIPE_API_VERSION"), webhookSecrets, automaticTax };
 }
 
 // { a: { b: [1, { c: 2 }] } } -> a[b][0]=1&a[b][1][c]=2, the way Stripe reads form bodies and query strings.
@@ -95,7 +97,7 @@ export function buildCatalog(byKey) {
   const plans = {}, problems = [], found = {};
   for (const key of lookupKeys()) found[key] = Boolean(byKey[key]);
   for (const [id, def] of Object.entries(PLANS)) {
-    const plan = { id, label: def.label, blurb: def.blurb, mode: def.mode, currency: null };
+    const plan = { id, label: def.label, blurb: def.blurb, includes: def.includes || [], mode: def.mode, currency: null };
     const slots = { ...def.prices, ...(def.bump ? { bump: def.bump } : {}) };
     for (const [slot, key] of Object.entries(slots)) {
       const p = byKey[key];
@@ -129,7 +131,7 @@ export async function loadCatalog(cfg, { fresh = false } = {}) {
 
 // What /start may show: amounts and names, no Stripe ids
 export function publicPlan(plan) {
-  const out = { id: plan.id, label: plan.label, blurb: plan.blurb, mode: plan.mode, currency: plan.currency };
+  const out = { id: plan.id, label: plan.label, blurb: plan.blurb, includes: plan.includes || [], mode: plan.mode, currency: plan.currency };
   for (const slot of ["monthly", "annual", "setup", "once", "bump"]) {
     if (plan[slot]) out[slot] = { amount: plan[slot].amount, name: plan[slot].name };
   }
@@ -141,7 +143,7 @@ export function publicPlan(plan) {
 const META_KEYS = ["first_name", "business", "phone", "runs", "software", "visit", "lead_id", "consent_email", "consent_phone", "notice_version", "page",
   "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid"];
 
-export function sessionParams({ plan, billing, profiles, buyer, visit, leadId, origin, now = Date.now(), settings = SETTINGS }) {
+export function sessionParams({ plan, billing, profiles, buyer, visit, leadId, origin, now = Date.now(), settings = SETTINGS, tax = false }) {
   const n = plan.mode === "payment" ? 1 : Math.max(1, Math.min(settings.maxProfiles, Number(profiles) || 1));
   const items = [];
   if (plan.mode === "payment") {
@@ -181,5 +183,7 @@ export function sessionParams({ plan, billing, profiles, buyer, visit, leadId, o
   };
   if (plan.mode === "subscription") params.subscription_data = { metadata };
   else { params.payment_intent_data = { metadata }; params.customer_creation = "always"; }
+  // Sales tax, when the business has chosen to charge it: Stripe Tax works it out from the billing address
+  if (tax) { params.automatic_tax = { enabled: true }; params.billing_address_collection = "required"; }
   return params;
 }

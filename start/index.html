@@ -88,6 +88,7 @@
           <p class="st-plan-name" id="st-plan-name"></p>
           <p class="st-plan-blurb" id="st-plan-blurb"></p>
         </div>
+        <ul class="st-includes" id="st-includes" aria-label="What's included"></ul>
         <div class="opts" role="radiogroup" id="g-billing" aria-labelledby="lb-billing" hidden>
           <p class="opts-l" id="lb-billing">How would you like to pay?</p>
           <div class="opt-row"><label class="opt"><input type="radio" name="billing" value="monthly" checked><span id="opt-monthly">Monthly</span></label><label class="opt"><input type="radio" name="billing" value="annual"><span id="opt-annual">Yearly</span></label></div>
@@ -106,7 +107,7 @@
         </div>
         <div class="row">
           <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" autocapitalize="none" enterkeyhint="next" required aria-describedby="h-email e-email"><p class="opts-h" id="h-email">Your receipt goes here.</p><p class="err" id="e-email"></p></div>
-          <div class="field"><label for="f-phone">Best phone number</label><div class="phone-in"><span aria-hidden="true">+1</span><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" enterkeyhint="done" required aria-describedby="h-phone e-phone"></div><p class="opts-h" id="h-phone">For your onboarding.</p><p class="err" id="e-phone"></p></div>
+          <div class="field"><label for="f-phone">Best phone number</label><div class="phone-in"><span aria-hidden="true">+1</span><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" enterkeyhint="done" required aria-describedby="h-phone e-phone"></div><p class="opts-h" id="h-phone">For your setup call.</p><p class="err" id="e-phone"></p></div>
         </div>
         <label class="consent"><input type="checkbox" name="consentEmail" id="f-cemail"><span>Rempo may email me about my order and Rempo's service. Unsubscribe any time.</span></label>
         <label class="consent"><input type="checkbox" name="consentPhone" id="f-cphone"><span>Rempo may text me about my setup and my account. Message and data rates may apply. Reply STOP to opt out.</span></label>
