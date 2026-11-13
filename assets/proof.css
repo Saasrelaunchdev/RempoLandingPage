@@ -209,11 +209,14 @@ html.vt-open .sticky-bar{transform:translateY(110%)}
 .vt-dlg:focus{outline:none}
 .vt-stage{position:relative;height:min(calc(100svh - 48px),calc((100vw - 32px) * 16 / 9));aspect-ratio:9 / 16;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 0 0 1px color-mix(in srgb,#fff 14%,transparent),0 50px 120px -40px #000;transform-origin:0 0}
 .vt-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+/* a wide film (the hero's story): 16:9, as large as the window allows */
+.vt-stage.vt-wide{height:auto;width:min(calc(100vw - 48px),calc((100svh - 48px) * 16 / 9));aspect-ratio:16 / 9}
 .vt-stage:fullscreen{width:100%;height:100%;border-radius:0;aspect-ratio:auto}
 .vt-stage:-webkit-full-screen{width:100%;height:100%;border-radius:0}
 .vt-stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,color-mix(in srgb,#000 55%,transparent) 0%,transparent 18%,transparent 62%,color-mix(in srgb,#000 82%,transparent) 100%);pointer-events:none;transition:opacity .3s ease}
 .vt-stage .vt-name{z-index:2;left:18px;top:18px}
 .vt-stage .vt-name,.vt-stage .vt-cap{pointer-events:none}
+.vt-stage .vt-name[hidden],.vt-name img[hidden]{display:none}
 .vt-stage .vt-cap{z-index:2;bottom:96px;left:16px;right:16px}
 .vt-stage .vt-cap span{font-size:clamp(16px,2.2vh,20px);padding:4px 10px}
 .vt-ctl{position:absolute;z-index:3;left:12px;right:12px;bottom:12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;align-items:center;gap:6px;padding:6px;border-radius:16px;background:color-mix(in srgb,var(--c-ink-975) 66%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px color-mix(in srgb,#fff 14%,transparent);transition:opacity .3s ease,translate .3s var(--ease-out)}
@@ -246,7 +249,7 @@ html.vt-open .sticky-bar{transform:translateY(110%)}
 .vt-stage.vt-paused .vt-big-play{opacity:1;scale:1}
 /* Phones in portrait: the film takes the whole screen */
 @media (max-width:599px) and (orientation:portrait){
-  .vt-stage{width:100vw;height:100svh;border-radius:0;box-shadow:none}
+  .vt-stage,.vt-stage.vt-wide{width:100vw;height:100svh;aspect-ratio:auto;border-radius:0;box-shadow:none}
   .vt-x{top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px}
   .vt-stage .vt-name{top:max(16px,env(safe-area-inset-top))}
   .vt-ctl{bottom:max(12px,env(safe-area-inset-bottom))}

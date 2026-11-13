@@ -1,0 +1,15 @@
+{
+  "name": "rempo-hero-video",
+  "private": true,
+  "description": "The hero video's sources: the story, the voiceover, and the 3D scenes. Rendered into ../media/hero-video/ by tools/render.mjs. Not deployed.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "voice": "python3 tools/voice.py",
+    "render": "node tools/render.mjs",
+    "preview": "node tools/serve.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  }
+}

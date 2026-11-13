@@ -108,3 +108,16 @@ test("2026-11-12: the Meta ads page (/customers) shows the real case studies and
     has(html, /<section id="testimonials"[\s\S]*german-aquino\.mp4/, `${p}: German Aquino's video testimonial is gone`);
   }
 });
+
+test("2026-11-13: the hero picture opens the story film (male voiceover, captions), and phones get a link to it", () => {
+  const html = read("index.html");
+  has(html, /<figure class="hero-vis" id="hero-film"[^>]*\bdata-vt="film"/, "index.html: the hero picture no longer opens the story film");
+  has(html, /<button class="hero-film"[^>]*\bdata-vt-open/, "index.html: the hero's play button is gone");
+  has(html, /data-vt-for="hero-film"/, "index.html: the phone's \"Watch the story\" link is gone");
+  for (const f of ["rempo-story.mp4", "rempo-story.webm", "rempo-story.en.vtt", "rempo-story-poster.webp"]) {
+    assert.ok(existsSync(ROOT + "media/hero-video/" + f), `media/hero-video/${f} is missing`);
+    assert.ok(html.includes("/media/hero-video/" + f), `index.html no longer points at media/hero-video/${f}`);
+  }
+  has(read("assets/proof.js"), /const initFilm = /, "assets/proof.js no longer opens the hero's film");
+  assert.ok(existsSync(ROOT + "hero-video/script.json"), "hero-video/ (the film's sources) is missing");
+});

@@ -1,0 +1,1251 @@
+{
+ "voice": {
+  "engine": "kokoro-onnx 0.6 (Kokoro-82M v1.0)",
+  "voice": "am_michael",
+  "speed": 0.86,
+  "lang": "en-us",
+  "sentencePause": 0.32,
+  "clausePause": 0.14,
+  "say": {
+   "Rempo": "Remmpo"
+  }
+ },
+ "sampleRate": 24000,
+ "duration": 112.98,
+ "lines": [
+  {
+   "id": "A1",
+   "scene": "work",
+   "start": 1.6,
+   "end": 3.36,
+   "text": "Your crew does great work.",
+   "words": [
+    {
+     "w": "Your",
+     "t": 1.6
+    },
+    {
+     "w": "crew",
+     "t": 1.92
+    },
+    {
+     "w": "does",
+     "t": 2.32
+    },
+    {
+     "w": "great",
+     "t": 2.56
+    },
+    {
+     "w": "work.",
+     "t": 2.8
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "scene": "work",
+   "start": 3.71,
+   "end": 11.05,
+   "text": "Furnaces fixed the same day. Leaks found on the first visit. Customers who'd recommend you to anyone.",
+   "words": [
+    {
+     "w": "Furnaces",
+     "t": 3.71
+    },
+    {
+     "w": "fixed",
+     "t": 4.51
+    },
+    {
+     "w": "the",
+     "t": 4.91
+    },
+    {
+     "w": "same",
+     "t": 5.15
+    },
+    {
+     "w": "day.",
+     "t": 5.47
+    },
+    {
+     "w": "Leaks",
+     "t": 6.19
+    },
+    {
+     "w": "found",
+     "t": 6.75
+    },
+    {
+     "w": "on",
+     "t": 7.07
+    },
+    {
+     "w": "the",
+     "t": 7.31
+    },
+    {
+     "w": "first",
+     "t": 7.47
+    },
+    {
+     "w": "visit.",
+     "t": 7.71
+    },
+    {
+     "w": "Customers",
+     "t": 8.59
+    },
+    {
+     "w": "who'd",
+     "t": 9.31
+    },
+    {
+     "w": "recommend",
+     "t": 9.63
+    },
+    {
+     "w": "you",
+     "t": 10.11
+    },
+    {
+     "w": "to",
+     "t": 10.27
+    },
+    {
+     "w": "anyone.",
+     "t": 10.43
+    }
+   ]
+  },
+  {
+   "id": "B1",
+   "scene": "quiet",
+   "start": 11.95,
+   "end": 14.39,
+   "text": "But a happy customer is a quiet one.",
+   "words": [
+    {
+     "w": "But",
+     "t": 11.95
+    },
+    {
+     "w": "a",
+     "t": 12.19
+    },
+    {
+     "w": "happy",
+     "t": 12.35
+    },
+    {
+     "w": "customer",
+     "t": 12.67
+    },
+    {
+     "w": "is",
+     "t": 13.31
+    },
+    {
+     "w": "a",
+     "t": 13.47
+    },
+    {
+     "w": "quiet",
+     "t": 13.63
+    },
+    {
+     "w": "one.",
+     "t": 14.11
+    }
+   ]
+  },
+  {
+   "id": "B2",
+   "scene": "quiet",
+   "start": 14.84,
+   "end": 20.0,
+   "text": "They mean to leave a review. Then dinner happens, the kids happen, life happens.",
+   "words": [
+    {
+     "w": "They",
+     "t": 14.84
+    },
+    {
+     "w": "mean",
+     "t": 15.08
+    },
+    {
+     "w": "to",
+     "t": 15.32
+    },
+    {
+     "w": "leave",
+     "t": 15.4
+    },
+    {
+     "w": "a",
+     "t": 15.64
+    },
+    {
+     "w": "review.",
+     "t": 15.8
+    },
+    {
+     "w": "Then",
+     "t": 16.76
+    },
+    {
+     "w": "dinner",
+     "t": 17.08
+    },
+    {
+     "w": "happens,",
+     "t": 17.48
+    },
+    {
+     "w": "the",
+     "t": 18.04
+    },
+    {
+     "w": "kids",
+     "t": 18.2
+    },
+    {
+     "w": "happen,",
+     "t": 18.6
+    },
+    {
+     "w": "life",
+     "t": 19.08
+    },
+    {
+     "w": "happens.",
+     "t": 19.4
+    }
+   ]
+  },
+  {
+   "id": "B3",
+   "scene": "quiet",
+   "start": 20.4,
+   "end": 24.12,
+   "text": "And by then, everyone at the shop is on to the next call.",
+   "words": [
+    {
+     "w": "And",
+     "t": 20.4
+    },
+    {
+     "w": "by",
+     "t": 20.64
+    },
+    {
+     "w": "then,",
+     "t": 20.96
+    },
+    {
+     "w": "everyone",
+     "t": 21.52
+    },
+    {
+     "w": "at",
+     "t": 22.0
+    },
+    {
+     "w": "the",
+     "t": 22.16
+    },
+    {
+     "w": "shop",
+     "t": 22.32
+    },
+    {
+     "w": "is",
+     "t": 22.64
+    },
+    {
+     "w": "on",
+     "t": 22.88
+    },
+    {
+     "w": "to",
+     "t": 23.12
+    },
+    {
+     "w": "the",
+     "t": 23.28
+    },
+    {
+     "w": "next",
+     "t": 23.44
+    },
+    {
+     "w": "call.",
+     "t": 23.6
+    }
+   ]
+  },
+  {
+   "id": "C1",
+   "scene": "search",
+   "start": 25.12,
+   "end": 29.95,
+   "text": "Tonight, a homeowner across town finds water on her basement floor.",
+   "words": [
+    {
+     "w": "Tonight,",
+     "t": 25.12
+    },
+    {
+     "w": "a",
+     "t": 25.76
+    },
+    {
+     "w": "homeowner",
+     "t": 25.92
+    },
+    {
+     "w": "across",
+     "t": 26.64
+    },
+    {
+     "w": "town",
+     "t": 27.12
+    },
+    {
+     "w": "finds",
+     "t": 27.76
+    },
+    {
+     "w": "water",
+     "t": 28.16
+    },
+    {
+     "w": "on",
+     "t": 28.64
+    },
+    {
+     "w": "her",
+     "t": 28.88
+    },
+    {
+     "w": "basement",
+     "t": 29.04
+    },
+    {
+     "w": "floor.",
+     "t": 29.52
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "scene": "search",
+   "start": 30.35,
+   "end": 33.12,
+   "text": "She grabs her phone and searches for a plumber.",
+   "words": [
+    {
+     "w": "She",
+     "t": 30.35
+    },
+    {
+     "w": "grabs",
+     "t": 30.59
+    },
+    {
+     "w": "her",
+     "t": 30.99
+    },
+    {
+     "w": "phone",
+     "t": 31.23
+    },
+    {
+     "w": "and",
+     "t": 31.63
+    },
+    {
+     "w": "searches",
+     "t": 31.87
+    },
+    {
+     "w": "for",
+     "t": 32.27
+    },
+    {
+     "w": "a",
+     "t": 32.43
+    },
+    {
+     "w": "plumber.",
+     "t": 32.59
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "scene": "search",
+   "start": 33.72,
+   "end": 40.09,
+   "text": "Your shop has the better rating. But your newest review is five months old, with no reply.",
+   "words": [
+    {
+     "w": "Your",
+     "t": 33.72
+    },
+    {
+     "w": "shop",
+     "t": 34.04
+    },
+    {
+     "w": "has",
+     "t": 34.44
+    },
+    {
+     "w": "the",
+     "t": 34.68
+    },
+    {
+     "w": "better",
+     "t": 34.92
+    },
+    {
+     "w": "rating.",
+     "t": 35.16
+    },
+    {
+     "w": "But",
+     "t": 36.12
+    },
+    {
+     "w": "your",
+     "t": 36.36
+    },
+    {
+     "w": "newest",
+     "t": 36.6
+    },
+    {
+     "w": "review",
+     "t": 37.0
+    },
+    {
+     "w": "is",
+     "t": 37.56
+    },
+    {
+     "w": "five",
+     "t": 37.72
+    },
+    {
+     "w": "months",
+     "t": 38.12
+    },
+    {
+     "w": "old,",
+     "t": 38.52
+    },
+    {
+     "w": "with",
+     "t": 39.0
+    },
+    {
+     "w": "no",
+     "t": 39.24
+    },
+    {
+     "w": "reply.",
+     "t": 39.4
+    }
+   ]
+  },
+  {
+   "id": "C4",
+   "scene": "search",
+   "start": 40.54,
+   "end": 45.35,
+   "text": "The shop down the road got one two days ago, and answered every review.",
+   "words": [
+    {
+     "w": "The",
+     "t": 40.54
+    },
+    {
+     "w": "shop",
+     "t": 40.78
+    },
+    {
+     "w": "down",
+     "t": 41.18
+    },
+    {
+     "w": "the",
+     "t": 41.34
+    },
+    {
+     "w": "road",
+     "t": 41.5
+    },
+    {
+     "w": "got",
+     "t": 41.9
+    },
+    {
+     "w": "one",
+     "t": 42.06
+    },
+    {
+     "w": "two",
+     "t": 42.46
+    },
+    {
+     "w": "days",
+     "t": 42.62
+    },
+    {
+     "w": "ago,",
+     "t": 42.94
+    },
+    {
+     "w": "and",
+     "t": 43.58
+    },
+    {
+     "w": "answered",
+     "t": 43.82
+    },
+    {
+     "w": "every",
+     "t": 44.46
+    },
+    {
+     "w": "review.",
+     "t": 44.7
+    }
+   ]
+  },
+  {
+   "id": "C5",
+   "scene": "search",
+   "start": 45.85,
+   "end": 46.99,
+   "text": "She calls them.",
+   "words": [
+    {
+     "w": "She",
+     "t": 45.85
+    },
+    {
+     "w": "calls",
+     "t": 46.25
+    },
+    {
+     "w": "them.",
+     "t": 46.57
+    }
+   ]
+  },
+  {
+   "id": "D1",
+   "scene": "cost",
+   "start": 48.19,
+   "end": 52.29,
+   "text": "Three out of four people look for reviews from the last three months.",
+   "words": [
+    {
+     "w": "Three",
+     "t": 48.19
+    },
+    {
+     "w": "out",
+     "t": 48.67
+    },
+    {
+     "w": "of",
+     "t": 48.91
+    },
+    {
+     "w": "four",
+     "t": 49.07
+    },
+    {
+     "w": "people",
+     "t": 49.47
+    },
+    {
+     "w": "look",
+     "t": 49.71
+    },
+    {
+     "w": "for",
+     "t": 50.03
+    },
+    {
+     "w": "reviews",
+     "t": 50.19
+    },
+    {
+     "w": "from",
+     "t": 50.83
+    },
+    {
+     "w": "the",
+     "t": 51.07
+    },
+    {
+     "w": "last",
+     "t": 51.23
+    },
+    {
+     "w": "three",
+     "t": 51.47
+    },
+    {
+     "w": "months.",
+     "t": 51.79
+    }
+   ]
+  },
+  {
+   "id": "D2",
+   "scene": "cost",
+   "start": 52.69,
+   "end": 58.11,
+   "text": "And four in five lean toward a business that replies to all its reviews.",
+   "words": [
+    {
+     "w": "And",
+     "t": 52.69
+    },
+    {
+     "w": "four",
+     "t": 52.93
+    },
+    {
+     "w": "in",
+     "t": 53.33
+    },
+    {
+     "w": "five",
+     "t": 53.49
+    },
+    {
+     "w": "lean",
+     "t": 53.89
+    },
+    {
+     "w": "toward",
+     "t": 54.61
+    },
+    {
+     "w": "a",
+     "t": 55.01
+    },
+    {
+     "w": "business",
+     "t": 55.17
+    },
+    {
+     "w": "that",
+     "t": 55.73
+    },
+    {
+     "w": "replies",
+     "t": 55.97
+    },
+    {
+     "w": "to",
+     "t": 56.61
+    },
+    {
+     "w": "all",
+     "t": 56.77
+    },
+    {
+     "w": "its",
+     "t": 57.09
+    },
+    {
+     "w": "reviews.",
+     "t": 57.33
+    }
+   ]
+  },
+  {
+   "id": "D3",
+   "scene": "cost",
+   "start": 58.81,
+   "end": 65.14,
+   "text": "So every great job that never becomes a review is proof you earned, and never got to use.",
+   "words": [
+    {
+     "w": "So",
+     "t": 58.81
+    },
+    {
+     "w": "every",
+     "t": 59.21
+    },
+    {
+     "w": "great",
+     "t": 59.53
+    },
+    {
+     "w": "job",
+     "t": 59.77
+    },
+    {
+     "w": "that",
+     "t": 60.33
+    },
+    {
+     "w": "never",
+     "t": 60.57
+    },
+    {
+     "w": "becomes",
+     "t": 60.81
+    },
+    {
+     "w": "a",
+     "t": 61.29
+    },
+    {
+     "w": "review",
+     "t": 61.45
+    },
+    {
+     "w": "is",
+     "t": 62.01
+    },
+    {
+     "w": "proof",
+     "t": 62.17
+    },
+    {
+     "w": "you",
+     "t": 62.65
+    },
+    {
+     "w": "earned,",
+     "t": 62.81
+    },
+    {
+     "w": "and",
+     "t": 63.61
+    },
+    {
+     "w": "never",
+     "t": 63.85
+    },
+    {
+     "w": "got",
+     "t": 64.09
+    },
+    {
+     "w": "to",
+     "t": 64.33
+    },
+    {
+     "w": "use.",
+     "t": 64.57
+    }
+   ]
+  },
+  {
+   "id": "D4",
+   "scene": "cost",
+   "start": 65.64,
+   "end": 68.68,
+   "text": "You did the better work. They just had the proof.",
+   "words": [
+    {
+     "w": "You",
+     "t": 65.64
+    },
+    {
+     "w": "did",
+     "t": 65.88
+    },
+    {
+     "w": "the",
+     "t": 66.12
+    },
+    {
+     "w": "better",
+     "t": 66.36
+    },
+    {
+     "w": "work.",
+     "t": 66.6
+    },
+    {
+     "w": "They",
+     "t": 67.32
+    },
+    {
+     "w": "just",
+     "t": 67.56
+    },
+    {
+     "w": "had",
+     "t": 67.72
+    },
+    {
+     "w": "the",
+     "t": 67.96
+    },
+    {
+     "w": "proof.",
+     "t": 68.12
+    }
+   ]
+  },
+  {
+   "id": "E1",
+   "scene": "rempo",
+   "start": 69.78,
+   "end": 72.56,
+   "text": "Rempo runs your Google reviews for you.",
+   "words": [
+    {
+     "w": "Rempo",
+     "t": 69.78
+    },
+    {
+     "w": "runs",
+     "t": 70.58
+    },
+    {
+     "w": "your",
+     "t": 70.9
+    },
+    {
+     "w": "Google",
+     "t": 71.14
+    },
+    {
+     "w": "reviews",
+     "t": 71.62
+    },
+    {
+     "w": "for",
+     "t": 72.1
+    },
+    {
+     "w": "you.",
+     "t": 72.26
+    }
+   ]
+  },
+  {
+   "id": "E2",
+   "scene": "rempo",
+   "start": 73.16,
+   "end": 76.85,
+   "text": "We connect to the software you already log jobs in.",
+   "words": [
+    {
+     "w": "We",
+     "t": 73.16
+    },
+    {
+     "w": "connect",
+     "t": 73.4
+    },
+    {
+     "w": "to",
+     "t": 73.72
+    },
+    {
+     "w": "the",
+     "t": 73.88
+    },
+    {
+     "w": "software",
+     "t": 74.04
+    },
+    {
+     "w": "you",
+     "t": 74.92
+    },
+    {
+     "w": "already",
+     "t": 75.16
+    },
+    {
+     "w": "log",
+     "t": 75.64
+    },
+    {
+     "w": "jobs",
+     "t": 76.12
+    },
+    {
+     "w": "in.",
+     "t": 76.52
+    }
+   ]
+  },
+  {
+   "id": "E3",
+   "scene": "rempo",
+   "start": 77.3,
+   "end": 86.06,
+   "text": "When a job is marked complete, your customer gets a thank-you with your crew's photo and their first name. Then one reminder.",
+   "words": [
+    {
+     "w": "When",
+     "t": 77.3
+    },
+    {
+     "w": "a",
+     "t": 77.54
+    },
+    {
+     "w": "job",
+     "t": 77.7
+    },
+    {
+     "w": "is",
+     "t": 78.1
+    },
+    {
+     "w": "marked",
+     "t": 78.34
+    },
+    {
+     "w": "complete,",
+     "t": 78.82
+    },
+    {
+     "w": "your",
+     "t": 79.78
+    },
+    {
+     "w": "customer",
+     "t": 79.94
+    },
+    {
+     "w": "gets",
+     "t": 80.58
+    },
+    {
+     "w": "a",
+     "t": 80.82
+    },
+    {
+     "w": "thank-you",
+     "t": 80.98
+    },
+    {
+     "w": "with",
+     "t": 81.62
+    },
+    {
+     "w": "your",
+     "t": 81.78
+    },
+    {
+     "w": "crew's",
+     "t": 81.94
+    },
+    {
+     "w": "photo",
+     "t": 82.5
+    },
+    {
+     "w": "and",
+     "t": 83.06
+    },
+    {
+     "w": "their",
+     "t": 83.3
+    },
+    {
+     "w": "first",
+     "t": 83.62
+    },
+    {
+     "w": "name.",
+     "t": 83.94
+    },
+    {
+     "w": "Then",
+     "t": 84.74
+    },
+    {
+     "w": "one",
+     "t": 85.06
+    },
+    {
+     "w": "reminder.",
+     "t": 85.3
+    }
+   ]
+  },
+  {
+   "id": "E4",
+   "scene": "rempo",
+   "start": 86.56,
+   "end": 90.17,
+   "text": "Every review gets a reply, written for that review.",
+   "words": [
+    {
+     "w": "Every",
+     "t": 86.56
+    },
+    {
+     "w": "review",
+     "t": 86.96
+    },
+    {
+     "w": "gets",
+     "t": 87.44
+    },
+    {
+     "w": "a",
+     "t": 87.76
+    },
+    {
+     "w": "reply,",
+     "t": 87.92
+    },
+    {
+     "w": "written",
+     "t": 88.72
+    },
+    {
+     "w": "for",
+     "t": 89.2
+    },
+    {
+     "w": "that",
+     "t": 89.36
+    },
+    {
+     "w": "review.",
+     "t": 89.52
+    }
+   ]
+  },
+  {
+   "id": "E5",
+   "scene": "rempo",
+   "start": 90.62,
+   "end": 94.88,
+   "text": "The same honest ask to every customer, and you never have to run it.",
+   "words": [
+    {
+     "w": "The",
+     "t": 90.62
+    },
+    {
+     "w": "same",
+     "t": 90.86
+    },
+    {
+     "w": "honest",
+     "t": 91.18
+    },
+    {
+     "w": "ask",
+     "t": 91.82
+    },
+    {
+     "w": "to",
+     "t": 92.22
+    },
+    {
+     "w": "every",
+     "t": 92.38
+    },
+    {
+     "w": "customer,",
+     "t": 92.62
+    },
+    {
+     "w": "and",
+     "t": 93.58
+    },
+    {
+     "w": "you",
+     "t": 93.74
+    },
+    {
+     "w": "never",
+     "t": 93.9
+    },
+    {
+     "w": "have",
+     "t": 94.14
+    },
+    {
+     "w": "to",
+     "t": 94.3
+    },
+    {
+     "w": "run",
+     "t": 94.46
+    },
+    {
+     "w": "it.",
+     "t": 94.62
+    }
+   ]
+  },
+  {
+   "id": "F1",
+   "scene": "after",
+   "start": 95.88,
+   "end": 99.04,
+   "text": "Every customer asked. Every review answered.",
+   "words": [
+    {
+     "w": "Every",
+     "t": 95.88
+    },
+    {
+     "w": "customer",
+     "t": 96.2
+    },
+    {
+     "w": "asked.",
+     "t": 96.84
+    },
+    {
+     "w": "Every",
+     "t": 97.56
+    },
+    {
+     "w": "review",
+     "t": 97.8
+    },
+    {
+     "w": "answered.",
+     "t": 98.44
+    }
+   ]
+  },
+  {
+   "id": "F2",
+   "scene": "after",
+   "start": 99.64,
+   "end": 105.58,
+   "text": "So the next time someone searches at nine at night, they see what your customers already know.",
+   "words": [
+    {
+     "w": "So",
+     "t": 99.64
+    },
+    {
+     "w": "the",
+     "t": 99.88
+    },
+    {
+     "w": "next",
+     "t": 100.04
+    },
+    {
+     "w": "time",
+     "t": 100.28
+    },
+    {
+     "w": "someone",
+     "t": 100.52
+    },
+    {
+     "w": "searches",
+     "t": 101.0
+    },
+    {
+     "w": "at",
+     "t": 101.48
+    },
+    {
+     "w": "nine",
+     "t": 101.72
+    },
+    {
+     "w": "at",
+     "t": 102.12
+    },
+    {
+     "w": "night,",
+     "t": 102.36
+    },
+    {
+     "w": "they",
+     "t": 103.08
+    },
+    {
+     "w": "see",
+     "t": 103.24
+    },
+    {
+     "w": "what",
+     "t": 103.64
+    },
+    {
+     "w": "your",
+     "t": 103.8
+    },
+    {
+     "w": "customers",
+     "t": 103.96
+    },
+    {
+     "w": "already",
+     "t": 104.68
+    },
+    {
+     "w": "know.",
+     "t": 105.16
+    }
+   ]
+  },
+  {
+   "id": "G1",
+   "scene": "close",
+   "start": 106.98,
+   "end": 110.38,
+   "text": "Rempo. Your reputation, as good as your work.",
+   "words": [
+    {
+     "w": "Rempo.",
+     "t": 106.98
+    },
+    {
+     "w": "Your",
+     "t": 107.86
+    },
+    {
+     "w": "reputation,",
+     "t": 108.02
+    },
+    {
+     "w": "as",
+     "t": 109.06
+    },
+    {
+     "w": "good",
+     "t": 109.3
+    },
+    {
+     "w": "as",
+     "t": 109.54
+    },
+    {
+     "w": "your",
+     "t": 109.7
+    },
+    {
+     "w": "work.",
+     "t": 109.86
+    }
+   ]
+  }
+ ]
+}

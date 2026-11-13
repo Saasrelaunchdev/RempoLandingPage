@@ -1,0 +1,153 @@
+{
+  "title": "Your reputation, as good as your work",
+  "about": "The hero video's narration, one line per entry. tools/voice.py reads it to make the voiceover, tools/render.mjs to time the scenes and write the captions. Claim rules (GTM brain, Phase 3 and 6): no promised reviews, ratings, rankings, calls or jobs; every statistic carries its source on screen; never blame staff; the same honest ask to every customer; no em dashes. voice.say respells words for the voice only (Rempo is said REM-po); the captions keep the text as written.",
+  "voice": {
+    "engine": "kokoro-onnx 0.6 (Kokoro-82M v1.0)",
+    "voice": "am_michael",
+    "speed": 0.86,
+    "lang": "en-us",
+    "sentencePause": 0.32,
+    "clausePause": 0.14,
+    "say": {
+      "Rempo": "Remmpo"
+    }
+  },
+  "leadIn": 1.6,
+  "tail": 2.6,
+  "lines": [
+    {
+      "id": "A1",
+      "scene": "work",
+      "pause": 0.35,
+      "text": "Your crew does great work."
+    },
+    {
+      "id": "A2",
+      "scene": "work",
+      "pause": 0.9,
+      "text": "Furnaces fixed the same day. Leaks found on the first visit. Customers who'd recommend you to anyone."
+    },
+    {
+      "id": "B1",
+      "scene": "quiet",
+      "pause": 0.45,
+      "text": "But a happy customer is a quiet one."
+    },
+    {
+      "id": "B2",
+      "scene": "quiet",
+      "pause": 0.4,
+      "text": "They mean to leave a review. Then dinner happens, the kids happen, life happens."
+    },
+    {
+      "id": "B3",
+      "scene": "quiet",
+      "pause": 1.0,
+      "text": "And by then, everyone at the shop is on to the next call."
+    },
+    {
+      "id": "C1",
+      "scene": "search",
+      "pause": 0.4,
+      "text": "Tonight, a homeowner across town finds water on her basement floor."
+    },
+    {
+      "id": "C2",
+      "scene": "search",
+      "pause": 0.6,
+      "text": "She grabs her phone and searches for a plumber."
+    },
+    {
+      "id": "C3",
+      "scene": "search",
+      "pause": 0.45,
+      "text": "Your shop has the better rating. But your newest review is five months old, with no reply."
+    },
+    {
+      "id": "C4",
+      "scene": "search",
+      "pause": 0.5,
+      "text": "The shop down the road got one two days ago, and answered every review."
+    },
+    {
+      "id": "C5",
+      "scene": "search",
+      "pause": 1.2,
+      "text": "She calls them."
+    },
+    {
+      "id": "D1",
+      "scene": "cost",
+      "pause": 0.4,
+      "text": "Three out of four people look for reviews from the last three months.",
+      "source": "74% look for reviews from the last three months. BrightLocal Local Consumer Review Survey 2026"
+    },
+    {
+      "id": "D2",
+      "scene": "cost",
+      "pause": 0.7,
+      "text": "And four in five lean toward a business that replies to all its reviews.",
+      "source": "80% are more likely to use a business that replies to all its reviews. BrightLocal Local Consumer Review Survey 2026"
+    },
+    {
+      "id": "D3",
+      "scene": "cost",
+      "pause": 0.5,
+      "text": "So every great job that never becomes a review is proof you earned, and never got to use."
+    },
+    {
+      "id": "D4",
+      "scene": "cost",
+      "pause": 1.1,
+      "text": "You did the better work. They just had the proof."
+    },
+    {
+      "id": "E1",
+      "scene": "rempo",
+      "pause": 0.6,
+      "text": "Rempo runs your Google reviews for you."
+    },
+    {
+      "id": "E2",
+      "scene": "rempo",
+      "pause": 0.45,
+      "text": "We connect to the software you already log jobs in."
+    },
+    {
+      "id": "E3",
+      "scene": "rempo",
+      "pause": 0.5,
+      "text": "When a job is marked complete, your customer gets a thank-you with your crew's photo and their first name. Then one reminder."
+    },
+    {
+      "id": "E4",
+      "scene": "rempo",
+      "pause": 0.45,
+      "text": "Every review gets a reply, written for that review."
+    },
+    {
+      "id": "E5",
+      "scene": "rempo",
+      "pause": 1.0,
+      "text": "The same honest ask to every customer, and you never have to run it."
+    },
+    {
+      "id": "F1",
+      "scene": "after",
+      "pause": 0.6,
+      "text": "Every customer asked. Every review answered."
+    },
+    {
+      "id": "F2",
+      "scene": "after",
+      "pause": 1.4,
+      "text": "So the next time someone searches at nine at night, they see what your customers already know."
+    },
+    {
+      "id": "G1",
+      "scene": "close",
+      "pause": 0,
+      "text": "Rempo. Your reputation, as good as your work."
+    }
+  ]
+}
