@@ -52,3 +52,46 @@ test("the film's timing, voice and sound come from the committed narration", () 
   assert.match(t.voice.voice, /^am_/, "the narrator is no longer one of Kokoro's American male voices");
   assert.ok(existsSync(ROOT + "hero-video/audio/narration.flac"), "hero-video/audio/narration.flac (the voiceover) is missing");
 });
+
+// Two flat surfaces at one height fight for the same pixels, and the film shows them flickering between their colours.
+// The sidewalks sat exactly on the grass top and flickered white and green in every street shot (Nov 13, 2026).
+test("no flat layer of the town shares a height with the grass or with the layer under it", () => {
+  const town = read("hero-video/src/town.js"), kit = read("hero-video/src/kit.js");
+  const find = (re, src, what) => { const m = src.match(re); assert.ok(m, `town.js: ${what} not found`); return m; };
+  const [, gy, gh] = find(/export const GRASS = \{ y: (-?[\d.]+), h: ([\d.]+) \}/, town, "GRASS");
+  find(/rbox\(W - 0\.5, GRASS\.h, DEP - 0\.5, [\d.]+, C\.grass, \{ y: GRASS\.y\b/, town, "the grass box built from GRASS");
+  const GROUND = +gy + +gh;
+  const LAYER = Object.fromEntries([...find(/export const LAYER = \{([^}]*)\}/, town, "LAYER")[1].matchAll(/(\w+): GROUND \+ ([\d.]+)/g)]
+    .map(([, k, v]) => [k, GROUND + +v]));
+  const pool = +find(/pool\.position\.set\([^,]+, ([\d.]+),/, kit, "the lamps' light pool")[1];
+  // each flat() call's height is its last argument
+  const flats = town.split("\n").filter((l) => l.includes("flat(") && !l.includes("const flat")).map((l) => {
+    const args = [""];
+    for (let i = l.indexOf("flat(") + 5, depth = 0; i < l.length; i++) {
+      const c = l[i];
+      if (c === ")" && !depth) break;
+      if (c === "(") depth++;
+      if (c === ")") depth--;
+      if (c === "," && !depth) args.push(""); else args[args.length - 1] += c;
+    }
+    const y = args.at(-1).trim();
+    return { line: l.trim(), y: y.startsWith("LAYER.") ? LAYER[y.slice(6)] : Number(y) };
+  });
+  assert.ok(flats.length >= 5, "town.js: the flat() calls were not found");
+  for (const f of flats) {
+    assert.ok(Number.isFinite(f.y), `town.js: no height for ${f.line}`);
+    assert.ok(Math.abs(f.y - GROUND) >= 0.002 - 1e-9, `town.js: ${f.line} sits on the grass top (y ${GROUND}) and flickers`);
+  }
+  const shown = [...new Set(flats.map((f) => f.y).filter((y) => y > GROUND))].sort((a, b) => a - b);
+  [GROUND, ...shown, pool].reduce((below, y) => {
+    assert.ok(y - below >= 0.004 - 1e-9, `town.js: layers at y ${below} and ${y} are too close, so they flicker`);
+    return y;
+  });
+});
+
+test("the film the site plays was rendered from the scenes, timing and three.js as they are", async () => {
+  const { sourcesHash } = await import("../../hero-video/tools/sources.mjs");
+  assert.ok(existsSync(ROOT + "hero-video/rendered-from.json"), "hero-video/rendered-from.json is missing: run node hero-video/tools/render.mjs");
+  assert.equal(JSON.parse(read("hero-video/rendered-from.json")).sources, sourcesHash(),
+    "hero-video/ changed since media/hero-video/ was rendered, so the site still plays the old film: run node hero-video/tools/render.mjs");
+});

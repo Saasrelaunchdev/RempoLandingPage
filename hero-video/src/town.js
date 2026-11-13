@@ -5,12 +5,15 @@ import { C, mat, rbox, sphere, cyl, house, tree, bush, fence, van, person, shop,
 import { rng } from './anim.js';
 
 export const ROAD_Z = 5.6;          // centre line of the main road
-// The ground: the grass box rests at GRASS.y and is 0.25 high, so its top is at 0.01. Every flat layer drawn on it sits
-// at its own height, clearly above that top and above what it overlaps (a shop's forecourt runs under the sidewalk):
-// two surfaces at one height flicker between their colours as the camera moves, as the sidewalks once did on the grass.
+// The ground. The grass box rests at GRASS.y and is GRASS.h high, so its top (GROUND) is at y 0.01. Each flat layer on
+// it has a height of its own, above the grass and below the lamps' light pools (y 0.03, kit.js): two surfaces at one
+// height fight for the same pixels, and the film shows them flickering between their colours. The sidewalks once sat
+// exactly on the grass top and flickered white and green in every street shot.
+// The paths to the doors and the shops' forecourts (y 0.008) sit just under the grass top, as in the film as approved,
+// so they do not show.
 export const GRASS = { y: -0.24, h: 0.25 };
 export const GROUND = GRASS.y + GRASS.h;
-export const LAYER = { path: GROUND + 0.008, walk: GROUND + 0.012, road: GROUND + 0.016, line: GROUND + 0.022 };
+export const LAYER = { walk: GROUND + 0.006, road: GROUND + 0.01, line: GROUND + 0.014 };
 export const LANE_NEAR = 6.25;      // the lane the vans drive in (toward +x)
 export const LANE_FAR = 4.95;       // the other lane (toward -x)
 
@@ -23,16 +26,19 @@ export function buildTown(scene) {
   // The slab: a rounded base, the grass on top, the road and the sidewalks
   const W = 50, D0 = -12.5, D1 = 10.5, DEP = D1 - D0, CZ = (D0 + D1) / 2;
   town.add(rbox(W, 1.4, DEP, 1.2, C.slab, { y: -1.45, z: CZ, s: 6 }));
-  town.add(rbox(W - 0.5, 0.25, DEP - 0.5, 0.9, C.grass, { y: GRASS.y, z: CZ, s: 5 }));
+  town.add(rbox(W - 0.5, GRASS.h, DEP - 0.5, 0.9, C.grass, { y: GRASS.y, z: CZ, s: 5 }));
   const flat = (w, d, color, x, z, y) => {
     const m = mesh(new THREE.PlaneGeometry(w, d), mat(color), { cast: false });
     m.rotation.x = -Math.PI / 2; m.position.set(x, y, z);
     town.add(m);
     return m;
   };
-  flat(W - 1.2, 2.7, C.road, 0, ROAD_Z, LAYER.road);
-  flat(W - 1.2, 0.95, C.walk, 0, ROAD_Z - 1.85, LAYER.walk);
-  flat(W - 1.2, 0.95, C.walk, 0, ROAD_Z + 1.85, LAYER.walk);
+  // The sidewalks reach 0.03 under the road's edges, so no sliver of grass shows between the two (a strip thinner than a
+  // pixel shimmers as the camera moves). Their outer edges stay 2.325 from the centre line.
+  const ROAD_D = 2.7, WALK_IN = ROAD_D / 2 - 0.03, WALK_OUT = 2.325;
+  flat(W - 1.2, ROAD_D, C.road, 0, ROAD_Z, LAYER.road);
+  flat(W - 1.2, WALK_OUT - WALK_IN, C.walk, 0, ROAD_Z - (WALK_IN + WALK_OUT) / 2, LAYER.walk);
+  flat(W - 1.2, WALK_OUT - WALK_IN, C.walk, 0, ROAD_Z + (WALK_IN + WALK_OUT) / 2, LAYER.walk);
   for (let x = -23; x < 23; x += 1.9) flat(0.9, 0.11, C.roadLine, x, ROAD_Z, LAYER.line);
 
   // The front row along the road, left to right: your shop, five houses, the shop down the road

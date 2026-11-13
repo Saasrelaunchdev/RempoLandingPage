@@ -4,15 +4,20 @@
 //   node tools/render.mjs --frames-only   frames only
 //   node tools/render.mjs --encode-only   encode from the frames on disk
 //   options: --workers 3  --fps 30  --quality 94  --mp4-only  --webm-only
+//            --keep-sound   for a change to the picture only: the sound is copied, as it is, from the films already in
+//                           ../media/hero-video/, so audio/mix.wav (and the Python tools that make it) are not needed
 //
 // Writes ../media/hero-video/: rempo-story.mp4 (H.264 High, AAC), rempo-story.webm (VP9, Opus),
 // rempo-story.en.vtt (the captions, from audio/timings.json) and rempo-story-poster.webp.
 // The sound is audio/mix.wav: the narration, the music bed and the effects (tools/mix.py makes it).
+// Then rendered-from.json records what the film was made from (tools/sources.mjs): the unit tests fail while the scenes,
+// the timing or three.js differ from it, as the site would still be playing the film made before the change.
 import { createRequire } from 'node:module';
 import { mkdir, readdir, writeFile, readFile, access, rename } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { serve } from './serve.mjs';
 import { captions } from './captions.mjs';
+import { sourcesHash } from './sources.mjs';
 
 const { chromium } = createRequire(import.meta.url)('playwright');
 const HERE = new URL('..', import.meta.url).pathname;
@@ -68,31 +73,38 @@ function ff(args) {
 
 async function encode() {
   await mkdir(MEDIA, { recursive: true });
+  const keep = flag('keep-sound');
   const audio = HERE + 'audio/mix.wav';
-  try { await access(audio); } catch { throw new Error('audio/mix.wav is missing: run .venv/bin/python tools/mix.py first'); }
-  const input = ['-framerate', String(FPS), '-i', FRAMES + 'f_%05d.jpg', '-i', audio];
+  if (!keep) try { await access(audio); } catch { throw new Error('audio/mix.wav is missing: run .venv/bin/python tools/mix.py first'); }
+  // the sound: audio/mix.wav, encoded; or with --keep-sound, the track of the film being replaced, copied as it is
+  const input = (film) => ['-framerate', String(FPS), '-i', FRAMES + 'f_%05d.jpg', '-i', keep ? MEDIA + film : audio];
+  const sound = (encode) => (keep ? ['-c:a', 'copy'] : encode);
   // each file is written in out/ and moved into media/ only once it is whole
   const OUT = HERE + 'out/';
   const place = (f) => rename(OUT + f, MEDIA + f);
   if (!flag('webm-only')) {
     // H.264 High 4.0 at CRF 26: flat, clean shading compresses well, and the film stays near 19 MB (about 1.4 Mbps)
-    await ff([...input, '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', '26',
+    await ff([...input('rempo-story.mp4'), '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', '26',
       '-profile:v', 'high', '-level', '4.0', '-pix_fmt', 'yuv420p', '-g', String(FPS * 2), '-movflags', '+faststart',
-      '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-shortest', OUT + 'rempo-story.mp4']);
+      ...sound(['-c:a', 'aac', '-b:a', '160k', '-ar', '48000']), '-shortest', OUT + 'rempo-story.mp4']);
     await place('rempo-story.mp4');
     console.log('mp4 written');
   }
   if (!flag('mp4-only')) {
     // VP9 for the few browsers without H.264: constrained quality, capped near 900 kbps (about 13 MB)
-    await ff([...input, '-map', '0:v', '-map', '1:a', '-c:v', 'libvpx-vp9', '-crf', '38', '-b:v', '900k', '-maxrate', '1400k',
+    await ff([...input('rempo-story.webm'), '-map', '0:v', '-map', '1:a', '-c:v', 'libvpx-vp9', '-crf', '38', '-b:v', '900k', '-maxrate', '1400k',
       '-bufsize', '2800k', '-row-mt', '1', '-deadline', 'good', '-cpu-used', '3', '-pix_fmt', 'yuv420p', '-g', String(FPS * 2),
-      '-c:a', 'libopus', '-b:a', '112k', '-ar', '48000', '-shortest', OUT + 'rempo-story.webm']);
+      ...sound(['-c:a', 'libopus', '-b:a', '112k', '-ar', '48000']), '-shortest', OUT + 'rempo-story.webm']);
     await place('rempo-story.webm');
     console.log('webm written');
   }
   await ff(['-i', FRAMES + name(Math.round(1.2 * FPS)), '-vf', 'scale=1280:-2', '-c:v', 'libwebp', '-quality', '82', MEDIA + 'rempo-story-poster.webp']);
   await writeFile(MEDIA + 'rempo-story.en.vtt', captions(timings));
   console.log('poster and captions written to', MEDIA);
+  if (!flag('mp4-only') && !flag('webm-only')) {
+    await writeFile(HERE + 'rendered-from.json', JSON.stringify({ sources: sourcesHash(), files: 'tools/sources.mjs' }, null, 2) + '\n');
+    console.log('rendered-from.json written');
+  }
 }
 
 if (!flag('encode-only')) await frames();

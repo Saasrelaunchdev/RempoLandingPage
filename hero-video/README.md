@@ -40,6 +40,7 @@ Plumbing". The job software is never named.
 | `tools/voice.py` | Makes the voiceover with Kokoro |
 | `tools/mix.py` | Makes the music bed and the effects (synthesised, so nothing to license) and mixes them under the voice |
 | `tools/render.mjs` | Renders every frame in headless Chromium, then encodes `../media/hero-video/` |
+| `rendered-from.json`, `tools/sources.mjs` | What the film in `../media/hero-video/` was rendered from (a hash of `src/`, `audio/timings.json` and `package-lock.json`). `npm test` fails while they differ, because the site would still be playing the film made before the change |
 | `tools/preview.mjs` | Single frames at chosen moments, for checking a change without rendering it all |
 | `tools/captions.mjs` | The WebVTT captions, from the voiceover's timing |
 
@@ -65,6 +66,9 @@ python3 -m venv .venv && .venv/bin/pip install kokoro-onnx soundfile numpy scipy
 .venv/bin/python tools/mix.py                 # the sound
 node tools/render.mjs                         # every frame (about an hour on 4 CPU cores), then ../media/hero-video/
 ```
+
+For a change to the picture only (the scenes, not the words or the voice), `node tools/render.mjs --keep-sound` copies
+the sound, as it is, from the film already in `../media/hero-video/`: no Python and no `audio/mix.wav` needed.
 
 `node tools/preview.mjs 12 34.5 80` saves the frames at those seconds to `out/` (a few seconds each), and
 `node tools/serve.mjs` serves `http://127.0.0.1:8790/src/?t=34.5` (any moment) or `?play` to watch it run.
