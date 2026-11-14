@@ -9,12 +9,11 @@
  * Checks: nothing loads before a choice; both choices look the same; Decline keeps everything off and is remembered;
  * the footer's Cookie settings opens the notice again; Allow loads the pixel (PageView) and Clarity; Global Privacy
  * Control hides the notice and keeps everything off even after an earlier Allow; /legal/privacy-choices changes the
- * same choice; a review race after Decline keeps its lead with the choice and no ad ids, and nothing reaches Meta; a
- * race after Allow puts Lead in the pixel's queue with the same event id the Conversions API gets.
+ * same choice; a lead sent after Decline reaches the database with the choice and nothing reaches Meta.
  */
 import { spawn, execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { cpSync, mkdtempSync, readFileSync, writeFileSync, rmSync, symlinkSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
@@ -28,10 +27,8 @@ const ok = (name, cond, info = "") => { if (cond) { pass++; console.log(`ok   ${
 
 /* ---------- A copy of the site with both trackers set ---------- */
 const TMP = mkdtempSync(path.join(os.tmpdir(), "rempo-consent-"));
-// assets/ and media/: the master page's proof, which the pages share (its renderer, styles, script and films);
-// review-race/: the page's lead capture (its widget is built in, its server runs /api/race); node_modules: what it imports
-for (const dir of ["meta", "api", "legal", "assets", "media", "review-race"]) cpSync(path.join(REPO, dir), path.join(TMP, dir), { recursive: true, filter: (src) => !src.includes(`${path.sep}shots`) && !src.includes("node_modules") && !src.includes(`review-race${path.sep}public${path.sep}media`) });
-symlinkSync(path.join(REPO, "node_modules"), path.join(TMP, "node_modules"), "dir");
+// assets/ and media/: the master page's proof, which the pages share (its renderer, styles, script and films)
+for (const dir of ["meta", "api", "legal", "assets", "media"]) cpSync(path.join(REPO, dir), path.join(TMP, dir), { recursive: true, filter: (src) => !src.includes(`${path.sep}shots`) && !src.includes("node_modules") });
 const siteFile = path.join(TMP, "meta", "content", "site.mjs");
 const site = readFileSync(siteFile, "utf8").replace("metaPixelId: null", 'metaPixelId: "1234567890"').replace("clarityId: null", 'clarityId: "abcde12345"');
 if (!site.includes('"1234567890"') || !site.includes('"abcde12345"')) { console.log("FAIL could not set the tracker ids in the copy"); process.exit(1); }
@@ -46,22 +43,8 @@ await new Promise((resolve, reject) => {
   server.stdout.on("data", (d) => { if (String(d).includes("http://localhost")) { clearTimeout(t); resolve(); } });
   server.stderr.on("data", (d) => process.stderr.write(d));
 });
-const stub = async () => (await fetch(`${BASE}/__stub`)).json();
+const stubCalls = async () => (await fetch(`${BASE}/__stub`)).json();
 const clearStub = () => fetch(`${BASE}/__stub`, { method: "DELETE" });
-// A race to the full results: Maple Street Plumbing (the demo's trade business), picked in the hero's search
-async function race(page) {
-  const input = page.locator("#hero-race input");
-  await input.click();
-  await input.fill("Maple");
-  await page.waitForSelector("#hero-race-list .rr-option", { timeout: 5000 });
-  await page.locator("#hero-race-list .rr-option", { hasText: "Maple Street Plumbing" }).first().click();
-  await page.waitForSelector("#review-race .rr-locked input[name=firstName]", { timeout: 10000 });
-  await page.fill("#review-race input[name=firstName]", "Tom");
-  await page.fill("#review-race input[name=email]", "tom@maplestreet.com");
-  await page.locator("#review-race .rr-locked input[name=consentEmail]").check();
-  await page.locator("#review-race button", { hasText: "Show my full race" }).click();
-  await page.waitForSelector("#review-race .rr-area", { timeout: 15000 });
-}
 
 const browser = await chromium.launch();
 // Each context records requests to the trackers and answers them locally (nothing leaves the machine)
@@ -143,37 +126,33 @@ try {
     await ctx.close();
   }
 
-  /* ---------- A race after Decline: the lead keeps the choice and no ad ids, and nothing reaches Meta ---------- */
+  /* ---------- A lead after Decline: stored with the choice, nothing to Meta ---------- */
   {
     await clearStub();
     const { ctx } = await context({ viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false });
     const page = await ctx.newPage();
+    const t0 = Date.now();
     await page.goto(`${BASE}/customers?fbclid=IwAR0consentconsent`, { waitUntil: "networkidle" });
     await page.locator('#cookie-notice [data-consent="denied"]').click();
-    await race(page);
-    const s = await stub();
-    const stored = s.leads.find((l) => l.form === "review-race");
-    ok("a race after Decline: the lead is kept with the choice and no Meta ids", stored && stored.meta.ads_consent === "denied" && !stored.meta.fbc && !stored.meta.fbp, JSON.stringify(stored && stored.meta));
-    ok("a race after Decline: nothing to the Conversions API", !s.outbox.some((m) => m.kind === "capi"));
-    ok("a race after Decline: nothing to the pixel", await page.evaluate(() => typeof window.fbq === "undefined"));
-    ok("a race after Decline: the results email still goes", s.outbox.some((m) => m.to === "tom@maplestreet.com"));
-    await ctx.close();
-  }
-
-  /* ---------- A race after Allow: Lead in the pixel's queue, with the Conversions API's event id ---------- */
-  {
-    await clearStub();
-    const { ctx } = await context({ viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false });
-    const page = await ctx.newPage();
-    await page.goto(`${BASE}/customers?fbclid=IwAR0consentconsent`, { waitUntil: "networkidle" });
-    await page.locator('#cookie-notice [data-consent="granted"]').click();
-    await race(page);
-    const s = await stub();
-    const capiLead = s.outbox.filter((m) => m.kind === "capi").map((m) => m.events[0]).find((e) => e.event_name === "Lead");
-    const queued = await page.evaluate(() => ((window.fbq && window.fbq.queue) || []).filter((a) => a[0] === "track" && a[1] === "Lead").map((a) => a[3] && a[3].eventID));
-    ok("a race after Allow: Lead to the pixel and to the Conversions API, one event id", capiLead && queued.length === 1 && queued[0] === capiLead.event_id, JSON.stringify({ queued, capi: capiLead && capiLead.event_id }));
-    const stored = s.leads.find((l) => l.form === "review-race");
-    ok("a race after Allow: the lead keeps the choice and the click id", stored && stored.meta.ads_consent === "granted" && /IwAR0consentconsent$/.test(stored.meta.fbc || ""), JSON.stringify(stored && stored.meta));
+    const tap = async (label, key) => { await page.locator(".gc-step:not([hidden]) .gc-opt", { hasText: label }).first().click(); await page.waitForSelector(`.gc-step[data-key="${key}"]:not([hidden])`); };
+    for (const [label, key] of [["HVAC and plumbing", "asks"], ["When someone remembers", "newest"], ["More than 3 months ago", "replies"], ["Rarely", "compare"], ["Haven't checked", "jobs"], ["16 to 40", "records"], ["Job software built for the trades", "business"]]) await tap(label, key);
+    await page.fill("#gc-company", "Maple Street Plumbing");
+    await page.fill("#gc-city", "Springfield");
+    await page.locator('.gc-step:not([hidden]) .chip-opt:has(input[value="1"])').click();
+    await page.locator(".gc-step:not([hidden]) .gc-next").click();
+    await page.waitForSelector('.gc-step[data-key="contact"]:not([hidden])');
+    await page.fill("#gc-firstName", "Tom");
+    await page.fill("#gc-email", "tom@maplestreet.com");
+    await page.locator('.gc-step:not([hidden]) .consent input').check();
+    const wait = 3600 - (Date.now() - t0);
+    if (wait > 0) await page.waitForTimeout(wait);
+    await page.locator(".gc-step:not([hidden]) button[type=submit]").click();
+    await page.waitForSelector(".gc-result:not([hidden]) .score-n", { timeout: 6000 });
+    const calls = await stubCalls();
+    const stored = calls.find((c) => c.svc === "supabase" && c.body && c.body.payload && c.body.payload.form === "meta-gap-report");
+    ok("a qualified lead after Decline: stored with the choice and no Meta ids", stored && stored.body.payload.meta.ads_consent === "denied" && !stored.body.payload.meta.fbc && !stored.body.payload.meta.fbp, JSON.stringify(stored && stored.body.payload.meta));
+    ok("a qualified lead after Decline: nothing to the Conversions API", !calls.some((c) => c.svc === "meta"));
+    ok("a qualified lead after Decline: the report email still goes", calls.some((c) => c.svc === "resend" && c.body.to && c.body.to[0] === "tom@maplestreet.com"));
     await ctx.close();
   }
 } finally {

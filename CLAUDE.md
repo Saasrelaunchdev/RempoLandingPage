@@ -81,13 +81,12 @@ open and say so plainly. The start-of-session hook will keep flagging it until i
 | 2026-11-13 | The hero picture is the poster of a story film with a male voiceover (great work and no reviews, losing the night call to a shop with fresher reviews, then Rempo's process and the after). A click opens it with sound and captions in the page's video dialog; phones get a "Watch the story" link | `index.html#hero`, `hero-video/` builds into `media/hero-video/` |
 | 2026-11-13 | The story film does not flicker: each flat ground layer has a height of its own above the grass (the sidewalks), and every frame is drawn anew, whichever browser draws it (the cards' text). The site plays the film rendered from the scenes as they are (`hero-video/rendered-from.json`; `npm test` fails while they differ) | `hero-video/src/town.js`, `hero-video/tools/render.mjs`, `media/hero-video/` |
 | 2026-11-14 | Every frame of the story film depends on its time alone: it starts from the 3D world and the 2D layer as built, so a frame drawn in any browser, after any other frames, matches its neighbours (the parked van's wheels, the drops behind the search). Before encoding, the render has a fresh browser draw a shuffled sample of frames again, and each must match the frame on disk byte for byte | `hero-video/src/story.js`, `hero-video/tools/render.mjs` |
-| 2026-11-14 | The Meta ads page (`/customers`) runs the Review Race instead of the Gap Check: the hero's business search starts the race in its section below, the race is the page's lead form, and the call is booked from it. The Gap Report is retired. Meta's `Lead` and `Schedule` (pixel and Conversions API) go out for trade businesses only | `review-race/`, `meta/tools/build.mjs`, `api/race.mjs`, `customers/` |
 
 ## Generated files: rebuild them, never merge them by hand
 
 | Output | Source | Build |
 |---|---|---|
-| `customers/` | `meta/`, and the Review Race's widget (`review-race/public/race/`) | `node meta/tools/build.mjs` |
+| `customers/` | `meta/` | `node meta/tools/build.mjs` |
 | `legal/` | `legal-src/` | `node legal-src/tools/build.mjs` |
 | The case studies section of `index.html` | the published proof seed | `node tools/render-landing.mjs` |
 | `media/hero-video/` (the story film, its captions and poster) | `hero-video/` (the script, the voiceover, the 3D scenes) | `node hero-video/tools/render.mjs` (about an hour; see `hero-video/README.md` for the voice and the sound; `--keep-sound` for a change to the picture only) |
@@ -105,7 +104,6 @@ node legal-src/tests/check-legal.mjs       # the legal pages and consent
 node lead-capture/tests/check-forms.mjs    # the landing page's forms
 node lead-capture/tests/check-api.mjs      # the lead endpoint
 node checkout/tests/check-sql.mjs          # the purchases SQL in a local Postgres (the checkout's own tests run in npm test)
-node review-race/tests/run.mjs             # the Review Race: its numbers, claim rules and API, and its widget in Chromium
 ```
 
 ## Other repositories

@@ -1,8 +1,7 @@
-// Meta Conversions API: the server sends Lead (a full race) and Schedule (a booked call) for owners of a trade business
-// (fit.mjs), with the same event id the page's pixel used, so Meta counts each once and keeps what the browser lost
-// (blocked pixels, iOS). Moved here from the Meta ads page's old Gap Check endpoint when the Review Race replaced it on
-// /customers (2026-11-14). Only when these are set in Vercel:
-//   META_PIXEL_ID         the dataset (pixel) id, the same as site.metaPixelId in meta/content/site.mjs
+// Meta Conversions API: the server sends Lead and Schedule for qualified visitors, with the same event id the browser's
+// pixel used, so Meta counts each once and keeps what the browser lost (blocked pixels, iOS). Only when these are set in
+// Vercel:
+//   META_PIXEL_ID         the dataset (pixel) id, the same as site.metaPixelId
 //   META_CAPI_TOKEN       an access token from Events Manager > the dataset > Settings > Conversions API
 //   META_TEST_EVENT_CODE  optional: sends to Events Manager's Test events tab instead of counting (remove after testing)
 //   META_GRAPH_VERSION    optional: the Graph API version, "v25.0" by default (released February 2026)

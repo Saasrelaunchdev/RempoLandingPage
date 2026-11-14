@@ -1,8 +1,7 @@
 {
   "functions": {
     "api/lead.mjs": { "maxDuration": 30 },
-    "api/race.mjs": { "maxDuration": 120 },
-    "api/race-cron.mjs": { "maxDuration": 300 },
+    "api/meta-lead.mjs": { "maxDuration": 30 },
     "api/admin.mjs": { "maxDuration": 60 },
     "api/admin-ingest.mjs": { "maxDuration": 300, "includeFiles": "node_modules/ffmpeg-static/ffmpeg" },
     "api/proof.mjs": { "maxDuration": 15 },
@@ -10,9 +9,6 @@
     "api/checkout.mjs": { "maxDuration": 30 },
     "api/stripe-webhook.mjs": { "maxDuration": 30 }
   },
-  "crons": [
-    { "path": "/api/race-cron", "schedule": "17 15 * * *" }
-  ],
   "redirects": [
     { "source": "/meta/:path*", "destination": "/", "permanent": false },
     { "source": "/privacy", "destination": "/legal/privacy", "permanent": false },
@@ -88,10 +84,6 @@
     },
     {
       "source": "/api/(checkout|stripe-webhook)",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
-    },
-    {
-      "source": "/api/race(.*)",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ]

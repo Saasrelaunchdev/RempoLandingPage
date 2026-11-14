@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 // The pages on your machine, laid out as on Vercel: the built ../customers/ folder at /customers (/customers/recent
 // serves ../customers/recent/index.html), the legal pages (../legal/, built from ../legal-src/) at /legal, and
-// /api/race running the Review Race (../api/race.mjs, which runs ../review-race/api/race.mjs), the page's lead capture.
+// /api/meta-lead running the real function (../api/meta-lead.mjs).
 //
-//   node tools/dev.mjs                 http://localhost:8790/customers, /api/race uses the variables in your environment
-//   node tools/dev.mjs --stub          the Review Race's demo mode: sample businesses, an in-memory store, and Meta's
-//                                      Conversions API answered locally. What the race kept and sent is listed at /__stub
-//                                      (leads, races, and the emails and Meta events it would have sent; DELETE /__stub
-//                                      clears it). Nothing leaves the machine.
+//   node tools/dev.mjs                 http://localhost:8790/customers, /api/meta-lead uses the variables in your environment
+//   node tools/dev.mjs --stub          Supabase, Resend, Slack and Meta answered locally: every call is recorded and
+//                                      listed at /__stub (DELETE /__stub clears it). Nothing leaves the machine.
 //   node tools/dev.mjs --port 9000
 //
 // Build first (node tools/build.mjs); add ?view=preview to a page to see its {TBD} notes.
@@ -24,17 +22,32 @@ const LEGAL = path.join(ROOT, "..", "legal");             // the repository's le
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d; };
 const PORT = Number(arg("--port", process.env.PORT || 8790));
 const STUB = process.argv.includes("--stub");
-const RACE_API = (SITE.race && SITE.race.api) || "/api/race";
 
+export const calls = [];
 if (STUB) {
-  // Demo mode: the race's sample businesses, reviews and calendar (review-race/api/_lib/race/fakes.mjs), its in-memory
-  // store, and a pixel and a token so its Conversions API events are built (they go to the demo outbox, not to Meta)
-  const defaults = { RACE_FAKE: "1", RACE_STORE: "memory", META_PIXEL_ID: "1234567890", META_CAPI_TOKEN: "EAAstub", RACE_PUBLIC_URL: `http://localhost:${PORT}` };
+  const defaults = {
+    SUPABASE_URL: "https://stub-project.supabase.co", SUPABASE_ANON_KEY: "sb_publishable_stub", LEAD_HASH_SALT: "stub-salt",
+    RESEND_API_KEY: "re_stub", LEAD_NOTIFY_FROM: "Rempo Leads <leads@example.com>", LEAD_NOTIFY_TO: "owner@example.com",
+    SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/T0/B0/STUB", META_PIXEL_ID: "1234567890", META_CAPI_TOKEN: "EAAstub",
+    PROSPECT_EMAIL_FROM: "Ali at Rempo <ali@example.com>"
+  };
   for (const [k, v] of Object.entries(defaults)) if (!process.env[k]) process.env[k] = v;
+  const real = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    const u = String(url);
+    const svc = u.includes(".supabase.co/rest/v1/") ? "supabase" : u.startsWith("https://api.resend.com/") ? "resend"
+      : u.startsWith("https://hooks.slack.com/") ? "slack" : u.startsWith("https://graph.facebook.com/") ? "meta" : null;
+    if (!svc) return real(url, init);
+    let body = null;
+    try { body = init.body ? JSON.parse(init.body) : null; } catch { body = init.body; }
+    calls.push({ svc, url: u.replace(/access_token=[^&]+/, "access_token=[token]"), body, at: Date.now() });
+    const answer = svc === "supabase" ? (u.endsWith("lead_capture_health") ? '"lead-capture v1"' : `"${crypto.randomUUID()}"`)
+      : svc === "meta" ? '{"events_received":1,"fbtrace_id":"stub"}' : svc === "slack" ? "ok" : '{"id":"stub"}';
+    return new Response(answer, { status: 200 });
+  };
 }
 
-const race = (await import(pathToFileURL(path.join(ROOT, "..", "api", "race.mjs")).href)).default;
-const { resetMemory } = await import(pathToFileURL(path.join(ROOT, "..", "review-race", "api", "_lib", "race", "store.mjs")).href);
+const handler = (await import(pathToFileURL(path.join(ROOT, "..", "api", "meta-lead.mjs")).href)).default;
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml",
   ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".json": "application/json", ".ics": "text/calendar",
   ".mjs": "text/javascript; charset=utf-8", ".mp4": "video/mp4", ".webm": "video/webm", ".vtt": "text/vtt; charset=utf-8" };
@@ -54,13 +67,11 @@ async function file(res, p, status = 200) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   try {
-    if (url.pathname === RACE_API) return await race(req, res);
+    if (url.pathname === SITE.endpoint) return await handler(req, res);
     if (STUB && url.pathname === "/__stub") {
-      const mem = globalThis.__reviewRaceMemory || { leads: [], runs: [] };
-      const outbox = globalThis.__reviewRaceOutbox || [];
-      if (req.method === "DELETE") { resetMemory(); outbox.length = 0; }
+      if (req.method === "DELETE") calls.length = 0;
       res.writeHead(200, { "content-type": "application/json" });
-      return res.end(JSON.stringify({ leads: mem.leads, runs: mem.runs.map((r) => ({ token: r.token, meta: r.meta, booking: r.booking || null, email: r.email || null })), outbox }));
+      return res.end(JSON.stringify(calls));
     }
     if (url.pathname === "/") { res.writeHead(302, { location: BASE }); return res.end(); }
     if (url.pathname === "/api/proof") { res.writeHead(200, { "content-type": "application/json" }); return res.end(JSON.stringify(buildPublished(seedContent()))); }
@@ -86,4 +97,4 @@ const server = http.createServer(async (req, res) => {
     res.end("error");
   }
 });
-server.listen(PORT, () => console.log(`Rempo for Meta: http://localhost:${PORT}${BASE}${STUB ? " (the Review Race in demo mode: /__stub)" : ""}`));
+server.listen(PORT, () => console.log(`Rempo for Meta: http://localhost:${PORT}${BASE}${STUB ? " (stubbed services: /__stub)" : ""}`));

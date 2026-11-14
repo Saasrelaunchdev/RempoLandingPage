@@ -4,12 +4,7 @@
 //                                                                 scrolls to the section and starts the race there
 // Both talk to /api/race (data-api="..." on the element changes it). Every word comes from copy.js. Text from the
 // server is always set as text, never as HTML. The page hears each step as a "reviewrace" window event (for a pixel
-// or analytics): search_focus, business_picked, preview_shown, unlock_submitted, results_shown, later_submitted, booked
-// (with the race's fit, "trade" or "other", and the business's Google category once known).
-//
-// A host page can set window.ReviewRace before the first request: extra(action) returns fields the server keeps with the
-// race and the lead ({ variant, noticeVersion, eventId, tracking }; core.mjs hostOf checks each one), legal holds its own
-// { terms, privacy, sms } links, and notice adds a sentence (and a link) to every notice at collection.
+// or analytics): search_focus, business_picked, preview_shown, unlock_submitted, results_shown, booked.
 import COPY from "./copy.js";
 
 const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (m, k) => (v && v[k] !== undefined && v[k] !== null ? String(v[k]) : m));
@@ -31,19 +26,11 @@ function h(tag, attrs, ...kids) {
   return el;
 }
 
-const hostPage = () => (window.ReviewRace && typeof window.ReviewRace === "object" ? window.ReviewRace : {});
-function hostExtra(action) {
-  try {
-    const x = typeof hostPage().extra === "function" ? hostPage().extra(action) : null;
-    return x && typeof x === "object" ? { host: x } : {};
-  } catch { return {}; }
-}
-
 async function api(base, action, { method = "GET", params = {}, body } = {}) {
   const url = method === "GET" ? `${base}?${new URLSearchParams({ action, ...params })}` : base;
   let r;
   try {
-    r = await fetch(url, { method, credentials: "same-origin", headers: method === "GET" ? {} : { "content-type": "application/json" }, body: method === "GET" ? undefined : JSON.stringify({ action, ...body, ...hostExtra(action) }) });
+    r = await fetch(url, { method, credentials: "same-origin", headers: method === "GET" ? {} : { "content-type": "application/json" }, body: method === "GET" ? undefined : JSON.stringify({ action, ...body }) });
   } catch {
     throw Object.assign(new Error(COPY.errors.network), { code: "network" });
   }
@@ -104,18 +91,6 @@ function searchBox({ base, session, onPick, compact, idPrefix }) {
   const button = h("button", { type: "button", class: "rr-btn rr-btn-find", hidden: true, text: COPY.search.find });
   let items = [], active = -1, timer = null, seq = 0, chosen = null, mode = "places";
   getConfig(base).then((c) => {
-    // Not set up yet (a key missing): nothing is searched; the business is typed in and the team builds the race
-    if (c && c.ready === false && !c.demo) {
-      mode = "manual";
-      input.placeholder = COPY.search.manualPlaceholder;
-      input.setAttribute("role", "textbox");
-      input.removeAttribute("aria-autocomplete");
-      input.removeAttribute("aria-expanded");
-      input.removeAttribute("aria-controls");
-      attrib.hidden = true;
-      if (!compact) { button.textContent = COPY.search.next; button.hidden = false; }
-      return;
-    }
     if (!c || c.search !== "maps") return;
     mode = "maps";
     input.placeholder = COPY.search.findPlaceholder;
@@ -166,12 +141,6 @@ function searchBox({ base, session, onPick, compact, idPrefix }) {
     if (q.length < 2) { items = []; render(); status.textContent = ""; return; }
     return lookup("suggest", { q, s: session() }, { searching: COPY.search.searching, none: COPY.search.none, found: "" });
   };
-  const manualPick = () => {
-    const q = input.value.trim();
-    if (q.length < 2) { status.textContent = COPY.search.manualHint; input.focus(); return; }
-    status.textContent = "";
-    onPick({ main: q.slice(0, 160), manual: true });
-  };
   const find = () => {
     const q = input.value.trim();
     chosen = null;
@@ -180,7 +149,6 @@ function searchBox({ base, session, onPick, compact, idPrefix }) {
   };
   input.addEventListener("input", () => {
     clearTimeout(timer);
-    if (mode === "manual") return;
     if (mode === "maps") { chosen = null; if (items.length) { items = []; render(); } return; }
     timer = setTimeout(query, 220);
   });
@@ -188,20 +156,18 @@ function searchBox({ base, session, onPick, compact, idPrefix }) {
     if (e.key === "ArrowDown") { e.preventDefault(); if (items.length) { active = (active + 1) % items.length; render(); } }
     else if (e.key === "ArrowUp") { e.preventDefault(); if (items.length) { active = (active - 1 + items.length) % items.length; render(); } }
     else if (e.key === "Enter") {
-      if (mode === "manual") { if (!compact) { e.preventDefault(); manualPick(); } }
-      else if (items.length && active >= 0) { e.preventDefault(); pick(active); }
+      if (items.length && active >= 0) { e.preventDefault(); pick(active); }
       else if (mode === "maps" && !compact) { e.preventDefault(); find(); }
     }
     else if (e.key === "Escape") close();
   });
-  button.addEventListener("click", () => (mode === "manual" ? manualPick() : find()));
+  button.addEventListener("click", () => find());
   input.addEventListener("blur", () => setTimeout(close, 160));
   input.addEventListener("focus", () => { emit("search_focus"); if (items.length) render(); });
   return {
     input, list, status, attrib, button,
     get mode() { return mode; },
     find,
-    manualPick,
     get chosen() { return chosen; },
     pickFirst() { if (items.length) { pick(Math.max(0, active)); return true; } return false; },
     hint(t) { status.textContent = t; }
@@ -295,8 +261,7 @@ class Race {
     this.sel = sel;
     this.sessionToken = null;
     this.data = null;
-    emit("business_picked", sel && sel.manual ? { manual: true } : {});
-    if (sel && sel.manual) { this.show(this.laterForm({ code: "not-ready" }, null)); return; }
+    emit("business_picked");
     this.show(this.chip(sel), this.steps(COPY.loading.steps, COPY.loading.title));
     try {
       await this.ready;
@@ -304,7 +269,7 @@ class Race {
       const d = await api(this.base, "start", { method: "POST", body: { placeId: sel.id, listing: sel.listing, sig: sel.sig, main: sel.main, secondary: sel.secondary || "", turnstile, visit: visitId(), utm: utm(), page: location.href.split("#")[0].slice(0, 300) } });
       this.data = d;
       this.showPreview();
-      emit("preview_shown", { rivals: (d.preview && d.preview.rivals || []).length, fit: d.fit || "", category: (d.business && d.business.category) || "" });
+      emit("preview_shown", { rivals: (d.preview && d.preview.rivals || []).length });
       if (d.status !== "no-rivals" && !d.locked) this.loadReviews();
     } catch (e) {
       this.showError(e);
@@ -374,28 +339,12 @@ class Race {
     this.lockedUnanswered.textContent = l.fetched ? ` ${fill(COPY.locked.unanswered, { n: l.unanswered, m: l.fetched })}` : "";
   }
 
-  legalLink(kind, text) {
-    const own = (hostPage().legal || {})[kind];
-    const fallback = { terms: this.config.termsUrl || "https://rempo.io/legal/terms", privacy: this.config.privacyUrl || "https://rempo.io/legal/privacy", sms: this.config.smsUrl || "https://rempo.io/legal/sms" }[kind];
-    return h("a", { href: own || fallback, target: "_blank", rel: "noopener", text });
-  }
-
-  // The host page's own sentence for every notice (on /customers: what Meta hears, and the privacy choices link)
-  hostNotice() {
-    const n = hostPage().notice;
-    if (!n || !n.text) return null;
-    return [" ", n.text, n.href ? [" ", h("a", { href: n.href, target: "_blank", rel: "noopener", text: n.label || n.href })] : null];
-  }
-
   consentNotice() {
-    return h("p", { class: "rr-notice" }, COPY.locked.noticeBefore, this.legalLink("terms", COPY.locked.terms),
-      COPY.locked.noticeMiddle, this.legalLink("privacy", COPY.locked.privacy), COPY.locked.noticeAfter, this.hostNotice());
-  }
-
-  bookingNotice() {
-    const B = COPY.booking;
-    return h("p", { class: "rr-notice" }, B.noticeBefore, this.legalLink("terms", COPY.locked.terms), B.noticeMiddle,
-      this.legalLink("privacy", COPY.locked.privacy), B.noticeAfter, this.legalLink("sms", B.sms), ".", this.hostNotice());
+    return h("p", { class: "rr-notice" }, COPY.locked.noticeBefore,
+      h("a", { href: this.config.termsUrl || "https://rempo.io/legal/terms", target: "_blank", rel: "noopener", text: COPY.locked.terms }),
+      COPY.locked.noticeMiddle,
+      h("a", { href: this.config.privacyUrl || "https://rempo.io/legal/privacy", target: "_blank", rel: "noopener", text: COPY.locked.privacy }),
+      COPY.locked.noticeAfter);
   }
 
   field(id, label, attrs) {
@@ -438,7 +387,7 @@ class Race {
         this.data = d;
         try { const u = new URL(location.href); u.searchParams.set("r", d.token); history.replaceState(null, "", u.pathname + u.search + "#review-race"); } catch { /* no history */ }
         this.showResults();
-        emit("results_shown", { fixes: (d.result && d.result.analysis.fixes || []).length, drafts: (d.result && d.result.analysis.drafts || []).length, fit: d.fit || "", category: (d.business && d.business.category) || "" });
+        emit("results_shown", { fixes: (d.result && d.result.analysis.fixes || []).length, drafts: (d.result && d.result.analysis.drafts || []).length });
       } catch (ex) {
         progress.remove();
         form.hidden = false;
@@ -462,41 +411,28 @@ class Race {
 
   laterForm(e, message) {
     const id = (s) => `${this.uid}-later-${s}`;
-    const L = COPY.later;
-    // No business picked from Google (the race isn't set up yet, or nothing was picked): ask for it and the town
-    const manual = !this.sel || Boolean(this.sel.manual);
     const err = h("p", { class: "rr-error", role: "alert" });
-    const button = h("button", { type: "submit", class: "rr-btn", text: L.button });
-    const business = manual ? h("div", { class: "rr-row" },
-      h("div", { class: "rr-field" }, h("label", { for: id("biz"), class: "rr-label", text: L.business }),
-        h("input", { id: id("biz"), class: "rr-input", name: "business", autocomplete: "organization", maxlength: "160", required: true, value: (this.sel && this.sel.main) || "", "aria-describedby": id("biz-hint") }),
-        h("p", { class: "rr-note", id: id("biz-hint"), text: L.businessHint })),
-      this.field(id("town"), L.town, { name: "town", autocomplete: "address-level2", maxlength: "80", required: true })) : null;
-    const form = h("form", { class: "rr-form", novalidate: true }, business,
+    const button = h("button", { type: "submit", class: "rr-btn", text: COPY.later.button });
+    const form = h("form", { class: "rr-form", novalidate: true },
       h("div", { class: "rr-row" },
         this.field(id("first"), COPY.locked.firstName, { name: "firstName", autocomplete: "given-name", maxlength: "60", required: true }),
         this.field(id("email"), COPY.locked.email, { name: "email", type: "email", autocomplete: "email", inputmode: "email", maxlength: "254", required: true })),
       h("input", { type: "text", name: "rr_trap", class: "rr-hp", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" }),
       h("label", { class: "rr-check" }, h("input", { type: "checkbox", name: "consentEmail", required: true }), h("span", { text: COPY.locked.consentEmail })),
       this.consentNotice(), err, button);
-    const card = h("div", { class: "rr-card rr-later" }, message ? h("p", { class: "rr-error", text: message }) : null, h("h3", { class: "rr-h3", text: L.title }), h("p", { class: "rr-lead", text: manual ? L.leadManual : L.lead }), form);
+    const card = h("div", { class: "rr-card rr-later" }, message ? h("p", { class: "rr-error", text: message }) : null, h("h3", { class: "rr-h3", text: COPY.later.title }), h("p", { class: "rr-lead", text: COPY.later.lead }), form);
     form.addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const f = new FormData(form);
       const firstName = String(f.get("firstName") || "").trim(), email = String(f.get("email") || "").trim();
-      const biz = manual ? String(f.get("business") || "").trim() : (this.sel && this.sel.main) || "";
-      const town = manual ? String(f.get("town") || "").trim() : (this.sel && this.sel.secondary) || "";
       err.textContent = "";
-      if (manual && biz.length < 2) { err.textContent = L.errors.business; form.elements.business.focus(); return; }
-      if (manual && town.length < 2) { err.textContent = L.errors.town; form.elements.town.focus(); return; }
       if (!firstName) { err.textContent = COPY.locked.errors.firstName; return; }
       if (!/^[^\s@<>,]+@[^\s@<>,]+\.[^\s@<>,]+$/.test(email)) { err.textContent = COPY.locked.errors.email; return; }
       if (f.get("consentEmail") !== "on") { err.textContent = COPY.locked.errors.consent; return; }
       button.disabled = true;
       try {
-        await api(this.base, "later", { method: "POST", body: { firstName, email, consentEmail: true, main: biz, secondary: town, reason: e && e.code, trap: String(f.get("rr_trap") || ""), visit: visitId(), utm: utm(), page: location.href.split("#")[0].slice(0, 300) } });
-        card.replaceChildren(h("p", { class: "rr-done", role: "status", text: fill(L.done, { name: firstName }) }));
-        emit("later_submitted", { reason: (e && e.code) || "" });
+        await api(this.base, "later", { method: "POST", body: { firstName, email, consentEmail: true, main: this.sel && this.sel.main, secondary: this.sel && this.sel.secondary, reason: e && e.code, trap: String(f.get("rr_trap") || "") } });
+        card.replaceChildren(h("p", { class: "rr-done", role: "status", text: fill(COPY.later.done, { name: firstName }) }));
       } catch (ex) { button.disabled = false; err.textContent = ex.message; }
     });
     return card;
@@ -627,7 +563,7 @@ class Race {
       h("div", { class: "rr-field" }, h("label", { for: id("phone"), class: "rr-label", text: B.phone }), h("input", { id: id("phone"), class: "rr-input", name: "phone", type: "tel", inputmode: "tel", autocomplete: "tel-national", maxlength: "20", "aria-describedby": id("phone-hint") }), h("p", { class: "rr-note", id: id("phone-hint"), text: B.phoneHint })),
       h("label", { class: "rr-check" }, h("input", { type: "checkbox", name: "consentCall", required: true }), h("span", { text: B.consentCall })),
       h("label", { class: "rr-check" }, h("input", { type: "checkbox", name: "consentText" }), h("span", { text: B.consentText })),
-      this.bookingNotice(), err, button);
+      err, button);
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const f = new FormData(form);
@@ -643,7 +579,7 @@ class Race {
         const when = fmtWhen(r.start || slot);
         const phone = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
         box.replaceChildren(...head, h("p", { class: "rr-done", role: "status", text: fill(B.booked, { when, phone }) }), h("p", { text: B.expect }), this.icsLink(r.start || slot, phone));
-        emit("booked", { fit: (this.data && this.data.fit) || "", category: (this.data && this.data.business && this.data.business.category) || "" });
+        emit("booked");
       } catch (ex) {
         button.disabled = false;
         button.textContent = B.button;
@@ -687,7 +623,6 @@ function mountCta(el) {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (box.chosen) return go(box.chosen);
-    if (box.mode === "manual") return box.manualPick();
     if (box.mode === "maps") return box.find();
     if (!box.pickFirst()) { box.hint(COPY.search.pick); box.input.focus(); }
   });

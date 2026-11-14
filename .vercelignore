@@ -7,23 +7,18 @@
 /checkout/
 # The legal pages: their built pages are in legal/; the sources, build and tests stay out of the deployment.
 /legal-src/
-# The Meta ads page: its built pages are in customers/ (with the Review Race's widget, built in from review-race/public/race),
-# and its function is the Review Race's, api/race.mjs. Nothing a function imports lives in meta/, so none of it is
-# uploaded; vercel.json redirects /meta/* away as well.
-/meta/
-# The Review Race (/customers runs it): only its server code is uploaded, because api/race.mjs and api/race-cron.mjs
-# import it. Its widget is served from customers/assets/race/; its standalone test page, tests, tools, SQL and docs stay out.
-/review-race/public/
-/review-race/tests/
-/review-race/tools/
-/review-race/sql/
-/review-race/*.md
-/review-race/vercel.json
-/review-race/package.json
-/review-race/package-lock.json
-/review-race/.env.example
-/review-race/.gitignore
-/review-race/.vercelignore
+# The Meta ads page: its built pages are in customers/ and its function is api/meta-lead.mjs. From meta/, only what
+# that function imports is uploaded (meta/api, meta/content, meta/lib); vercel.json redirects /meta/* away so none
+# of it is served as a file.
+meta/public/
+meta/src/
+meta/tests/
+meta/tools/
+meta/rules/
+meta/sql/
+meta/*.md
+meta/package.json
+meta/.gitignore
 # The proof system (/admin, case studies): its docs, tests and tools stay out of the deployment.
 PROOF.md
 /tests/

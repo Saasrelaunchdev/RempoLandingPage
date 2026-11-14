@@ -5,9 +5,6 @@
    - Before and after ([data-pf]): the business's own Google profile, switched in place.
    - Video testimonials ([data-vt]): the card plays on hover, muted, with the words on screen. A click or a tap
      opens the film full screen with sound; the card grows into it.
-   - Films ([data-vt="film"], the hero's story): no preview; a click on [data-vt-open] inside it, or on a
-     [data-vt-for="<its id>"] button anywhere (the phone's link), opens it in the same dialog, 16:9 when
-     data-shape="wide". The video loads only then.
    Tier C (reduced motion, Save-Data, ?tier=c): every scene at its end state, nothing plays by itself.
    The landing page's two sections are rendered again from the published set when it is newer than the page (what
    the admin at /admin publishes); init(root) wires whatever was put in. */
@@ -247,18 +244,8 @@
   const fmt = (t) => { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
 
   let touchIO = null;
-  const initFilm = (card) => {
-    if (card._film) return;
-    card._film = true;
-    const v = $("video", card), track = v && $("track", v);
-    card._vtt = track ? track.getAttribute("src") : card.dataset.vtt;   // fetched when the film opens, not before
-    const open = (e) => openFilm(card, e.currentTarget);
-    $$("[data-vt-open]", card).forEach((b) => b.addEventListener("click", open));
-    if (card.id) $$(`[data-vt-for="${card.id}"]`).forEach((b) => b.addEventListener("click", open));
-  };
   const initCards = (root) => {
-  $$('[data-vt="film"]', root).forEach(initFilm);
-  const vtCards = $$("[data-vt]:not([data-vt='film'])", root);
+  const vtCards = $$("[data-vt]", root);
   vtCards.forEach((card) => {
     const btn = $(".vt-frame", card), v = $("video", card), cap = $(".vt-cap", card), bar = $(".vt-bar", card);
     const track = $("track", v);
@@ -309,7 +296,7 @@
   };
 
   /* ---------- The film: one dialog for every card ---------- */
-  let dlg = null, stage, big, capBig, from = null, fromBtn = null, idleT = 0, raf2 = 0, bigCues = [];
+  let dlg = null, stage, big, capBig, from = null, idleT = 0, raf2 = 0, bigCues = [];
   const icon = (id, cls) => `<svg class="ic${cls ? " " + cls : ""}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
   function filmUI() {
     if (dlg) return;
@@ -400,8 +387,8 @@
   }
 
   const rectFlip = (r0, r1) => `translate(${(r0.left - r1.left).toFixed(1)}px,${(r0.top - r1.top).toFixed(1)}px) scale(${(r0.width / r1.width).toFixed(4)},${(r0.height / r1.height).toFixed(4)})`;
-  function openFilm(card, origin) {
-    const v = $("video", card), frame = origin || $(".vt-frame", card);
+  function openFilm(card) {
+    const v = $("video", card), frame = $(".vt-frame", card);
     // no <dialog> (older iPhones): the browser's own full-screen player, with sound and the captions track
     if (typeof HTMLDialogElement !== "function" || !HTMLDialogElement.prototype.showModal) {
       v.muted = false;
@@ -416,20 +403,17 @@
       $$("source", v).forEach((s) => big.append(s.cloneNode()));
       const tr = $("track", v);
       if (tr) { const t = tr.cloneNode(); t.removeAttribute("default"); big.append(t); }
-      big.poster = v.getAttribute("poster") || v.dataset.poster || "";
+      big.poster = v.getAttribute("poster") || "";
       big.load();
       const img = $(".vt-name img", stage);
       img.src = card.dataset.avatar || ""; img.hidden = !card.dataset.avatar;
-      $(".vt-name", stage).hidden = !card.dataset.name;
       $(".vt-name b", stage).textContent = card.dataset.name || "";
       $(".vt-name small", stage).textContent = card.dataset.role || "";
-      stage.classList.toggle("vt-wide", card.dataset.shape === "wide");
-      dlg.setAttribute("aria-label", card.dataset.label || (card.dataset.name ? card.dataset.name + ", " : "") + "video testimonial");
+      dlg.setAttribute("aria-label", (card.dataset.name ? card.dataset.name + ", " : "") + "video testimonial");
       bigCues = [];
       loadCues(card._vtt).then((c) => { bigCues = c; });
       from = card;
     }
-    fromBtn = frame;
     capBig._t = null; capBig.classList.remove("vt-on");
     // the film carries on from where the preview was, with sound
     const t0 = v.currentTime > 0.5 && v.currentTime < (v.duration || 0) - 1.5 ? v.currentTime : 0;
@@ -450,7 +434,7 @@
   }
   function closeFilm() {
     if (!dlg || !dlg.open) return;
-    const card = from, frame = card && (fromBtn || $(".vt-frame", card)), v = card && $("video", card);
+    const card = from, frame = card && $(".vt-frame", card), v = card && $("video", card);
     big.pause();
     if (v) { try { v.currentTime = big.ended ? 0 : big.currentTime; } catch (e) { /* ignore */ } }
     const done = () => {
@@ -458,7 +442,7 @@
       html.classList.remove("vt-open");
       if (frame) frame.focus({ preventScroll: true });
       // on a touch screen the card goes back to playing quietly while it is on screen
-      if (card && card._start && !finePointer.matches) {
+      if (card && !finePointer.matches) {
         const r = frame.getBoundingClientRect();
         if (r.top >= -r.height * 0.4 && r.bottom <= innerHeight + r.height * 0.4) card._start();
       }

@@ -29,13 +29,8 @@ These providers process information about visitors, prospects, and client contac
 |---|---|---|
 | Vercel Inc. | Hosts our website and the code that receives our forms | Page requests, form submissions, IP addresses in short-lived logs |
 | Supabase, Inc. | Our lead database | Form submissions, consent records, a hash of your IP address |
-| Resend | Sends our emails, including review races, reports, call confirmations, and lead alerts to our team | Names, email addresses, email content |
+| Resend | Sends our emails, including reports, call confirmations, and lead alerts to our team | Names, email addresses, email content |
 | Slack Technologies, LLC | Alerts our team to new leads | Form submissions |
-| HighLevel, Inc. | Our contact records and calendar for leads and buyers: booked calls, their confirmation texts, and opt-outs | Names, email addresses, phone numbers, booked times, consent records |
-| SerpApi, LLC | Reads Google's public search results and reviews for a review race | The business you look up, its town, public reviews, and reviewers' public names |
-| Google LLC (Maps Platform) | Suggests businesses as you type a name into the review race | What you type into the search, your IP address |
-| Anthropic, PBC | Writes the notes and reply drafts in a review race from public reviews, and helps us write case studies | Public reviews and reviewers' first names, public business facts, case study material |
-| Cloudflare, Inc. (Turnstile) | Checks that a person, not a bot, starts a review race, if we turn it on | Your IP address and browser details |
 | Stripe, Inc. | Processes payments and runs the billing portal | Billing name, email, payment details (we never see full card numbers) |
 | Clay Labs, Inc. | Researches businesses that may benefit from Rempo | Business contact details and public business information |
 | Microsoft Corporation (Clarity) | Session analytics on our pages, only if we turn it on and you allow it | How visitors use our pages, with typed text masked |

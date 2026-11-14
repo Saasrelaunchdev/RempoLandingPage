@@ -52,11 +52,11 @@ test("every module a function imports is uploaded", () => {
     }
   }
   assert.ok(seen.has("api/_lib/checkout/stripe.mjs"), "the import walk did not reach the checkout's modules");
-  assert.ok(seen.has("review-race/api/_lib/race/core.mjs"), "the import walk did not reach the Review Race's function (the Meta page's)");
+  assert.ok(seen.has("meta/api/lead.mjs"), "the import walk did not reach the Meta page's function");
 });
 
 test("what is meant to stay out still stays out", () => {
-  for (const dir of ["hero-video/", "checkout/", "tests/", "tools/", "lead-capture/", "legal-src/", ".claude/", "meta/", "review-race/public/", "review-race/tests/", "review-race/tools/"]) {
+  for (const dir of ["hero-video/", "checkout/", "tests/", "tools/", "lead-capture/", "legal-src/", ".claude/", "meta/src/", "meta/tools/"]) {
     const files = tracked.filter((p) => p.startsWith(dir));
     const kept = files.filter((p) => !dropped.has(p));
     assert.deepEqual(kept, [], `${dir} is meant to stay out of the deployment, but these would be uploaded: ${kept.join(", ")}`);

@@ -1,69 +1,160 @@
 {
-  "_note": "Every word on the page, except each variant's hero (content/variants.json) and the Review Race's own words (review-race/public/race/copy.js, linted by its own tests with the same rules). Claims follow the GTM's copy rules (rules/copy-rules.json): the build fails on a banned claim, an em dash, or a headline over budget. Statistics carry their source in the same sentence. Placeholders: {length} (the video's length).",
+  "_note": "Every word on the page, except the survey (content/survey.mjs) and each variant's hero (content/variants.json). Claims follow the GTM's copy rules (rules/copy-rules.json): the build fails on a banned claim, an em dash, or a headline over budget. Statistics carry their source in the same sentence. Placeholders: {business}, {service}, {city}, {email}, {phone}, {day}, {window}, {turnaround}.",
   "meta": {
-    "title": "Free Google review race for HVAC and plumbing shops · Rempo",
-    "description": "See your Google reviews next to the three shops homeowners see first near you. A free review race for HVAC and plumbing shop owners, in about a minute.",
+    "title": "Free Google review Gap Report for HVAC and plumbing shops · Rempo",
+    "description": "See how your Google reviews compare with the top three companies near you. A free Gap Report for HVAC and plumbing shop owners, emailed within one business day.",
     "ogAlt": "Three local companies on a podium, and your van on the street in front of them."
   },
   "hero": {
     "eyebrow": "For HVAC and plumbing shop owners",
     "trust": [
-      "Free, no card",
-      "About a minute",
-      "No call needed"
+      "Free, no call needed",
+      "Built from your public Google profile",
+      "Emailed {turnaround}"
     ]
   },
-  "race": {
-    "_note": "The Review Race on this page: its business search in the hero card (review-race/public/race, mounted at #hero-race) and the tool itself in its own section (#review-race), where a picked business's race appears. The search's own words (label, button) come from the race's copy.js.",
-    "label": "Free review race",
-    "frame": "Type your business name. In about a minute, see your Google reviews next to the three shops homeowners see first.",
-    "frameShort": "About a minute. Free, no card.",
-    "noscript": "The review race needs JavaScript. Turn it on in your browser to run it.",
-    "sectionLabel": "Your review race",
-    "trustLabel": "About the race"
+  "check": {
+    "label": "Free Gap Report",
+    "frame": "A few quick questions, about a minute. Your score shows right after; the full report comes by email.",
+    "frameShort": "About a minute. Score shows right after.",
+    "progress": "Question {n} of {total}",
+    "next": "Next",
+    "back": "Back",
+    "submit": "See my score",
+    "sending": "Scoring your answers",
+    "required": "Pick one to go on.",
+    "errors": {
+      "company": "Enter your business name as it shows on Google.",
+      "city": "Enter your city or town.",
+      "profiles": "Pick how many Google profiles you have.",
+      "firstName": "Enter your first name.",
+      "email": "Enter a valid email, like you@yourshop.com.",
+      "consentEmail": "Tick the box so we can email your report.",
+      "phone": "Enter a 10-digit phone number.",
+      "consentPhone": "Tick the box so we can call you.",
+      "slot": "Pick a day and a time.",
+      "send": "That didn't send. Check your connection and try again.",
+      "rate": "Too many tries from this connection. Please try again in an hour."
+    },
+    "noscript": "The Gap Check needs JavaScript. Turn it on in your browser to take it.",
+    "done": "Your score"
   },
-  "points": {
-    "eyebrow": "What your race shows",
-    "h2": "Who's adding reviews now, and who answers them.",
-    "lead": "Your Google reviews next to the three shops a homeowner sees first near you, in plain numbers.",
+  "result": {
+    "label": "Your Review Engine score",
+    "of": "/100",
+    "explain": "Higher means a bigger gap.",
+    "gapsTitle": "Your three biggest gaps",
+    "reportNext": "Your Gap Report is next. We'll compare {business} with the top three for {service} in {city} and email it to {email}, {turnaround}.",
+    "bookTitle": "Last step: pick a time for a 15-minute call.",
+    "bookLead": "We'll walk you through your report and what we'd run for {business}. If a review tool suits you better, we'll say so.",
+    "bookCallOnly": "Because {why}, a quick call is the best next step: we'll check what fits before anything else.",
+    "dayLabel": "Pick a day",
+    "windowLabel": "Pick a time (your local time)",
+    "bookSubmit": "Book my 15-minute call",
+    "bookSending": "Booking your call",
+    "skip": "No call for now. Just email me the report.",
+    "bookedTitle": "You're booked: {day}, {window}.",
+    "bookedLead": "We'll call {phone} in that window.",
+    "bookedConfirm": "The email we just sent has the details. Reply YES to confirm.",
+    "calendar": "Add it to my calendar",
+    "calendarTitle": "Call with Rempo (15 minutes)",
+    "calendarBody": "Rempo calls you in this window to walk through your Gap Report.",
+    "headsUpTitle": "Heads-up before the call",
+    "headsUp": "You've had customers book a visit and not be home when the crew pulls up. We hold this slot just for you, so if it stops working, reply to our email and we'll move it.",
+    "bring": "Bring whoever runs the office. It saves you passing it all on later.",
+    "videoTitle": "Watch this before we talk",
+    "videoLead": "It shows how we'd run it, so the 15 minutes go to your questions. About {length}.",
+    "checkout": "Rather skip the call? Get started",
+    "emailOnlyTitle": "You're all set.",
+    "emailOnlyLead": "Your Gap Report reaches {email} {turnaround}.",
+    "rebook": "Want to talk it through? Book 15 minutes."
+  },
+  "report": {
+    "eyebrow": "Your free Gap Report",
+    "h2": "Your Google profile, next to the top three.",
+    "lead": "We search your main service in your town, read the three companies that show up first, and score you against them.",
     "points": [
       {
         "img": "podium",
         "alt": "Illustration: three local companies' vans on a podium, and your van on the street in front of them.",
-        "title": "The three shops homeowners see first.",
-        "text": "The three businesses a homeowner sees first when they search your trade near you on Google Maps.",
+        "title": "Your real competition.",
+        "text": "The three companies a homeowner sees first when they search your service in your town.",
         "img2": "street",
         "alt2": "Illustration: a van outside a customer's house on a street of homes."
       },
       {
         "img": "report",
         "alt": "Illustration: a report on a clipboard.",
-        "title": "Your last 90 days, next to theirs.",
-        "text": "Who is adding reviews now, how fresh your newest one is, and who answers their reviews."
+        "title": "Five measures, in plain words.",
+        "text": "Rating, review count, how recent, how many get a reply, and what your profile is missing."
       },
       {
         "img": "team-desk",
         "alt": "Illustration: two people from Rempo's team at a desk.",
-        "title": "Replies, written for you.",
-        "text": "Replies for up to three of your reviews that have no reply yet, ready to post. Free."
+        "title": "Checked by a person.",
+        "text": "Someone on our team checks every report before it reaches you. Free, and no call needed."
       }
     ],
-    "checksTitle": "What it shows, next to the top three",
+    "sample": {
+      "_demo": "Demo data for a labelled illustration (the GTM's demo company, Maple Street Plumbing): no claim, so the statistic-source check skips it; the claim rules still apply.",
+      "label": "Gap Report",
+      "business": "Maple Street Plumbing",
+      "search": "Next to the top three for plumbing in Springfield",
+      "score": "72",
+      "tier": "Stalled engine",
+      "you": "You",
+      "top": "Top three",
+      "rows": [
+        {
+          "name": "Rating",
+          "you": "4.6",
+          "top": "4.8",
+          "youPct": 92,
+          "topPct": 96
+        },
+        {
+          "name": "Reviews",
+          "you": "87",
+          "top": "214",
+          "youPct": 41,
+          "topPct": 100
+        },
+        {
+          "name": "Newest review",
+          "you": "4 months ago",
+          "top": "3 days ago",
+          "youPct": 18,
+          "topPct": 100
+        },
+        {
+          "name": "Replied to",
+          "you": "22%",
+          "top": "71%",
+          "youPct": 22,
+          "topPct": 71,
+          "flag": true
+        },
+        {
+          "name": "Profile",
+          "you": "3 of 5",
+          "top": "5 of 5",
+          "youPct": 60,
+          "topPct": 100
+        }
+      ],
+      "theme": "Complaint theme: 3 of the last 30 reviews mention a call that was not returned."
+    },
+    "checksTitle": "What it checks, next to the top three",
     "checks": [
-      "Your star rating and profile basics",
+      "Your star rating",
       "How many reviews you have",
-      "How many came in over the last 90 days, and how fresh the newest one is",
-      "How many of your last 30 reviews got a reply",
-      "Three things you're missing, in plain words"
+      "How recent your newest reviews are",
+      "How many reviews get a reply",
+      "What your profile is missing: hours, services, recent photos, a description, categories",
+      "What customers complain about, as counts"
     ],
-    "checksNote": "The search and the date are on screen, so you can run the same search on Google Maps and check it.",
-    "cta": "Run my free race"
-  },
-  "booked": {
-    "_note": "Shown under the race's own booking confirmation, once a call is booked: the video (site.vsl) and the checkout link (site.checkoutUrl), each only when set.",
-    "videoTitle": "Watch this before we talk",
-    "videoLead": "It shows how we'd run it, so the 15 minutes go to your questions. About {length}.",
-    "checkout": "Rather skip the call? Get started"
+    "checksNote": "The search and the date are printed on the report, so you can check it yourself.",
+    "cta": "Start my free Gap Report"
   },
   "leaks": {
     "eyebrow": "Where reviews leak",
@@ -141,13 +232,13 @@
         "text": "Email starts first. Texts follow once registration clears, usually about a week."
       }
     ],
-    "cta": "Start with my free race"
+    "cta": "Start with my free Gap Report"
   },
   "cases": {
     "eyebrow": "Case studies",
     "h2": "What happens when someone runs it.",
     "note": "Review counts from each business's Google Business Profile. Every business is different, and we never promise a number of reviews.",
-    "cta": "Run my free race"
+    "cta": "Start my free Gap Report"
   },
   "honest": {
     "eyebrow": "No surprises",
@@ -175,27 +266,27 @@
     "lead": "What owners ask first, including the questions where the answer is no.",
     "groups": [
       {
-        "name": "The race",
+        "name": "The report",
         "items": [
           {
-            "q": "Is the race really free?",
-            "a": "Yes. No card, and no call needed. We read public Google listings and reviews: yours and the three shops a homeowner sees first near you."
+            "q": "Is the Gap Report really free?",
+            "a": "Yes. No card, and no call needed. We read your public Google profile and the top three near you, and email you the report."
           },
           {
-            "q": "Who are the three shops?",
-            "a": "The three businesses a homeowner sees first when they search your trade near you on Google Maps. The search and the date are on screen, so you can check it."
+            "q": "Who are the top three?",
+            "a": "The three companies that show up first when someone searches your main service in your town. The search and the date are printed on the report, so you can check it."
           },
           {
-            "q": "What do I get?",
-            "a": "Your rating, review count, last 90 days and replies next to theirs, three things you're missing, and replies written for up to three of your reviews."
+            "q": "What's in it?",
+            "a": "Your rating, review count, how recent your reviews are, how many get a reply, and what your profile is missing, each next to the top three."
           },
           {
-            "q": "Why do you ask for my email?",
-            "a": "The preview needs nothing. Your first name and email open the full race and send you a copy, with the occasional tip. Unsubscribe any time."
+            "q": "How soon do I get it?",
+            "a": "By email, {turnaround}. Someone on our team checks it before it's sent."
           },
           {
             "q": "Will you call me?",
-            "a": "Only if you book a call. Your race and your replies are yours either way."
+            "a": "Only if you book a call. The report comes by email either way."
           }
         ]
       },
@@ -275,11 +366,10 @@
       "If a 3-star review sat in public for weeks.",
       "If your newest review is months old."
     ],
-    "lead": "Run your free race. It takes about a minute.",
-    "cta": "Run my free race"
+    "lead": "Get your free Gap Report. It takes about a minute.",
+    "cta": "Get my free Gap Report"
   },
-  "sticky": "Run my free race",
-  "skip": "Skip to the review race",
+  "sticky": "Get my free Gap Report",
   "legal": {
     "_note": "The notice at collection under each form (CCPA, CalOPPA) and the links it carries. {button} is the form's own button label, so the notice names the exact button that signals agreement (the Ninth Circuit's test for sign-in wrap). The pages are built from ../legal-src/.",
     "notice": "By tapping {button}, you agree to our {terms} and acknowledge our {privacy}, which explains what we collect and how we use it.",

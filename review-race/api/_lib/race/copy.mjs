@@ -186,7 +186,7 @@ export function teamAlert({ run, links, kind = "lead", reason = "" }) {
   const who = [run.first_name, run.email && `<${run.email}>`].filter(Boolean).join(" ");
   const biz = `${run.business.name}${run.search && run.search.where ? `, ${run.search.where}` : ""}`;
   if (kind === "later") {
-    return { subject: `Review Race could not run: ${run.business.name}`, text: `${who} asked for a review race for ${biz}, and it could not run (${reason}). Build their race by hand (their Google reviews next to the three shops a homeowner sees first near them) and email it within one business day.` };
+    return { subject: `Review Race could not run: ${run.business.name}`, text: `${who} asked for a review race for ${biz}, and it could not run (${reason}). Send them their Gap Report by hand within one business day.` };
   }
   const lines = [
     `New Review Race lead: ${who}, ${biz}.`,

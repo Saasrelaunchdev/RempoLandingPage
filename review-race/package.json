@@ -1,7 +1,7 @@
 {
   "name": "rempo-review-race",
   "private": true,
-  "description": "The Review Race: an owner's Google reviews next to the three shops homeowners see first, with three fixes and reply drafts. It runs on the landing page (/customers, /api/race); this folder holds its sources, test page and tests.",
+  "description": "The Review Race: an owner's Google reviews next to the three shops homeowners see first, with three fixes and reply drafts. Its own Vercel project (root directory review-race).",
   "type": "module",
   "engines": {
     "node": ">=20"

@@ -142,24 +142,4 @@ export function openStore(c) {
   return supa(c.supabase);
 }
 
-/* ---------- The by-hand path's store: the full store when it is set up; otherwise only the lead, through the
-   landing page's publishable key (SUPABASE_ANON_KEY) and public.submit_lead(), so a request is never lost while the
-   race's own secret key is missing. That key is the public role's: it can call submit_lead() and nothing else. ---------- */
-export function openLeadStore(c) {
-  if (c.store === "memory" || (c.supabase.url && c.supabase.key)) return openStore(c);
-  const key = c.supabase.anonKey;
-  if (!c.supabase.url || !key || /^sb_secret_/i.test(key)) throw Object.assign(new Error("The database is not set up: set SUPABASE_URL and SUPABASE_ANON_KEY (or SUPABASE_SECRET_KEY)."), { status: 503, code: "not-configured" });
-  // A new publishable key goes in apikey only; a legacy anon key is a JWT and also goes in Authorization
-  const headers = { apikey: key, ...(key.startsWith("eyJ") ? { authorization: `Bearer ${key}` } : {}) };
-  return {
-    kind: "leads",
-    async submitLead(payload) {
-      const r = await fetchJson(`${c.supabase.url}/rest/v1/rpc/submit_lead`, { method: "POST", body: { payload }, headers, timeoutMs: 10000 });
-      if (r.status >= 400) throw Object.assign(new Error(`Supabase answered HTTP ${r.status}`), { status: 502, code: "database", supabaseStatus: r.status });
-      return typeof r.data === "string" ? r.data : null;
-    },
-    async isUnsubscribed() { return false; }
-  };
-}
-
 export function resetMemory() { mem.runs = []; mem.emails = []; mem.unsubscribes = new Set(); mem.leads = []; }

@@ -35,11 +35,7 @@ export default {
     findSearching: "Searching Google Maps...",
     findNone: "No match. Try your business name and town as they show on Google Maps.",
     findPick: "Pick your business from the list.",
-    findAttribution: "Results from public Google Maps listings",
-    // Until the race is set up (config.ready false), the business is typed in and the team builds the race by hand
-    manualPlaceholder: "Your business name",
-    manualHint: "Type your business name to go on.",
-    next: "Next"
+    findAttribution: "Results from public Google Maps listings"
   },
   loading: {
     title: "Finding the three shops homeowners see first",
@@ -141,17 +137,8 @@ export default {
     noCalendar: "Reply to your results email and we'll set a time that works.",
     phone: "Best number to call",
     phoneHint: "US number, 10 digits.",
-    // Consent in Rempo's name and for this number; texts are a separate, optional, unticked box with what carriers
-    // check for (A2P 10DLC, CTIA): sender, purpose, how many, rates, STOP and HELP, not required. The same wording
-    // as the Gap Check's call step it replaced on /customers.
-    consentCall: "Rempo may call me at this number about my race and Rempo's service.",
-    consentText: "Rempo may text this number to confirm or move my call, up to 3 texts. Msg & data rates may apply. Reply STOP to opt out, HELP for help. Not required to book.",
-    // The notice at collection under the booking form: it names the button, links the Terms and the Privacy Policy, and
-    // the SMS terms for the texts
-    noticeBefore: "By tapping Book my call, you agree to our ",
-    noticeMiddle: " and acknowledge our ",
-    noticeAfter: ", which explains what we collect and how we use it. Texts follow our ",
-    sms: "SMS terms",
+    consentCall: "You may call me about Rempo.",
+    consentText: "You may text me to confirm or move the call.",
     button: "Book my call",
     booking: "Booking...",
     booked: "You're booked: {when}. We'll call {phone}.",
@@ -163,13 +150,8 @@ export default {
   later: {
     title: "We'll send your race by email",
     lead: "Leave your name and email, and someone on our team will put your race together and email it within one business day.",
-    leadManual: "Tell us your business and town. Someone on our team will put your race together and email it within one business day.",
-    business: "Business name",
-    businessHint: "As it shows on Google.",
-    town: "City or town",
     button: "Email me my race",
-    done: "Thanks, {name}. We'll email your race within one business day.",
-    errors: { business: "Please enter your business name.", town: "Please enter your city or town." }
+    done: "Thanks, {name}. We'll email your race within one business day."
   },
   errors: {
     generic: "Something went wrong. Please try again in a minute.",

@@ -148,21 +148,6 @@ await section("the calendar", async () => {
   ok("the result shows the booking", core.view(c, await store.getRun(t2)).result.booked.start === s.days[0].slots[0]);
 });
 
-await section("the calendar: the texts box reaches GoHighLevel as a tag, only when ticked", async () => {
-  for (const [label, consentText, want] of [["ticked", true, true], ["left empty", false, false], ["sent as text", "false", false]]) {
-    resetMemory();
-    const seen = [];
-    const svc4 = { ...svc, crm: { ...svc.crm, upsert: async (x) => { seen.push(x.tags || []); return { id: "fake-contact", isNew: true }; } } };
-    const a = await core.start({ c, store, svc: svc4, body: START, ipHash: `ip-texts-${label}` });
-    await core.unlock({ c, store, svc: svc4, token: a.token, body: WHO, ipHash: `ip-texts-${label}` });
-    const s = await core.slots({ c, store, svc: svc4, token: a.token, tz: "America/Chicago" });
-    await core.book({ c, store, svc: svc4, token: a.token, body: { start: s.days[0].slots[0], phone: "2175550142", consentCall: true, consentText, tz: "America/Chicago" } });
-    const tags = seen[seen.length - 1] || [];
-    ok(`texts box ${label}: ${want ? "tagged" : "not tagged"} race-texts-ok`, tags.includes("race-booked") && tags.includes("race-texts-ok") === want, seen);
-    ok(`texts box ${label}: the booking keeps the answer`, (await store.getRun(a.token)).booking.consentText === want);
-  }
-});
-
 await section("the daily job", async () => {
   resetMemory();
   const a = await core.start({ c, store, svc, body: START, ipHash: "ip-i" });
@@ -282,107 +267,6 @@ await section("config: the address in email links", async () => {
     process.env.RACE_PUBLIC_URL = "https://rempo.io/";
     ok("RACE_PUBLIC_URL comes first, with no trailing slash", config().publicUrl === "https://rempo.io", config().publicUrl);
   } finally {
-    for (const n of names) { if (kept[n] === undefined) delete process.env[n]; else process.env[n] = kept[n]; }
-  }
-});
-
-// ----- the host page (/customers): what it adds to each request, and where the emails lead back to -----
-const FBC = "fb.1.1731500000000.IwAR0testtesttest";
-const FBP = "fb.1.1731500000000.1234567890";
-
-await section("the host page: the variant, the consent wording, the ad ids, links back to its page", async () => {
-  resetMemory();
-  outbox.length = 0;
-  const HOST = { variant: "recent", noticeVersion: "2026-11-14", eventId: "lead-abc123def456", tracking: { consent: "granted", gpc: false, fbc: FBC, fbp: FBP } };
-  const v = await core.start({ c, store, svc, body: { ...START, page: "https://site.example/customers/recent?utm_source=facebook", utm: { utm_source: "facebook", evil: "x" }, host: HOST }, ipHash: "ip-host" });
-  ok("the fit is in the view", v.fit === "trade", v.fit);
-  const run0 = await store.getRun(v.token);
-  ok("the variant and the page are kept; unknown tags are dropped", run0.meta.variant === "recent" && run0.meta.utm.utm_source === "facebook" && !("evil" in run0.meta.utm), run0.meta);
-  await core.unlock({ c, store, svc, token: v.token, body: { ...WHO, host: HOST } });
-  const lead = mem.leads.find((l) => l.form === "review-race");
-  ok("the lead keeps the variant, the fit and the consent wording's version", lead && lead.fields.variant === "recent" && lead.fields.fit === "trade" && lead.fields.noticeVersion === "2026-11-14", lead && lead.fields);
-  ok("the lead keeps the ad ids, the event id and the choice", lead && lead.meta.fbc === FBC && lead.meta.fbp === FBP && lead.meta.meta_event_id === "lead-abc123def456" && lead.meta.ads_consent === "granted", lead && lead.meta);
-  const L = core.links(c, await store.getRun(v.token));
-  ok("the email links lead back to the page the race started on", L.results === `https://race.example.com/customers/recent?r=${encodeURIComponent(v.token)}#review-race`, L.results);
-  ok("a page address gives its path only, never its host", core.pagePath({ meta: { page: "https://evil.example/x/y" } }) === "/x/y");
-  ok("no page: the root, as before", core.links(c, { token: "t", meta: {} }).results === "https://race.example.com/?r=t#review-race");
-  const bad = core.hostOf({ host: { variant: "<b>", noticeVersion: "yesterday", eventId: "evil", tracking: { fbc: "nope", consent: "maybe" } } });
-  ok("a bad variant, version, event id and ids are dropped", !bad.variant && !bad.noticeVersion && !bad.eventId && !bad.fbc && bad.consent === "unset");
-  const gpc = core.hostOf({ host: { tracking: { gpc: true, fbc: FBC, fbp: FBP, consent: "granted" } } });
-  ok("Global Privacy Control: no ad ids are kept", gpc.optedOut && !gpc.fbc && !gpc.fbp);
-  ok("a page without the hook adds nothing", !core.hostOf({}).present && Object.keys(core.utmOf(null)).length === 0);
-});
-
-await section("Meta: the Conversions API, for trade businesses only, never after an opt-out, never the phone", async () => {
-  process.env.META_PIXEL_ID = "123456789012345";
-  process.env.META_CAPI_TOKEN = "test-token";
-  try {
-    resetMemory();
-    const box = [];
-    const svc2 = core.services(c, box);
-    ok("on once the pixel and the token are set", typeof svc2.capi === "function");
-    const HOST = { variant: "replies", noticeVersion: "2026-11-14", eventId: "lead-xyz789xyz789", tracking: { consent: "granted", fbc: FBC, fbp: FBP } };
-    const v = await core.start({ c, store, svc: svc2, body: { ...START, page: "https://site.example/customers/replies", host: HOST }, ipHash: "ip-capi" });
-    await core.unlock({ c, store, svc: svc2, token: v.token, body: { ...WHO, host: HOST }, client: { ip: "203.0.113.9", ua: "Mozilla/5.0 test" } });
-    const events = () => box.filter((m) => m.kind === "capi").map((m) => m.events[0]);
-    const lead = events().find((e) => e.event_name === "Lead");
-    ok("a Lead with the page's event id", lead && lead.event_id === "lead-xyz789xyz789", lead);
-    ok("hashed email and name, fbc and fbp, the IP and the browser", lead && /^[a-f0-9]{64}$/.test(lead.user_data.em[0]) && /^[a-f0-9]{64}$/.test(lead.user_data.fn[0]) && lead.user_data.fbc === FBC && lead.user_data.fbp === FBP && lead.user_data.client_ip_address === "203.0.113.9" && lead.user_data.client_user_agent === "Mozilla/5.0 test");
-    ok("from the page it started on, with the variant", lead && lead.event_source_url === "https://site.example/customers/replies" && lead.custom_data.variant === "replies", lead && lead.custom_data);
-    const s = await core.slots({ c, store, svc: svc2, token: v.token, tz: "America/Chicago" });
-    await core.book({ c, store, svc: svc2, token: v.token, body: { start: s.days[0].slots[0], phone: "5125550134", consentCall: true, consentText: true, tz: "America/Chicago", host: { ...HOST, eventId: "schedule-xyz789xyz789" } }, client: { ip: "203.0.113.9", ua: "Mozilla/5.0 test" } });
-    const sched = events().find((e) => e.event_name === "Schedule");
-    ok("a Schedule with its own event id", sched && sched.event_id === "schedule-xyz789xyz789", sched);
-    ok("the server Schedule never carries the phone number", sched && !sched.user_data.ph && !lead.user_data.ph);
-    const booking = (await store.getRun(v.token)).booking;
-    ok("the booking keeps the consent wording's version and the text consent", booking.noticeVersion === "2026-11-14" && booking.consentText === true, booking);
-
-    const box2 = [];
-    const svc3 = core.services(c, box2);
-    for (const [label, tracking] of [["Global Privacy Control", { gpc: true, consent: "granted", fbc: FBC }], ["a declined cookie notice", { consent: "denied", fbc: FBC }]]) {
-      resetMemory();
-      const w = await core.start({ c, store, svc: svc3, body: { ...START, host: { tracking } }, ipHash: `ip-${label}` });
-      await core.unlock({ c, store, svc: svc3, token: w.token, body: { ...WHO, host: { eventId: "lead-optout12345", tracking } } });
-      ok(`${label}: Meta hears nothing`, !box2.some((m) => m.kind === "capi"));
-      const kept = mem.leads.find((l) => l.form === "review-race");
-      ok(`${label}: no ad ids kept with the lead`, kept && !kept.meta.fbc && !kept.meta.fbp, kept && kept.meta);
-    }
-    const { isTrade } = await import("../api/_lib/race/fit.mjs");
-    ok("a trade fits; a restaurant or a dentist doesn't", isTrade("Plumber") && isTrade("HVAC contractor") && isTrade("Home services") && isTrade("Electrician") && !isTrade("Restaurant") && !isTrade("Dentist"));
-  } finally {
-    delete process.env.META_PIXEL_ID;
-    delete process.env.META_CAPI_TOKEN;
-  }
-});
-
-await section("later: before the race's own database key is set, a request still lands in the leads table", async () => {
-  const names = ["RACE_STORE", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SECRET_KEY"];
-  const kept = Object.fromEntries(names.map((n) => [n, process.env[n]]));
-  const realFetch = globalThis.fetch;
-  const seen = [];
-  try {
-    delete process.env.RACE_STORE;
-    delete process.env.SUPABASE_SECRET_KEY;
-    process.env.SUPABASE_URL = "https://proj.supabase.co";
-    process.env.SUPABASE_ANON_KEY = "sb_publishable_testkey";
-    globalThis.fetch = async (url, init) => { seen.push({ url: String(url), init }); return new Response(JSON.stringify("lead-1"), { status: 200, headers: { "content-type": "application/json" } }); };
-    const cfgNow = await call(handler, { url: "/api/race?action=config" });
-    ok("the page hears the race isn't ready", cfgNow.json.ready === false, cfgNow.json);
-    const st = await call(handler, { method: "POST", body: { action: "start", ...START } });
-    ok("a race can't start without its own database", st.status === 503 && st.json.code === "not-configured", st.json);
-    const r = await call(handler, { method: "POST", body: { action: "later", firstName: "Ana", email: "ana@example.com", consentEmail: true, main: "Ana's Plumbing", secondary: "Peoria", reason: "not-ready", host: { variant: "replies", noticeVersion: "2026-11-14" } } });
-    ok("the request is taken", r.status === 200 && r.json.ok === true, r.json);
-    const sub = seen.find((x) => x.url === "https://proj.supabase.co/rest/v1/rpc/submit_lead");
-    ok("through submit_lead() with the publishable key, in apikey only", sub && sub.init.headers.apikey === "sb_publishable_testkey" && !sub.init.headers.authorization);
-    const payload = sub && JSON.parse(sub.init.body).payload;
-    ok("kept as review-race-later, with the business, the town, the variant and the consent wording's version", payload && payload.form === "review-race-later" && payload.company === "Ana's Plumbing" && payload.fields.city === "Peoria" && payload.fields.variant === "replies" && payload.fields.noticeVersion === "2026-11-14", payload);
-    const health = await call(handler, { url: "/api/race?action=health" });
-    ok("the health report names the by-hand path", health.json.byHand && health.json.byHand.leadsTable === true && health.json.ready === false, health.json.byHand);
-    process.env.SUPABASE_ANON_KEY = "sb_secret_wrongkey";
-    const bad = await call(handler, { method: "POST", body: { action: "later", firstName: "Ana", email: "ana@example.com", consentEmail: true, main: "Ana's Plumbing", secondary: "Peoria" } });
-    ok("a secret key in the publishable slot is never used", bad.status === 503 && !seen.some((x) => x.init && x.init.headers && x.init.headers.apikey === "sb_secret_wrongkey"));
-  } finally {
-    globalThis.fetch = realFetch;
     for (const n of names) { if (kept[n] === undefined) delete process.env[n]; else process.env[n] = kept[n]; }
   }
 });

@@ -1,4 +1,4 @@
-// Site settings, read by the build (the pages). The Review Race's server (/api/race) has its own (../review-race/README.md).
+// Site settings, read by the build (the page) and by the server (/api/meta-lead and its emails).
 // null means "not decided yet": the page leaves the thing out, and the preview view (add ?view=preview to any page)
 // shows a {TBD} chip where it will go. Fill a value, run `node tools/build.mjs`, commit. PLAN.md section 11 lists them.
 export default {
@@ -10,10 +10,9 @@ export default {
   // build, delete the old folder, commit.
   path: "/customers",
 
-  // The Review Race runs the page's lead capture (2026-11-14, in place of the Gap Check): its business search in the hero,
-  // the tool below it. Its endpoint is the root function api/race.mjs (it runs ../review-race/api/race.mjs); its widget
-  // is built in from ../review-race/public/race. The page adds its own fields to each request (src/js/app.js).
-  race: { api: "/api/race" },
+  // Where the page sends its leads: the function api/meta-lead.mjs at the repository root (it runs api/lead.mjs here).
+  // Its own address, so it never meets the master page's /api/lead.
+  endpoint: "/api/meta-lead",
 
   // The master page's address once its domain points at Vercel, with no path (for example "https://rempo.io").
   // Sets the canonical link (this address followed by the page's path) and the share image's full URL. Until then
@@ -46,7 +45,7 @@ export default {
 
   // The version of the consent and policy wording, stored with every lead so it can be matched to the words agreed
   // to. Keep it equal to noticeVersion in ../legal-src/settings.mjs (tests/check-legal.mjs fails if they differ).
-  noticeVersion: "2026-11-14",
+  noticeVersion: "2026-11-08",
 
   // When advertising and analytics tools (the pixel, Clarity) may load. "opt-in": only after the visitor taps Allow
   // in the cookie notice, the safest reading of California's wiretap law (CIPA section 631) for pixels and session
@@ -70,15 +69,18 @@ export default {
   // Microsoft Clarity project id: session recordings, free (optional).
   clarityId: null,
 
+  // When the Gap Report arrives. From the GTM's lead magnet spec: "by email within one business day".
+  reportTurnaround: "within one business day",
+
   // The founder, for "Who reads your report". Hidden until filled:
   // { name: "First Last", role: "Founder", photo: "/assets/founder.webp", line: "One sentence, in their voice." }
   // Put the photo in src/assets/ (square, 640 px or more) and point photo at /assets/<file>.
   founder: null,
 
-  // The video, once recorded (PLAN.md section 13). Hidden until filled. It shows under the race's booking confirmation
-  // ("Watch this before we talk"):
-  // { type: "mp4", src: "https://.../walkthrough.mp4", poster: "/assets/vsl-poster.webp", captions: "/assets/vsl.vtt", length: "7 minutes" }
-  // or { type: "youtube", id: "VIDEO_ID", length: "7 minutes" }
+  // The video, once recorded (PLAN.md section 13). Hidden until filled:
+  // { type: "mp4", src: "https://.../walkthrough.mp4", poster: "/assets/vsl-poster.webp", captions: "/assets/vsl.vtt",
+  //   length: "2 minutes", placement: "booked" }   placement: "booked" (after booking) or "hero" (also in the hero)
+  // or { type: "youtube", id: "VIDEO_ID", length: "2 minutes", placement: "booked" }
   vsl: null,
 
   // Who sends the prospect's emails is a server setting (PROSPECT_EMAIL_FROM in Vercel), not a page setting.

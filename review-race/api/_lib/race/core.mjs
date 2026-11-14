@@ -19,8 +19,6 @@ import { buildRace, headline, pickRivals, pickReviews, recentForClaude, share, D
 import { ruleFixes, ruleSummary, resultsEmail, nurtureEmail, teamAlert, bookedAlert } from "./copy.mjs";
 import { parts } from "./env.mjs";
 import { newToken, sign, verifySig, clean, EMAIL, usPhone } from "./http.mjs";
-import { capiConfig, userData, capiEvent, sendCapi, FBC, FBP, EVENT_ID } from "./capi.mjs";
-import { fitOf, isTrade } from "./fit.mjs";
 
 export const fail = (status, message, code = "error", extra = {}) => Object.assign(new Error(message), { status, code, ...extra });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -41,8 +39,6 @@ export function services(c, outbox = []) {
       calendar: { slots: async (o) => fakes.freeSlots(o), book: async () => ({ id: "fake-appointment" }) },
       email: (m) => sendEmail(c, m, outbox),
       team: (m) => notifyTeam(c, m, outbox),
-      // Demo mode never calls Meta: with META_PIXEL_ID and META_CAPI_TOKEN set (the tests), the events go to the outbox
-      capi: capiConfig() ? async (events) => { outbox.push({ kind: "capi", events }); return { events_received: events.length }; } : null,
       human: async () => ({ ok: true, skipped: true })
     };
   }
@@ -65,79 +61,17 @@ export function services(c, outbox = []) {
     calendar: p.calendar ? { slots: (o) => ghl.freeSlots(c.ghl, o), book: (o) => ghl.book(c.ghl, o) } : null,
     email: (m) => sendEmail(c, m, outbox),
     team: (m) => notifyTeam(c, m, outbox),
-    capi: (() => { const cfg = capiConfig(); return cfg ? (events) => sendCapi(cfg, events) : null; })(),
     human: (token, ip) => verifyHuman(c, token, ip)
   };
 }
 
-/* ---------- What the host page adds to each request (window.ReviewRace.extra, read by race.js): the ad variant, the
-   version of the consent wording the visitor saw, the pixel's event id, and the ad-tool ids with the visitor's choice
-   about them. Every value is checked here; anything else is dropped. A page without the hook sends none of it. ---------- */
-const VARIANT = /^[a-z0-9-]{1,40}$/;
-const NOTICE = /^\d{4}-\d{2}-\d{2}$/;
-export function hostOf(body) {
-  const h = body && typeof body.host === "object" && body.host ? body.host : null;
-  const t = h && typeof h.tracking === "object" && h.tracking ? h.tracking : {};
-  const consent = ["granted", "denied", "unset"].includes(t.consent) ? t.consent : "unset";
-  const gpc = t.gpc === true || t.gpc === "true";
-  // Global Privacy Control, or a declined cookie notice: no ad ids are kept and Meta hears nothing
-  const optedOut = gpc || consent === "denied";
-  return {
-    present: Boolean(h),
-    variant: h && VARIANT.test(String(h.variant || "")) ? String(h.variant) : "",
-    noticeVersion: h && NOTICE.test(String(h.noticeVersion || "")) ? String(h.noticeVersion) : "",
-    eventId: h && EVENT_ID.test(String(h.eventId || "")) ? String(h.eventId) : "",
-    fbc: !optedOut && FBC.test(String(t.fbc || "")) ? String(t.fbc) : "",
-    fbp: !optedOut && FBP.test(String(t.fbp || "")) ? String(t.fbp) : "",
-    consent, gpc, optedOut
-  };
-}
-// The ad-tool details a lead keeps in meta, as the Gap Check's leads did: the ids, the event id and the choice
-const adMeta = (x) => (x.present ? { ...(x.fbc ? { fbc: x.fbc } : {}), ...(x.fbp ? { fbp: x.fbp } : {}), ...(x.eventId ? { meta_event_id: x.eventId } : {}), ads_consent: x.consent, ...(x.gpc ? { gpc: "true" } : {}) } : {});
-// Campaign tags from the page's address: utm_*, fbclid and gclid only, short strings only
-export function utmOf(v) {
-  const out = {};
-  if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (/^(utm_[a-z]+|fbclid|gclid)$/.test(k) && typeof x === "string") out[k] = clean(x, 200);
-  return out;
-}
-const drop = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
-
-/* ---------- Meta: Lead (a full race) and Schedule (a booked call) through the Conversions API, with the event id the
-   page's pixel used, so Meta counts each once. Only for a trade business (fit.mjs), never after an opt-out (Global
-   Privacy Control or a declined cookie notice), and never with the phone number: the privacy policy promises the
-   carriers that no phone number or text opt-in is shared. A failure is logged and never fails the race. ---------- */
-async function toMeta({ svc, name, run, host, client = {}, custom = {} }) {
-  if (!svc.capi || host.optedOut || !isTrade(run.business && run.business.category)) return null;
-  const prefix = name === "Lead" ? "lead" : "schedule";
-  const id = host.eventId && host.eventId.startsWith(`${prefix}-`) ? host.eventId : `${prefix}-${String(run.token).replace(/[^A-Za-z0-9]/g, "").slice(0, 32)}`;
-  const page = run.meta && /^https?:\/\//.test(run.meta.page || "") ? run.meta.page : "";
-  const city = String((run.search && run.search.where) || "").split(",")[0];
-  const event = capiEvent({
-    name, id, time: Math.floor(Date.now() / 1000), sourceUrl: page,
-    user: userData({ email: run.email, firstName: run.first_name, city, country: "us", externalId: run.visit || undefined, ip: client.ip, ua: client.ua, fbc: host.fbc, fbp: host.fbp }),
-    custom: { content_name: name === "Lead" ? "Review Race" : "Review Race call", ...custom }
-  });
-  try { await svc.capi([event]); return id; } catch (e) { console.error("Conversions API:", e && e.message); return null; }
-}
-
 /* ---------- Links ---------- */
-// The page the race was started on, path only (never another host): /customers, /customers/recent, ... On the landing
-// page the race lives at /customers, not at the site's root, so the emails must lead back to that page.
-export function pagePath(run) {
-  try {
-    const p = new URL((run && run.meta && run.meta.page) || "").pathname.replace(/\/+$/, "");
-    return /^(\/[A-Za-z0-9_-]{1,40}){1,3}$/.test(p) ? p : "";
-  } catch { return ""; }
-}
-
 export function links(c, run, origin) {
   const base = c.publicUrl || origin || "";
   const e = run.email || "";
-  const path = pagePath(run);
-  const at = path ? `${base}${path}` : `${base}/`;
   return {
-    results: `${at}?r=${encodeURIComponent(run.token)}#review-race`,
-    book: `${at}?r=${encodeURIComponent(run.token)}#book`,
+    results: `${base}/?r=${encodeURIComponent(run.token)}#review-race`,
+    book: `${base}/?r=${encodeURIComponent(run.token)}#book`,
     unsubscribe: `${base}/api/race?action=unsubscribe&e=${encodeURIComponent(e)}&s=${sign(e.toLowerCase(), c.linkSecret)}`
   };
 }
@@ -145,7 +79,7 @@ export function links(c, run, origin) {
 /* ---------- What the page receives ---------- */
 export function view(c, run) {
   const p = parts(c);
-  const out = { token: run.token, status: run.status, demo: c.fake, business: { name: run.business.name, category: run.business.category }, fit: fitOf(run.business.category), search: run.search, preview: run.preview };
+  const out = { token: run.token, status: run.status, demo: c.fake, business: { name: run.business.name, category: run.business.category }, search: run.search, preview: run.preview };
   if (run.race) out.locked = { unanswered: run.race.you.unanswered, fetched: run.race.you.fetched, drafts: (run.picks || []).length, window: run.race.you.window };
   if (run.email && run.analysis) {
     out.unlocked = true;
@@ -205,8 +139,7 @@ export async function start({ c, store, svc, body, ip, ipHash, now = Date.now(),
   const midnight = new Date(now); midnight.setUTCHours(0, 0, 0, 0);
   if ((await store.countSince(iso(midnight))) >= c.limits.perDay) throw fail(503, "The race is busy today. Leave your email and we'll send yours within one business day.", "daily-cap", { later: true });
 
-  const host = hostOf(body);
-  const base = { token: newToken(), place_id: placeId, ip_hash: ipHash, visit: clean(body.visit, 80) || null, meta: drop({ utm: utmOf(body.utm), page: clean(body.page, 300), variant: host.variant }) };
+  const base = { token: newToken(), place_id: placeId, ip_hash: ipHash, visit: clean(body.visit, 80) || null, meta: { utm: typeof body.utm === "object" && body.utm ? body.utm : {}, page: clean(body.page, 300) } };
 
   // The same business raced in the last few days: reuse it (a copy, with its own token), no searches spent
   const cached = await store.recentReady(placeId, iso(now - c.limits.cacheDays * DAY));
@@ -320,8 +253,7 @@ async function analysis({ c, store, svc, run, deadline }) {
   return store.updateRun(token, { analysis: result, status: "ready", recent: null });
 }
 
-export async function unlock({ c, store, svc, token, body, ipHash, now = Date.now(), deadline, origin, client = {} }) {
-  const host = hostOf(body);
+export async function unlock({ c, store, svc, token, body, ipHash, now = Date.now(), deadline, origin }) {
   const firstName = clean(body.firstName, 60);
   const email = clean(body.email, 254).toLowerCase();
   const phone = usPhone(body.phone);
@@ -343,13 +275,9 @@ export async function unlock({ c, store, svc, token, body, ipHash, now = Date.no
     const leadId = await store.submitLead({
       form: "review-race", email, name: firstName, phone: phone ? `+1${phone}` : null, company: run.business.name,
       consent, ip_hash: ipHash,
-      fields: drop({ city: run.search.where, category: run.business.category, fit: fitOf(run.business.category), rating: run.business.rating, reviews: run.business.count, rivals: (r.rivals || []).map((x) => x.name).join(", "), raceToken: run.token, results: L.results,
-        variant: (run.meta && run.meta.variant) || host.variant, visit: run.visit || "",
-        // The consent and policy wording this lead agreed to (legal-src/settings.mjs noticeVersion, sent by the page)
-        noticeVersion: host.noticeVersion }),
-      meta: { ...(run.meta && run.meta.utm ? run.meta.utm : {}), page: (run.meta && run.meta.page) || "", visit: run.visit || "", ...adMeta(host) }
+      fields: { city: run.search.where, category: run.business.category, rating: run.business.rating, reviews: run.business.count, rivals: (r.rivals || []).map((x) => x.name).join(", "), raceToken: run.token, results: L.results },
+      meta: { ...(run.meta && run.meta.utm ? run.meta.utm : {}), page: (run.meta && run.meta.page) || "", visit: run.visit || "" }
     }).catch((e) => { console.error("submit_lead failed:", e.message); return null; });
-    await toMeta({ svc, name: "Lead", run, host, client, custom: drop({ variant: (run.meta && run.meta.variant) || host.variant }) });
     let contactId = null;
     if (svc.crm) {
       contactId = await svc.crm.upsert({ firstName, email, phone: phone ? `+1${phone}` : undefined, companyName: run.business.name, city: run.search.where, tags: ["review-race"] })
@@ -389,33 +317,16 @@ export async function unlock({ c, store, svc, token, body, ipHash, now = Date.no
   return view(c, run);
 }
 
-/* ---------- later: when the race can't run (a key not set yet, the daily cap, a business Google can't find), the team
-   builds the race by hand and emails it. The store may be the leads-only one (store.mjs, openLeadStore). ---------- */
+/* ---------- later: when the race can't run, the team sends the Gap Report by hand ---------- */
 export async function later({ c, store, svc, body, ipHash }) {
-  const host = hostOf(body);
   const firstName = clean(body.firstName, 60);
   const email = clean(body.email, 254).toLowerCase();
   if (!firstName || !EMAIL.test(email)) throw fail(400, "Please enter your first name and a valid email.", "contact");
   if (body.consentEmail !== true && body.consentEmail !== "true" && body.consentEmail !== "on") throw fail(400, "Please tick the box so we can email your race.", "consent");
   const business = { name: clean(body.main, 160) || "their business" };
   const where = places.cityFrom(clean(body.secondary, 160));
-  const code = clean(body.reason, 40);
-  const REASONS = {
-    "not-ready": "the race is not set up yet: a key is missing in Vercel (see /api/race?action=health)",
-    "not-configured": "the race is not set up yet: a key is missing in Vercel (see /api/race?action=health)",
-    "daily-cap": "the day's limit of races was reached",
-    "rate-limit": "this network's daily limit was reached",
-    "not-found": "Google Maps could not find the business",
-    "no-rivals": "there were no nearby businesses to compare with",
-    quota: "the search service's monthly quota ran out",
-    serpapi: "the search service did not answer"
-  };
-  const reason = REASONS[code] || clean(body.reason, 120) || "the search was unavailable";
-  await store.submitLead({
-    form: "review-race-later", email, name: firstName, company: business.name, consent: { consentEmail: true }, ip_hash: ipHash,
-    fields: drop({ city: where, reason, variant: host.variant, visit: clean(body.visit, 80), noticeVersion: host.noticeVersion }),
-    meta: drop({ ...utmOf(body.utm), page: clean(body.page, 300), visit: clean(body.visit, 80), ...adMeta(host) })
-  }).catch((e) => console.error("submit_lead failed:", e.message));
+  const reason = clean(body.reason, 120) || "the search was unavailable";
+  await store.submitLead({ form: "review-race-later", email, name: firstName, company: business.name, consent: { consentEmail: true }, ip_hash: ipHash, fields: { city: where, reason } }).catch((e) => console.error("submit_lead failed:", e.message));
   if (svc.crm) await svc.crm.upsert({ firstName, email, companyName: business.name, city: where, tags: ["review-race", "review-race-later"] }).catch((e) => console.error("GoHighLevel upsert failed:", e.message));
   await svc.team(teamAlert({ run: { first_name: firstName, email, business, search: { where } }, links: {}, kind: "later", reason }));
   return { ok: true };
@@ -431,8 +342,7 @@ export async function slots({ c, store, svc, token, tz, now = Date.now() }) {
   return { days, timezone, bookingUrl: c.ghl.bookingUrl || null };
 }
 
-export async function book({ c, store, svc, token, body, origin, client = {} }) {
-  const host = hostOf(body);
+export async function book({ c, store, svc, token, body, origin }) {
   let run = await store.getRun(token);
   if (!run || !run.email) throw fail(404, "Unlock your race first.", "not-found");
   if (run.booked_at) return { ok: true, start: run.booking && run.booking.start, already: true };
@@ -442,18 +352,14 @@ export async function book({ c, store, svc, token, body, origin, client = {} }) 
   const phone = usPhone(body.phone || run.phone);
   if (!phone) throw fail(400, "Please enter the best 10-digit number to call.", "phone");
   if (body.consentCall !== true && body.consentCall !== "true" && body.consentCall !== "on") throw fail(400, "Please tick the box so we can call you.", "consent");
-  // The texts box is optional. GoHighLevel learns the answer as a tag, so its text workflow can send only to those who
-  // ticked it (race-texts-ok); without the tag, no text
-  const textsOk = body.consentText === true || body.consentText === "true" || body.consentText === "on";
   let contactId = run.ghl_contact_id;
   if (svc.crm) {
-    contactId = await svc.crm.upsert({ firstName: run.first_name, email: run.email, phone: `+1${phone}`, companyName: run.business.name, city: run.search.where, tags: ["review-race", "race-booked", ...(textsOk ? ["race-texts-ok"] : [])] }).then((x) => x.id).catch(() => contactId);
+    contactId = await svc.crm.upsert({ firstName: run.first_name, email: run.email, phone: `+1${phone}`, companyName: run.business.name, city: run.search.where, tags: ["review-race", "race-booked"] }).then((x) => x.id).catch(() => contactId);
   }
   if (!contactId) throw fail(502, "We couldn't reach the calendar. Try again in a minute.", "crm");
   const appt = await svc.calendar.book({ contactId, startTime, title: `Review Race call: ${run.business.name}` });
-  run = await store.updateRun(token, { booked_at: new Date().toISOString(), booking: drop({ start: startTime, appointmentId: appt.id, phone: `+1${phone}`, consentCall: true, consentText: textsOk, noticeVersion: host.noticeVersion, ...adMeta(host) }), ghl_contact_id: contactId });
+  run = await store.updateRun(token, { booked_at: new Date().toISOString(), booking: { start: startTime, appointmentId: appt.id, phone: `+1${phone}`, consentCall: true, consentText: Boolean(body.consentText) }, ghl_contact_id: contactId });
   await store.skipEmailsFor(run.id).catch(() => {});
-  await toMeta({ svc, name: "Schedule", run, host, client, custom: drop({ variant: (run.meta && run.meta.variant) || host.variant }) });
   const when = new Date(startTime).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: clean(body.tz, 60) || "America/Chicago", timeZoneName: "short" });
   await svc.team(bookedAlert({ run, when, phone: `+1${phone}`, links: links(c, run, origin) })).catch(() => {});
   return { ok: true, start: startTime };
