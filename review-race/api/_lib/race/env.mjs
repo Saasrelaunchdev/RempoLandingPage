@@ -26,7 +26,10 @@ export function config() {
     // presses Find (one search each). RACE_SEARCH=maps uses SerpApi even when the Google key is set.
     searchMode: env("RACE_SEARCH").toLowerCase() === "maps" || !(fake || env("GOOGLE_PLACES_API_KEY")) ? "maps" : "places",
     anthropicKey: env("ANTHROPIC_API_KEY"),
-    supabase: { url: url("SUPABASE_URL"), key: env("SUPABASE_SECRET_KEY") || env("SUPABASE_SERVICE_ROLE_KEY") },
+    // The race's own tables need the secret key. The publishable key (the landing page's SUPABASE_ANON_KEY) is the
+    // fallback for the by-hand path only: until the secret key is set, a request still lands in the leads table
+    // through public.submit_lead(), the one thing that key may do.
+    supabase: { url: url("SUPABASE_URL"), key: env("SUPABASE_SECRET_KEY") || env("SUPABASE_SERVICE_ROLE_KEY"), anonKey: env("SUPABASE_ANON_KEY") || env("SUPABASE_PUBLISHABLE_KEY") },
     resendKey: env("RESEND_API_KEY"),
     emailFrom: env("RACE_EMAIL_FROM"),
     replyTo: env("RACE_REPLY_TO"),
@@ -50,6 +53,7 @@ export function config() {
     siteUrl,
     privacyUrl: url("RACE_PRIVACY_URL", `${siteUrl}/legal/privacy`),
     termsUrl: url("RACE_TERMS_URL", `${siteUrl}/legal/terms`),
+    smsUrl: url("RACE_SMS_URL", `${siteUrl}/legal/sms`),
     caseStudyUrl: url("RACE_CASE_STUDY_URL"),
     postalAddress: env("RACE_POSTAL_ADDRESS"),
     company: env("RACE_COMPANY") || "Rempo",
@@ -75,6 +79,8 @@ export function parts(c = config()) {
     places: c.fake || has(c.placesKey),
     claude: c.fake || has(c.anthropicKey),
     database: c.store === "memory" || (has(c.supabase.url) && has(c.supabase.key)),
+    leadsFallback: has(c.supabase.url) && has(c.supabase.anonKey) && !/^sb_secret_/i.test(c.supabase.anonKey),
+    conversionsApi: has(process.env.META_PIXEL_ID) && has(process.env.META_CAPI_TOKEN),
     resultsEmail: c.fake || (has(c.resendKey) && has(c.emailFrom)),
     teamEmail: c.fake || (has(c.resendKey) && has(c.notifyFrom) && c.notifyTo.length > 0),
     slack: c.fake || /^https:\/\/hooks\.slack\.com\//.test(c.slackWebhook),

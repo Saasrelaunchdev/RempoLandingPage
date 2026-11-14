@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Builds the pages into the repository's customers/ folder (the folder is named by `path` in content/site.mjs): one
-// static page per ad angle (content/variants.json), the script, the pictures and fonts, every link starting with that
-// path. The master page's Vercel project serves the folder as it is, so the output is committed and Vercel runs no
-// build. No dependencies.
+// static page per ad angle (content/variants.json), the script, the pictures and fonts, and the Review Race's widget
+// (../review-race/public/race, which runs the page's lead capture), every link starting with that path. The master
+// page's Vercel project serves the folder as it is, so the output is committed and Vercel runs no build. No dependencies.
 //
 //   node tools/build.mjs           build ../customers/
 //   node tools/build.mjs --check   fail if ../customers/ is not what the sources build (the tests run this)
@@ -32,10 +32,12 @@ if (!/^\/[a-z0-9][a-z0-9-]*$/.test(BASE) || ["/api", "/meta", "/lead-capture", "
 }
 const SITE_DIR = path.join(ROOT, "..", BASE.slice(1));
 const OUT = CHECK ? path.join(os.tmpdir(), `rempo-meta-check-${process.pid}`) : SITE_DIR;
-const SURVEY = (await import(pathToFileURL(r("content/survey.mjs")).href)).default;
 const COPY = json("content/copy.json");
 const { variants: VARIANTS } = json("content/variants.json");
-const { fill } = await import(pathToFileURL(r("lib/gapcheck.mjs")).href);
+const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (m, k) => (v && v[k] !== undefined && v[k] !== null ? String(v[k]) : m));
+// The Review Race's widget: built in from its own folder, so the race on this page is the race its tests check
+const RACE_SRC = path.join(ROOT, "..", "review-race", "public", "race");
+const RACE_API = (SITE.race && SITE.race.api) || "/api/race";
 
 /* ---------- The copy rules first ---------- */
 const { errors, warnings } = await lintAll();
@@ -50,7 +52,6 @@ if (errors.length) {
 const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const ic = (id, cls = "ic") => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
 const hash = (buf) => createHash("sha256").update(buf).digest("hex").slice(0, 10);
-const T = (s) => fill(s, { turnaround: SITE.reportTurnaround });
 const tbd = (text) => `<span class="tbd" data-tbd>${esc(text)}</span>`;
 
 /* ---------- Assets: copied with a content version, so they can be cached for a year ---------- */
@@ -80,15 +81,26 @@ const IMG = {   // the widths tools/extract-master.py writes
 };
 const pic = (name, sizes, alt, cls, extra) => img(name, IMG[name], sizes, alt, cls, extra);
 
-/* ---------- The script: the shared scoring module and the page script, in one function ---------- */
-const gapcheck = read("lib/gapcheck.mjs").replace(/^export function /gm, "function ");
-const appJs = `/* Rempo for Meta ads. Built by tools/build.mjs from lib/gapcheck.mjs and src/js/app.js. */\n(function () {\n${gapcheck}\n${read("src/js/app.js")}\n})();\n`;
+/* ---------- The page's script, in one function ---------- */
+const appJs = `/* Rempo for Meta ads. Built by tools/build.mjs from src/js/app.js. */\n(function () {\n${read("src/js/app.js")}\n})();\n`;
 writeFileSync(path.join(OUT, "assets", "app.js"), appJs);
 V["/assets/app.js"] = `${BASE}/assets/app.js?v=${hash(appJs)}`;
 
+/* ---------- The Review Race's widget (an ES module and its words), each file with a content version, so the year-long
+   cache under assets/ never serves a stale one: race.js imports its words as copy.js?v=<hash> ---------- */
+mkdirSync(path.join(OUT, "assets", "race"), { recursive: true });
+const raceCopy = readFileSync(path.join(RACE_SRC, "copy.js"), "utf8");
+const raceJs = readFileSync(path.join(RACE_SRC, "race.js"), "utf8").replace('import COPY from "./copy.js";', `import COPY from "./copy.js?v=${hash(raceCopy)}";`);
+if (!raceJs.includes(`./copy.js?v=${hash(raceCopy)}`)) throw new Error("build: race.js no longer imports ./copy.js as expected");
+writeFileSync(path.join(OUT, "assets", "race", "copy.js"), raceCopy);
+writeFileSync(path.join(OUT, "assets", "race", "race.js"), raceJs);
+V["/assets/race/race.js"] = `${BASE}/assets/race/race.js?v=${hash(raceJs)}`;
+// Its styles go inline with the page's; its own @font-face lines are dropped (the page loads the same two fonts)
+const RACE_CSS = readFileSync(path.join(RACE_SRC, "race.css"), "utf8").replace(/^@font-face[^\n]*\n/gm, "");
+
 /* ---------- Styles: fonts, tokens, page; comments dropped, inlined in every page ---------- */
 const fontFace = (fam, file) => `@font-face{font-family:"${fam}";font-style:normal;font-display:swap;font-weight:100 900;src:url(${A(`/assets/fonts/${file}`)}) format("woff2-variations");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}`;
-const CSS = [fontFace("Outfit", "outfit.woff2"), fontFace("Geist", "geist.woff2"), read("src/styles/tokens.css"), read("src/styles/page.css")]
+const CSS = [fontFace("Outfit", "outfit.woff2"), fontFace("Geist", "geist.woff2"), read("src/styles/tokens.css"), read("src/styles/page.css"), RACE_CSS]
   .join("\n").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n\s*\n/g, "\n").replace(/^\s+/gm, "").trim();
 
 const PAGE_SYMBOLS = read("src/partials/symbols.svg") + read("src/partials/symbols-extra.svg").replace(/<!--[\s\S]*?-->/g, "");
@@ -153,60 +165,20 @@ function phone(hero) {
     </div></div></div><p class="sr-only">${esc(P.photoAlt)} ${esc(P.text)} ${esc(P.stop)}</p>`;
 }
 
-/* ---------- The legal pages (../legal-src/, served at /legal): links and the notice at collection ---------- */
+/* ---------- The legal pages (../legal-src/, served at /legal): the footer's links, and the links and sentence the
+   Review Race puts in every notice at collection on this page (src/js/app.js hands them to it) ---------- */
 const LEGAL = SITE.legal || {};
 const TRACKERS = Boolean(SITE.metaPixelId || SITE.clarityId);
-const newTabLink = (href, label) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}<span class="sr-only"> ${esc(C.legal.newTab)}</span></a>`;
-// Under each form: the button that signals agreement, by name, with the Terms and the Privacy Policy, then what Meta
-// hears and where to opt out. Links open in a new tab so the form keeps its answers.
-function legalNotice(button) {
-  const L = C.legal;
-  if (!LEGAL.terms || !(LEGAL.privacy || SITE.privacyUrl)) return `<p class="legal-note">${tbd(C.footer.privacyTbd)}</p>`;
-  const main = fill(esc(L.notice), { button: esc(button), terms: newTabLink(LEGAL.terms, L.terms), privacy: newTabLink(LEGAL.privacy || SITE.privacyUrl, L.privacy) });
-  const meta = LEGAL.choices ? ` ${fill(esc(L.noticeMeta), { choices: newTabLink(LEGAL.choices, L.choices) })}` : "";
-  return `<p class="legal-note">${main}${meta}</p>`;
-}
 
-function stepHtml(step, i, total) {
-  const back = `<button type="button" class="gc-back"${i === 0 ? " hidden" : ""}>${ic("i-back")}${esc(C.check.back)}</button>`;
-  const id = (n) => `gc-${n}`;
-  if (step.type === "choice") {
-    const opts = step.options.map((o) => `<label class="gc-opt"><input type="radio" name="${step.key}" value="${esc(o.v)}"><span>${esc(o.label)}</span></label>`).join("");
-    return `<fieldset class="gc-step" data-key="${step.key}" data-kind="choice"${i ? " hidden" : ""}>
-      <legend class="gc-q" tabindex="-1">${esc(step.q)}</legend>
-      <div class="gc-opts${step.layout === "grid" ? " grid" : ""}">${opts}</div>
-      <p class="err" role="alert"></p>
-      <div class="gc-nav">${back}<button type="button" class="btn btn-primary gc-next">${esc(C.check.next)}${ic("i-arrow")}</button></div>
-    </fieldset>`;
-  }
-  const fields = step.fields.map((f) => `<div class="field"><label for="${id(f.name)}">${esc(f.label)}</label>${f.help ? `<p class="help" id="${id(f.name)}-h">${esc(f.help)}</p>` : ""}<input id="${id(f.name)}" name="${f.name}" type="${f.type || "text"}"${f.inputmode ? ` inputmode="${f.inputmode}"` : ""} autocomplete="${f.autocomplete}" maxlength="${f.max}"${f.help ? ` aria-describedby="${id(f.name)}-h"` : ""}${f.required ? " data-req" : ""}${f.type === "email" ? ' autocapitalize="off" spellcheck="false"' : ""}></div>`).join("");
-  const choice = step.choice ? `<fieldset><legend class="group-l">${esc(step.choice.label)}</legend><div class="chips" data-group="${step.choice.key}">${step.choice.options.map((o, k) => `<label class="chip-opt"><input type="radio" name="${step.choice.key}" value="${esc(o.v)}"${k === 0 ? " data-req" : ""}><span>${esc(o.label)}</span></label>`).join("")}</div></fieldset>` : "";
-  const consent = step.consent ? `<label class="consent"><input type="checkbox" name="${step.consent.name}"${step.consent.required ? " data-req" : ""}><span>${esc(step.consent.label)}</span></label>` : "";
-  const notice = step.last ? legalNotice(C.check.submit) : "";
-  const hp = step.last ? `<div class="hp" aria-hidden="true"><label>Leave this empty <input name="hp" tabindex="-1" autocomplete="off"></label></div>` : "";
-  const submit = step.last
-    ? `<button type="submit" class="btn btn-primary">${esc(C.check.submit)}${ic("i-arrow")}</button>`
-    : `<button type="button" class="btn btn-primary gc-next">${esc(C.check.next)}${ic("i-arrow")}</button>`;
-  return `<fieldset class="gc-step" data-key="${step.key}" data-kind="fields"${i ? " hidden" : ""}>
-      <legend class="gc-q" tabindex="-1">${esc(step.q)}</legend>${step.hint ? `<p class="gc-hint">${esc(step.hint)}</p>` : ""}
-      ${fields}${choice}${consent}${notice}${hp}
-      <p class="err" role="alert"></p>
-      <div class="gc-nav">${back}${submit}</div>
-    </fieldset>`;
-}
-
-function checkCard() {
-  const total = SURVEY.steps.length;
-  return `<div class="hero-card" id="gc-home">
-  <div class="gc" id="gap-check" role="region" aria-labelledby="gc-title">
-    <div class="gc-top"><span class="gc-label" id="gc-title">${ic("i-file")}${esc(C.check.label)}</span><span class="gc-count" aria-live="polite">${esc(fill(C.check.progress, { n: 1, total }))}</span></div>
-    <div class="gc-bar" aria-hidden="true"><i></i></div>
-    <p class="gc-frame">${C.check.frameShort ? `<span class="m-hide">${esc(C.check.frame)}</span><span class="m-only">${esc(C.check.frameShort)}</span>` : esc(C.check.frame)}</p>
-    <noscript><p class="err">${esc(C.check.noscript)}</p></noscript>
-    <form class="gc-form" novalidate>
-      ${SURVEY.steps.map((s, i) => stepHtml(s, i, total)).join("\n      ")}
-    </form>
-    <div class="gc-result" hidden></div>
+/* ---------- The hero's card: the Review Race's business search (picking a business starts the race in its section) */
+function raceCard() {
+  const R = C.race;
+  return `<div class="hero-card" id="race-home">
+  <div class="rcard" role="region" aria-labelledby="rc-title">
+    <div class="rc-top"><span class="rc-label" id="rc-title">${ic("i-search")}${esc(R.label)}</span></div>
+    <p class="rc-frame">${R.frameShort ? `<span class="m-hide">${esc(R.frame)}</span><span class="m-only">${esc(R.frameShort)}</span>` : esc(R.frame)}</p>
+    <div id="hero-race" data-review-race-cta data-target="#review-race" data-api="${esc(RACE_API)}"></div>
+    <noscript><p class="err">${esc(R.noscript)}</p></noscript>
   </div>
 </div>`;
 }
@@ -219,48 +191,43 @@ function hero(v) {
       <h1 class="display" id="hero-h">${esc(v.h1)}</h1>
       ${v.leadShort ? `<p class="lead m-hide">${esc(v.lead)}</p><p class="lead m-only">${esc(v.leadShort)}</p>` : `<p class="lead">${esc(v.lead)}</p>`}${v.scene === "phone" ? miniRequest() : ""}
     </div>
-    ${checkCard()}
+    ${raceCard()}
     <div class="hero-vis">
-      <ul class="trust" aria-label="About the report">${C.hero.trust.map((t) => `<li>${ic("i-check")}${esc(T(t))}</li>`).join("")}</ul>
+      <ul class="trust" aria-label="${esc(C.race.trustLabel)}">${C.hero.trust.map((t) => `<li>${ic("i-check")}${esc(t)}</li>`).join("")}</ul>
       <figure class="hero-fig${v.scene === "phone" ? " fig-phone" : ""}">${scene(v.scene)}</figure>
     </div>
   </div>
 </section>`;
 }
 
-const openBtn = (label, from, cls = "btn btn-primary") => `<a class="${cls}" href="#gap-check" data-open-check="${from}">${esc(label)}${ic("i-arrow")}</a>`;
+// Every button leads to the race: the hero's search until a race has started, then the race (src/js/app.js)
+const openBtn = (label, from, cls = "btn btn-primary") => `<a class="${cls}" href="#hero-race" data-race-open="${from}">${esc(label)}${ic("i-arrow")}</a>`;
 
 // The picture a section uses, unless the hero above already shows it (then its img2): no picture twice in a row
 const HERO_PIC = { podium: "podium", asked: "street-six", unanswered: "street", phone: "crew" };
 const pick = (item, v) => (item.img2 && HERO_PIC[v.scene] === item.img ? [item.img2, item.alt2] : [item.img, item.alt]);
 
-function report(v) {
-  const R = C.report, S = R.sample;
-  const rows = S.rows.map((row) => `<div class="rep-row${row.flag ? " flag" : ""}"><dt>${esc(row.name)}</dt><dd>
-      <span class="rep-bar mine"><i style="--w:${row.youPct}%"></i>${esc(row.you)}</span>
-      <span class="rep-bar theirs"><i style="--w:${row.topPct}%"></i>${esc(row.top)}</span></dd></div>`).join("");
-  return `<section class="proof sec" id="report" aria-labelledby="report-h">
+// What the race shows, before the tool: three points and the list, for visitors who scroll before they search
+function points(v) {
+  const P = C.points;
+  return `<section class="proof sec" id="points" aria-labelledby="points-h">
   <div class="wrap">
-    <header class="sec-head reveal"><p class="eyebrow">${esc(R.eyebrow)}</p><h2 class="h2" id="report-h">${esc(R.h2)}</h2><p class="lead">${esc(R.lead)}</p></header>
-    <ul class="pts">${R.points.map((p) => { const [im, alt] = pick(p, v); return `<li class="pt reveal"><div class="pt-img">${pic(im, "220px", alt, "", ' loading="lazy"')}</div><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`; }).join("")}</ul>
-    <div class="report-grid">
-      <figure class="reveal">
-        <div class="rep">
-          <div class="rep-top"><div><p class="rep-tag">${esc(S.label)}</p><p class="rep-biz">${esc(S.business)}</p><p class="rep-search">${esc(S.search)}</p></div>
-            <div class="rep-score"><b>${esc(S.score)}<small>/100</small></b><span class="tier">${esc(S.tier)}</span></div></div>
-          <p class="rep-legend"><span class="mine">${esc(S.you)}</span><span class="theirs">${esc(S.top)}</span></p>
-          <dl class="rep-rows">${rows}</dl>
-          <p class="rep-theme">${esc(S.theme)}</p>
-        </div>
-      </figure>
-      <div class="reveal">
-        <p class="list-t">${esc(R.checksTitle)}</p>
-        <ul class="done-list one">${R.checks.map((t) => `<li>${ic("i-check")}<span>${esc(t)}</span></li>`).join("")}</ul>
-        <p class="muted" style="margin-top:14px">${esc(R.checksNote)}</p>
-        <div class="sec-cta">${openBtn(R.cta, "report")}</div>
-      </div>
+    <header class="sec-head reveal"><p class="eyebrow">${esc(P.eyebrow)}</p><h2 class="h2" id="points-h">${esc(P.h2)}</h2><p class="lead">${esc(P.lead)}</p></header>
+    <ul class="pts">${P.points.map((p) => { const [im, alt] = pick(p, v); return `<li class="pt reveal"><div class="pt-img">${pic(im, "220px", alt, "", ' loading="lazy"')}</div><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`; }).join("")}</ul>
+    <div class="pts-list reveal">
+      <p class="list-t">${esc(P.checksTitle)}</p>
+      <ul class="done-list one">${P.checks.map((t) => `<li>${ic("i-check")}<span>${esc(t)}</span></li>`).join("")}</ul>
+      <p class="muted" style="margin-top:14px">${esc(P.checksNote)}</p>
+      <div class="sec-cta">${openBtn(P.cta, "points")}</div>
     </div>
   </div>
+</section>`;
+}
+
+// The Review Race itself (../review-race/public/race/race.js renders it here): the hero's search starts a race in it
+function raceSection() {
+  return `<section class="race-sec" aria-label="${esc(C.race.sectionLabel)}">
+  <div id="review-race" data-review-race data-api="${esc(RACE_API)}"></div>
 </section>`;
 }
 
@@ -332,7 +299,7 @@ function faq() {
   const F = C.faq;
   const answer = (it) => {
     if (it.decided && SITE.offer && SITE.offer.decided && SITE.offer.line) return esc(SITE.offer.line);
-    return esc(T(it.a)) + (it.decided ? ` ${tbd(C.footer.offerTbd)}` : "");
+    return esc(it.a) + (it.decided ? ` ${tbd(C.footer.offerTbd)}` : "");
   };
   return `<section class="proof sec" id="faq" aria-labelledby="faq-h">
   <div class="wrap">
@@ -361,7 +328,7 @@ function final() {
     <ul class="stack">${F.stack.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
     <p class="lead">${esc(F.lead)}</p>
     <div class="sec-cta">${openBtn(F.cta, "final")}</div>
-    <ul class="trust">${C.hero.trust.map((t) => `<li>${ic("i-check")}${esc(T(t))}</li>`).join("")}</ul>
+    <ul class="trust">${C.hero.trust.map((t) => `<li>${ic("i-check")}${esc(t)}</li>`).join("")}</ul>
   </div>
 </section>`;
 }
@@ -406,13 +373,13 @@ const TRACKING = {
   clarity: SITE.clarityId ? String(SITE.clarityId).replace(/[^a-z0-9]/gi, "") : null,
   mode: SITE.trackingConsent === "notice" ? "notice" : "opt-in"
 };
-const PUBLIC_SITE = { name: SITE.name, endpoint: SITE.endpoint, reportTurnaround: SITE.reportTurnaround, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl, legal: LEGAL, noticeVersion: SITE.noticeVersion || null, tracking: TRACKING };
-const UI = { check: C.check, result: C.result, legal: C.legal };
+const PUBLIC_SITE = { name: SITE.name, race: { api: RACE_API }, checkoutUrl: SITE.checkoutUrl, vsl: SITE.vsl, privacyUrl: SITE.privacyUrl, legal: LEGAL, noticeVersion: SITE.noticeVersion || null, tracking: TRACKING };
+const UI = { booked: C.booked, legal: C.legal };
 
 function page(v) {
   const urlPath = v.slug ? `${BASE}/${v.slug}` : BASE;
   const canonical = SITE.url ? `${SITE.url.replace(/\/$/, "")}${urlPath}` : null;
-  const data = JSON.stringify({ site: PUBLIC_SITE, survey: SURVEY, ui: UI, variant: v.id }).replace(/</g, "\\u003c");
+  const data = JSON.stringify({ site: PUBLIC_SITE, ui: UI, variant: v.id }).replace(/</g, "\\u003c");
   const ogImage = SITE.url ? `${SITE.url.replace(/\/$/, "")}${A("/assets/og.jpg")}` : A("/assets/og.jpg");
   return `<!doctype html>
 <!-- Built by meta/tools/build.mjs from meta/content/ and meta/src/. Do not edit: edit the sources and run node meta/tools/build.mjs -->
@@ -421,7 +388,7 @@ function page(v) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(C.meta.title)}</title>
-<meta name="description" content="${esc(T(C.meta.description))}">
+<meta name="description" content="${esc(C.meta.description)}">
 <meta name="robots" content="noindex, nofollow">
 ${canonical ? `<link rel="canonical" href="${esc(canonical)}">\n` : ""}<meta property="og:type" content="website">
 <meta property="og:site_name" content="Rempo">
@@ -440,12 +407,13 @@ ${canonical ? `<link rel="canonical" href="${esc(canonical)}">\n` : ""}<meta pro
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>${SYMBOLS}</defs></svg>
-<a class="skip-link" href="#gap-check">Skip to the Gap Check</a>
+<a class="skip-link" href="#hero-race">${esc(C.skip)}</a>
 <div class="preview-bar" data-tbd role="note">Preview: open facts are marked {TBD} and hidden from visitors · variant ${esc(v.id)} · <a href="${urlPath}">Production view</a></div>
 <header class="hdr"><div class="wrap"><a class="brand" href="#top" aria-label="Rempo, back to top"><svg viewBox="0 0 211.2 64" aria-hidden="true"><use href="#logo-h"/></svg></a></div></header>
 <main id="main">
 ${hero(v)}
-${report(v)}
+${points(v)}
+${raceSection()}
 ${leaks(v)}
 ${service()}
 ${cases()}
@@ -456,10 +424,10 @@ ${final()}
 </main>
 ${footer()}
 <div class="sticky-bar">${openBtn(C.sticky, "sticky", "btn btn-primary")}</div>
-<dialog class="dlg" id="gc-sheet" aria-label="${esc(C.check.label)}"><div class="dlg-in"><div class="dlg-head"><button class="dlg-x" type="button" aria-label="Close">${ic("i-x")}</button></div><div class="dlg-body"></div></div></dialog>
 ${cookieNotice()}
 <script type="application/json" id="rm-data">${data}</script>
 <script src="${V["/assets/app.js"]}" defer></script>
+<script type="module" src="${V["/assets/race/race.js"]}"></script>
 ${PUB.cases.length || PUB.testimonials.length ? `<script src="${masterAsset("/assets/proof.js")}" defer></script>` : ""}
 </body>
 </html>

@@ -178,8 +178,11 @@ for (const path of PAGES) {
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  let opened = Date.now(), fresh = true;
+  // The clock starts once the page has loaded: a form ignores a send within its first seconds (a bot check, timed from
+  // when its script ran), so a clock started before a slow load would send too early and see no request
+  let opened = 0, fresh = true;
   const r = await page.goto(BASE + path, { waitUntil: "load" });
+  opened = Date.now();
   if (!r || r.status() !== 200) { ok(`${path} opens`, false, String(r && r.status())); await ctx.close(); continue; }
   const forms = await page.$$eval("form", (fs, skip) => fs.map((f, i) => {
     const email = [...f.querySelectorAll("input")].find((el) => el.type === "email" || /e-?mail/i.test(el.name || ""));
@@ -192,7 +195,7 @@ for (const path of PAGES) {
     const tag = `${path} ${form.name}`;
     if (form.skip) { console.log(`--   ${tag}: skipped (not a lead form)`); continue; }
     n++;
-    if (!fresh) { opened = Date.now(); await page.goto(BASE + path, { waitUntil: "load" }); }
+    if (!fresh) { await page.goto(BASE + path, { waitUntil: "load" }); opened = Date.now(); }
     fresh = false;
     const s0 = stored.length, n0 = notices.length;
     const got = await send(page, form.i, n, opened);
@@ -208,8 +211,8 @@ for (const path of PAGES) {
 
     // Email optional, phone asked: a visitor who leaves the email empty must still become a lead, reachable by phone
     if (form.phoneOnly) {
-      opened = Date.now();
       await page.goto(BASE + path, { waitUntil: "load" });
+      opened = Date.now();
       const s1 = stored.length;
       const po = await send(page, form.i, n, opened, true);
       const lead = stored[s1];
@@ -218,8 +221,8 @@ for (const path of PAGES) {
 
     // Everything failing: the page says so, and the visitor can send again
     failing = true;
-    opened = Date.now();
     await page.goto(BASE + path, { waitUntil: "load" });
+    opened = Date.now();
     const bad = await send(page, form.i, n, opened);
     failing = false;
     if (!bad.req) { note(`${tag}: no second request in the failure run`, ""); continue; }

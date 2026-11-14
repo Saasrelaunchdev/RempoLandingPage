@@ -2589,7 +2589,7 @@ li{text-wrap:pretty}
     passThrough.forEach((k) => { if (params.has(k)) data[k] = params.get(k); });
     data.page = location.href;
     data.form = "book-call";   // names this form in the lead notices and in public.leads.form
-    data.noticeVersion = "2026-11-08";   // the consent and policy wording this lead agreed to (legal-src/settings.mjs)
+    data.noticeVersion = "2026-11-14";   // the consent and policy wording this lead agreed to (legal-src/settings.mjs)
     data.visit = visitId;
     $("#e-send").textContent = "";
     if (SITE.formEndpoint) {
@@ -2639,7 +2639,7 @@ li{text-wrap:pretty}
       passThrough.forEach((k) => { if (params.has(k)) data[k] = params.get(k); });
       data.page = location.href;
       data.form = "scorecard";
-      data.noticeVersion = "2026-11-08";
+      data.noticeVersion = "2026-11-14";
       data.visit = visitId;
       $("#e-ssend").textContent = "";
       if (SITE.formEndpoint) {

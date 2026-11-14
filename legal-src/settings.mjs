@@ -29,11 +29,11 @@ export default {
   phone: null,
 
   // The date printed as "Last updated" on every document. Change it whenever a document's meaning changes.
-  updated: "2026-11-08",
+  updated: "2026-11-14",
 
   // The version stored with every lead (the forms send it), so a lead can be matched to the wording it agreed to.
   // Bump it to the new date whenever form consent wording or these documents change, in the forms too.
-  noticeVersion: "2026-11-08",
+  noticeVersion: "2026-11-14",
 
   // Rempo's own text-message program (call confirmations and service notices), as registered with the carriers.
   smsProgram: "Rempo call and service notices",

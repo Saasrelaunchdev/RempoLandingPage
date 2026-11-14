@@ -12,7 +12,7 @@
 //   GET  ?action=health                 which parts are set up (true or false, never a value)
 import { config as getConfig, parts } from "./_lib/race/env.mjs";
 import { send, sendHtml, readBody, sameOrigin, clientIp, ipHash, host, verifySig, clean, EMAIL } from "./_lib/race/http.mjs";
-import { openStore } from "./_lib/race/store.mjs";
+import { openStore, openLeadStore } from "./_lib/race/store.mjs";
 import * as core from "./_lib/race/core.mjs";
 import { unsubscribePage } from "./_lib/race/copy.mjs";
 
@@ -43,6 +43,7 @@ function publicConfig(c) {
     bookingUrl: c.ghl.bookingUrl || null,
     privacyUrl: c.privacyUrl,
     termsUrl: c.termsUrl,
+    smsUrl: c.smsUrl,
     siteUrl: c.siteUrl
   };
 }
@@ -62,7 +63,9 @@ async function health(c, res) {
     ready: Object.values(required).every(Boolean),
     required,
     search: c.searchMode === "places" ? "Google Places, as the owner types" : "SerpApi, when the owner presses Find (no Google key)",
-    optional: { resultsEmail: p.resultsEmail, teamEmail: p.teamEmail, slack: p.slack, crm: p.crm, calendar: p.calendar, botCheck: p.botCheck, cron: p.cron, links: p.links, postalAddress: p.postalAddress },
+    optional: { resultsEmail: p.resultsEmail, teamEmail: p.teamEmail, slack: p.slack, crm: p.crm, calendar: p.calendar, botCheck: p.botCheck, cron: p.cron, links: p.links, postalAddress: p.postalAddress, conversionsApi: p.conversionsApi },
+    // Until the race is ready, the page takes the business name and town by hand and this path keeps the request
+    byHand: { leadsTable: p.database || p.leadsFallback, teamEmail: p.teamEmail, slack: p.slack },
     database,
     demo: c.fake,
     deployment: c.deployment
@@ -70,6 +73,16 @@ async function health(c, res) {
 }
 
 const yes = (v) => v === true || v === "true" || v === "on" || v === "1";
+
+// Demo mode only (RACE_FAKE=1): what the race would have sent (emails, the team's alerts, Meta's events) goes to one
+// list for the whole process, so a local server and its tests can read it (meta/tools/dev.mjs --stub shows it at
+// /__stub). With real services nothing is kept: each request gets its own empty list.
+function demoOutbox(c) {
+  if (!c.fake) return [];
+  const box = globalThis.__reviewRaceOutbox || (globalThis.__reviewRaceOutbox = []);
+  if (box.length > 500) box.splice(0, box.length - 500);
+  return box;
+}
 
 export default async function handler(req, res) {
   const c = getConfig();
@@ -123,18 +136,20 @@ export default async function handler(req, res) {
     // A bot filled the field people never see: answer like a success, do nothing. The field has a name no browser
     // autofills (it was "website" at first, and autofill filled it in for real people, who then got no race).
     if (typeof body.trap === "string" && body.trap.trim()) return send(res, 200, { ok: true });
-    const store = openStore(c);
-    const svc = core.services(c);
+    // The by-hand path must work before the race's own database key is set: it falls back to the leads table alone
+    const store = action === "later" ? openLeadStore(c) : openStore(c);
+    const svc = core.services(c, demoOutbox(c));
     const token = clean(body.token, 64);
+    const client = { ip, ua: clean(req.headers["user-agent"], 512) };
 
     if (action === "start") return send(res, 200, await core.start({ c, store, svc, body, ip, ipHash: ipH, origin }));
     if (action === "reviews") {
       const run = await core.reviews({ c, store, svc, token });
       return send(res, 200, core.view(c, run));
     }
-    if (action === "unlock") return send(res, 200, await core.unlock({ c, store, svc, token, body, ipHash: ipH, deadline: Date.now() + 110000, origin }));
+    if (action === "unlock") return send(res, 200, await core.unlock({ c, store, svc, token, body, ipHash: ipH, deadline: Date.now() + 110000, origin, client }));
     if (action === "later") return send(res, 200, await core.later({ c, store, svc, body, ipHash: ipH }));
-    if (action === "book") return send(res, 200, await core.book({ c, store, svc, token, body: { ...body, consentCall: yes(body.consentCall), consentText: yes(body.consentText) }, origin }));
+    if (action === "book") return send(res, 200, await core.book({ c, store, svc, token, body: { ...body, consentCall: yes(body.consentCall), consentText: yes(body.consentText) }, origin, client }));
     if (action === "unsubscribe") {
       const e = clean(url.searchParams.get("e") || body.e, 254).toLowerCase();
       const ok = EMAIL.test(e) && verifySig(e, url.searchParams.get("s") || body.s, c.linkSecret);

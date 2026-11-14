@@ -2,7 +2,7 @@
 title: Terms of Service
 slug: terms
 order: 1
-summary: The agreement for using Rempo's website, the free Gap Report and Scorecard, and Rempo's paid services.
+summary: The agreement for using Rempo's website, the free Review Race and Scorecard, and Rempo's paid services.
 ---
 
 > **The short version.** Rempo is a service for businesses. We run your Google review requests and replies from the software you already use. We control the process (who gets asked, how, and when), never the results: we don't promise review counts, ratings, or rankings, and we never remove reviews. You keep ownership of your data and your accounts. You make sure you're allowed to contact your customers, and we send every message the honest way. Disputes go to individual arbitration in San Diego County, California. Please read the full terms below; they control.
@@ -12,7 +12,7 @@ summary: The agreement for using Rempo's website, the free Gap Report and Scorec
 These Terms of Service ("Terms") are an agreement between you and {{company}} ("Rempo," "we," "us," or "our"), based in {{city}}. They cover:
 
 - our websites, including {{site}} and every page under it, such as our ad landing pages (the "Site");
-- our free tools, including the Gap Check, the Gap Report, the Review Engine Scorecard, and introductory calls (the "Free Tools"); and
+- our free tools, including the Review Race, the Review Engine Scorecard, and introductory calls (the "Free Tools"); and
 - our paid services, including review requests and reminders, review replies, review monitoring and alerts, reports, review widgets, social posts made from reviews, Google Business Profile work, websites, AI receptionist features, and any software we make available with them (the "Services").
 
 **Business use only.** The Site, the Free Tools, and the Services are for businesses and professionals, not for personal, family, or household use. You must be at least 18. If you use them for a company or other organization, you confirm that you have the authority to bind it, and "you" means that organization.
@@ -34,13 +34,13 @@ These Terms of Service ("Terms") are an agreement between you and {{company}} ("
 
 ## 3. The Free Tools {#free-tools}
 
-**What they are.** The Gap Check asks a few questions and shows a score. The Gap Report and Scorecard compare your public Google presence with nearby businesses, using public information at a point in time. Search results change with location, device, time, and Google's own systems, so a report reflects what we saw when we checked.
+**What they are.** The Review Race and the Scorecard compare your public Google reviews and presence with nearby businesses, using public information at a point in time. The Review Race also shows notes and reply drafts that AI writes from public reviews; read and edit a draft before you post it, because what you post is yours. Search results change with location, device, time, and Google's own systems, so a race or report reflects what we saw when we checked.
 
 **What they are not.** The Free Tools are general business information. They are not legal, financial, or professional advice, and they are not a promise of any result. We work to make them accurate but don't guarantee that they are complete, current, or error free.
 
 **No obligation.** The Free Tools are free and don't require a purchase. We may change, limit, or stop offering them at any time.
 
-**Contact after you ask.** When you ask for a report or a call, you ask us to send it and to contact you in the ways you chose on the form. How we use what you send is described in our [Privacy Policy](/legal/privacy). Texts are covered by our [SMS and Messaging Terms](/legal/sms).
+**Contact after you ask.** When you ask for your race, a report, or a call, you ask us to send it and to contact you in the ways you chose on the form. How we use what you send is described in our [Privacy Policy](/legal/privacy). Texts are covered by our [SMS and Messaging Terms](/legal/sms).
 
 ## 4. Accounts and access you give us {#access}
 
