@@ -134,3 +134,14 @@ test("2026-11-13: the story film does not flicker (sidewalks, cards), and the si
   assert.equal(JSON.parse(read("hero-video/rendered-from.json")).sources, sourcesHash(),
     "media/hero-video/ was rendered from older scenes than hero-video/ holds: render the film again (node hero-video/tools/render.mjs)");
 });
+
+test("2026-11-14: every frame of the story film depends on its time alone, and the render checks it before encoding", () => {
+  const story = read("hero-video/src/story.js");
+  has(story, /function update\(t\) \{[^}]*?asBuilt\(\);[^}]*?rest\(\);[^}]*?cur\.fn\(t\);/,
+    "hero-video/src/story.js: a frame no longer starts from the world and the 2D layer as built, so what earlier frames left behind can show");
+  const render = read("hero-video/tools/render.mjs");
+  has(render, /async function check\(\)[\s\S]*?window\.seek\(t\), i \/ FPS\);\s*await page\.evaluate\(redraw\);[\s\S]*?shot\.equals\(await readFile\(FRAMES \+ name\(i\)\)\)/,
+    "hero-video/tools/render.mjs: the check that a fresh browser draws the frames byte for byte as on disk is gone");
+  has(render, /if \(!flag\('no-check'\)\) await check\(\);\s*if \(!flag\('frames-only'\)\) await encode\(\);/,
+    "hero-video/tools/render.mjs: the film is encoded without the check that a fresh browser draws its frames the same");
+});
