@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// The claim rules, applied to every word the visitor can read on the page: content/copy.json and content/variants.json.
-// The Review Race's own words (../review-race/public/race/copy.js) are checked by its own tests with the same rules.
-// The build runs it and stops on an error; run it alone with
+// The claim rules, applied to every word the visitor can read: content/copy.json, content/variants.json and the
+// survey's words in content/survey.mjs. The build runs it and stops on an error; run it alone with
 //   node tools/copy-lint.mjs            (errors and warnings)
 //
 // Errors: a banned claim (rules/copy-rules.json, from the GTM), an em or en dash, a statistic without its source in
@@ -17,7 +16,7 @@ const NEGATION = /\b(no|not|never|don't|doesn't|won't|isn't|aren't|can't|cannot|
 const SOURCED = /\((BrightLocal|ACHR News|Census|IBISWorld|Roofing Contractor)[^)]*\d{4}\)/;
 
 /** Every visitor-facing string, with a key path. Notes (keys starting with _) and machine values are skipped. */
-export function collect(copy, variants) {
+export function collect(copy, variants, survey, emails) {
   const out = [];
   const SKIP = new Set(["img", "allow", "id", "slug", "scene", "v", "name", "type", "autocomplete", "inputmode", "prefix", "key", "kind", "form", "callForm", "layout", "qualifiedFit"]);
   // allow (on an FAQ item) waives the claim rules for its question only; _demo marks labelled demo data, where the
@@ -38,6 +37,9 @@ export function collect(copy, variants) {
   for (const v of variants.variants) {
     walk({ hook: v.hook, h1: v.h1, lead: v.lead, leadShort: v.leadShort }, `variants.${v.id}`, null);
   }
+  const s = { steps: survey.steps, tiers: survey.tiers, ruleLine: survey.ruleLine, gaps: survey.gaps, callOnlyWhy: survey.callOnlyWhy, booking: survey.booking };
+  walk(s, "survey", null);
+  if (emails) walk(emails, "emails", null);
   return out;
 }
 
@@ -78,7 +80,9 @@ export async function lintAll() {
   const copy = read("content/copy.json");
   const variants = read("content/variants.json");
   const rules = read("rules/copy-rules.json");
-  return lint(collect(copy, variants), rules);
+  const survey = (await import(pathToFileURL(path.join(ROOT, "content/survey.mjs")).href)).default;
+  const emails = (await import(pathToFileURL(path.join(ROOT, "content/emails.mjs")).href)).default;
+  return lint(collect(copy, variants, survey, emails), rules);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

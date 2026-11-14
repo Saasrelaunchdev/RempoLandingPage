@@ -2,6 +2,8 @@
 // The copy rules: the content passes, and the linter really catches what the GTM bans (a test of the test).
 import { readFileSync } from "node:fs";
 import { lintAll, lint, collect } from "../tools/copy-lint.mjs";
+import survey from "../content/survey.mjs";
+import emails from "../content/emails.mjs";
 let pass = 0, fail = 0;
 const ok = (name, cond, info = "") => { if (cond) { pass++; console.log(`ok   ${name}`); } else { fail++; console.log(`FAIL ${name}${info ? `: ${info}` : ""}`); } };
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
@@ -10,8 +12,8 @@ const { errors, warnings } = await lintAll();
 ok("the content passes every copy rule", errors.length === 0, errors.join(" | "));
 ok("no copy warnings", warnings.length === 0, warnings.join(" | "));
 const copy = read("../content/copy.json"), variants = read("../content/variants.json");
-const strings = collect(copy, variants);
-ok("the linter reads the page, the race's sections and the variants", ["copy.hero.eyebrow", "copy.race.frame", "copy.points.h2", "copy.faq.groups.0.items.0.a", "variants.top-three.h1"].every((k) => strings.some((s) => s.key === k)), strings.slice(0, 5).map((s) => s.key).join(", "));
+const strings = collect(copy, variants, survey, emails);
+ok("the linter reads the page, the variants, the survey and the emails", ["copy.hero.eyebrow", "variants.top-three.h1", "survey.steps.1.q", "emails.call.subject"].every((k) => strings.some((s) => s.key === k)));
 const one = (text, key = "copy.test") => lint([{ key, text }], rules);
 ok("catches a promise of reviews", one("Get more reviews every month.").errors.length > 0);
 ok("catches a ranking promise", one("Rank higher on Google in 30 days.").errors.length > 0);

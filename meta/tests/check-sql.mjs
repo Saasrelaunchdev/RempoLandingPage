@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * sql/meta-leads-view.sql in a throwaway local Postgres, after the shared ../lead-capture/leads.sql: it runs twice
- * cleanly; it shows the Meta leads (review races, and the Gap Check's from before 2026-11-14), and only those, flattened; the website's roles (anon, authenticated) cannot read
+ * cleanly; it shows the Meta leads (and only those) flattened; the website's roles (anon, authenticated) cannot read
  * it, any more than they can read public.leads; the dashboard's roles can.
  *
  * Needs Postgres installed locally (initdb, pg_ctl, psql). Without it, prints SKIPPED and exits 0.
@@ -63,28 +63,18 @@ try {
   psql(lead({ form: "meta-call", email: "tom@maplestreet.com", name: "Tom", phone: "5125550134", company: "Maple Street Plumbing", consent: { consentPhone: true },
     fields: { city: "Springfield", score: 79, tier: "stalled", fit: "qualified", slotDay: "2026-11-10", slotWindow: "morning", tz: "America/Chicago", variant: "top-three", visit: "v-1" }, meta: {} }), "anon");
   psql(lead({ form: "book-call", email: "ann@example.com", name: "Ann", phone: "5125550199", fields: { trade: "hvac" } }), "anon");
-  // The Review Race's two leads, as review-race/api/_lib/race/core.mjs sends them
-  psql(lead({ form: "review-race", email: "rosa@peoriaplumbing.com", name: "Rosa", company: "Peoria Plumbing Co.", consent: { consentEmail: true },
-    fields: { city: "Peoria, AZ", category: "Plumber", fit: "trade", rating: 4.6, reviews: 212, rivals: "Valley Rooter, Desert Drain, Sun Plumbing", variant: "recent", visit: "v-2", noticeVersion: "2026-11-14" },
-    meta: { utm_source: "facebook", utm_campaign: "race", fbclid: "IwAR0def" } }), "anon");
-  psql(lead({ form: "review-race-later", email: "ana@example.com", name: "Ana", company: "Ana's Plumbing", consent: { consentEmail: true },
-    fields: { city: "Peoria", reason: "the race is not set up yet", variant: "replies", visit: "v-3" }, meta: {} }), "anon");
 
   const rows = psql("select form, first_name, business, city, score, tier, fit, variant, utm_campaign, from_meta_click, call_day, call_window from rempo_reports.meta_leads order by form");
   const lines = rows.split("\n");
-  ok("the view shows the four Meta leads, and not the master page's lead", lines.length === 4 && !rows.includes("Ann"), rows);
+  ok("the view shows the two Meta leads, and not the master page's lead", lines.length === 2 && !rows.includes("Ann"), rows);
   ok("the Gap Check row is flattened", lines.some((l) => l === "meta-gap-report|Tom|Maple Street Plumbing|Springfield|79|stalled|qualified|top-three|gap|t||"), rows);
   ok("the call row has its day and window", lines.some((l) => l.startsWith("meta-call|Tom|") && l.endsWith("|2026-11-10|morning")), rows);
-  const race = psql("select form, first_name, business, city, fit, variant, utm_campaign, from_meta_click, google_category, google_rating, google_reviews, rivals from rempo_reports.meta_leads where form = 'review-race'");
-  ok("a race row is flattened, with its Google category, rating, reviews and rivals", race === "review-race|Rosa|Peoria Plumbing Co.|Peoria, AZ|trade|recent|race|t|Plumber|4.6|212|Valley Rooter, Desert Drain, Sun Plumbing", race);
-  const later = psql("select first_name, business, later_reason from rempo_reports.meta_leads where form = 'review-race-later'");
-  ok("a race asked for by email shows why it could not run at once", later === "Ana|Ana's Plumbing|the race is not set up yet", later);
   ok("the website's public role cannot read the view", denied("select * from rempo_reports.meta_leads", "anon"));
   ok("a signed-in user cannot read it either", denied("select * from rempo_reports.meta_leads", "authenticated"));
   ok("nor the table under it (unchanged)", denied("select * from public.leads", "anon"));
   let svc = "";
   try { svc = psql("select count(*) from rempo_reports.meta_leads", "service_role"); } catch (e) { svc = String(e.stderr || e.message).trim(); }
-  ok("the dashboard's service role can read it", svc.split("\n").pop() === "4", svc);
+  ok("the dashboard's service role can read it", svc.split("\n").pop() === "2", svc);
   ok("the view runs with the reader's rights", psql("select reloptions::text from pg_class where oid = 'rempo_reports.meta_leads'::regclass").includes("security_invoker=true"));
 } catch (e) {
   ok("the database checks ran", false, String(e.stderr || e.message).slice(0, 600));

@@ -18,7 +18,8 @@ These keep the pages working. They stay in your browser, are not used for advert
 | Name | Type | What it does | How long |
 |---|---|---|---|
 | lp-theme | localStorage | Remembers whether you chose the light or dark theme | Until you clear it |
-| lp-visit, rm-visit, rr-visit | sessionStorage | A random visit ID that links the steps of a form or a review race to each other and to a checkout, so a purchase can be matched to the visit | Until you close the tab |
+| lp-visit, rm-visit | sessionStorage | A random visit ID that links the steps of a form to each other and to a checkout, so a purchase can be matched to the visit | Until you close the tab |
+| rm-gc | sessionStorage | Keeps your Gap Check answers and progress if you reload the page | Until you close the tab |
 | rm-attr | sessionStorage | Remembers the ad or link that brought you (campaign tags and Meta's click ID) so it can be sent with your form | Until you close the tab |
 | rm-consent | localStorage | Remembers your cookie choice and when you made it | Until you clear it or change your choice |
 
@@ -26,7 +27,7 @@ These keep the pages working. They stay in your browser, are not used for advert
 
 **When it runs:** on our ad landing pages, only after you choose "Allow," and never when your browser sends Global Privacy Control.
 
-**What it does:** it tells Meta Platforms which of our pages you visit and which steps you take, such as searching for your business in the review race, seeing its preview, unlocking the full race, asking for it by email, booking a call, or opening checkout, with details like how many nearby businesses the race found and whether your business fits who we serve. Meta uses this to measure our ads and show them to businesses like yours.
+**What it does:** it tells Meta Platforms which of our pages you visit and which steps you take, such as starting the Gap Check, reaching each question, requesting a report, booking a call, or opening checkout, with details like your score tier, whether your answers fit who we serve, and your trade. Meta uses this to measure our ads and show them to businesses like yours.
 
 **What Meta receives:** the page address, your browser and device details, your IP address, the event details above, and Meta's cookie IDs. Meta may set its own cookies (such as _fbp and _fbc) in your browser.
 
@@ -34,9 +35,9 @@ These keep the pages working. They stay in your browser, are not used for advert
 
 ## 4. Advertising: Meta Conversions API (from our server) {#capi}
 
-**When it runs:** when you unlock a review race or book a call for a business that fits who we serve, unless you opted out or your browser sends Global Privacy Control.
+**When it runs:** when you send a form whose answers fit who we serve, unless you opted out or your browser sends Global Privacy Control.
 
-**What we send:** that a lead (a full review race) or a booked call happened and which version of our page you saw, with your email address, first name, city, and visit ID in hashed form, your country, your IP address, your browser details, and Meta's click and cookie IDs. The event carries the same ID as the pixel's, made from your visit ID, so Meta counts it once. We never send your phone number.
+**What we send:** that a lead or a booked call happened and your score tier, with your email address, first name, city, and visit ID in hashed form, your country, your IP address, your browser details, and Meta's click and cookie IDs. We never send your phone number.
 
 ## 5. Analytics: Microsoft Clarity {#clarity}
 
@@ -47,7 +48,6 @@ These keep the pages working. They stay in your browser, are not used for advert
 ## 6. Other services {#others}
 
 - **Video:** if a page shows a video from YouTube, it uses YouTube's privacy-enhanced mode, which doesn't set cookies until you press play. After that, YouTube may set its own cookies.
-- **Spam protection:** if we turn it on, the review race loads Cloudflare Turnstile before a race runs, to check that a person is using the page. Cloudflare receives your IP address and browser details for this check and handles them under its own policy, not for advertising.
 - **Checkout:** when you pay, you go to our payment processor's checkout page, which uses its own cookies for security and fraud prevention under its own policy.
 
 ## 7. How to control cookies {#control}
