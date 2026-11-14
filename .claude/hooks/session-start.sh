@@ -30,8 +30,14 @@ else
     echo "WARNING: could not fetch from GitHub. Fetch origin/main yourself before you change anything."
   fi
 
+  # The Review Race's branch: a preview the owner keeps off main until they confirm the merge (CLAUDE.md). Its commits
+  # are in main's history and main then took its folder away, so merging main into it would delete the race.
+  PREVIEW_BRANCH="claude/dreamy-cray-95z5j1"
   branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD)"
-  if ! git rev-parse --verify --quiet origin/main >/dev/null; then
+  if [ "$branch" = "$PREVIEW_BRANCH" ]; then
+    echo "OK: '$branch' is the Review Race preview. It was not synced with main: merging main into it would delete the"
+    echo "    race (CLAUDE.md, \"Start of every session\"). Work on it as it is."
+  elif ! git rev-parse --verify --quiet origin/main >/dev/null; then
     echo "WARNING: origin/main not found. Fetch it before you change anything."
   elif [ "$branch" = "HEAD" ]; then
     echo "WARNING: detached HEAD. Check out your session branch, then merge origin/main into it."
@@ -57,14 +63,24 @@ else
 
   # Work on GitHub that main does not have. Each line is a change the owner may believe is live but is not on main.
   unmerged=""
+  preview=""
   while read -r ref; do
     [ "$ref" = "origin/main" ] || [ "$ref" = "origin/HEAD" ] || [ "$ref" = "origin/$branch" ] && continue
     n="$(git rev-list --count "origin/main..$ref" 2>/dev/null || echo 0)"
     if [ "$n" -gt 0 ]; then
       last="$(git log -1 --format='%cr: %s' "$ref" 2>/dev/null)"
-      unmerged="${unmerged}  - ${ref#origin/} ($n commit(s) not on main; last ${last})"$'\n'
+      if [ "${ref#origin/}" = "$PREVIEW_BRANCH" ]; then
+        preview="  - ${ref#origin/} ($n commit(s) since it was last on main; last ${last})"$'\n'
+      else
+        unmerged="${unmerged}  - ${ref#origin/} ($n commit(s) not on main; last ${last})"$'\n'
+      fi
     fi
   done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin/)
+  if [ -n "$preview" ]; then
+    echo "NOTE: the Review Race preview has new work. Tell the owner, but do not merge it: the owner keeps it off main"
+    echo "      until they confirm the merge, and then CLAUDE.md says how."
+    printf '%s' "$preview"
+  fi
   if [ -n "$unmerged" ]; then
     echo "STOP: these branches hold work that is NOT on main. If it was ever previewed or promoted, the owner may think"
     echo "      it is live. Tell the owner, and merge it into main (CLAUDE.md, step 1) before starting new work:"

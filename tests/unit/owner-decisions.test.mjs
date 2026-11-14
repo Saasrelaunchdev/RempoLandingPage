@@ -8,6 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -147,9 +148,16 @@ test("2026-11-14: every frame of the story film depends on its time alone, and t
 });
 
 test("2026-11-14: the Review Race is tested in its own Vercel project, off main, and /customers keeps the Gap Check until the owner confirms the merge", () => {
-  for (const p of ["review-race", "api/race.mjs", "api/race-cron.mjs", "customers/assets/race"]) {
+  for (const p of ["api/race.mjs", "api/race-cron.mjs", "customers/assets/race", "review-race/api", "review-race/public"]) {
     assert.ok(!existsSync(ROOT + p), `${p} is on main, but the owner keeps the Review Race in its own Vercel project until they confirm the merge`);
   }
+  // review-race/ on main is only the placeholder that keeps the race's Vercel project from failing on every other commit
+  // (review-race/README.md): Vercel checks that its Root Directory exists before the Ignored Build Step runs.
+  const stub = execFileSync("git", ["-C", ROOT, "ls-files", "review-race"], { encoding: "utf8" }).split("\n").filter(Boolean).sort();
+  assert.deepEqual(stub, ["review-race/README.md", "review-race/vercel.json"],
+    "review-race/ on main must hold only the placeholder (README.md, vercel.json): the race itself stays on claude/dreamy-cray-95z5j1");
+  assert.equal(JSON.parse(read("review-race/vercel.json")).git?.deploymentEnabled, false,
+    "review-race/vercel.json no longer stops the race's Vercel project from deploying commits that are not the race's");
   const fns = Object.keys(JSON.parse(read("vercel.json")).functions || {});
   assert.ok(!fns.some((f) => /race/.test(f)), "vercel.json runs a Review Race function, but the race is not on main until the owner confirms the merge");
   assert.ok(existsSync(ROOT + "api/meta-lead.mjs") && existsSync(ROOT + "meta/api/lead.mjs"), "the Gap Check's function (api/meta-lead.mjs, meta/api/lead.mjs) is gone");
