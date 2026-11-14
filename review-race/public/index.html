@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Review Race · Rempo</title>
+  <meta name="description" content="See how your Google reviews compare with the three shops homeowners see first near you. Free, in about a minute.">
+  <link rel="icon" href="/race/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/race/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/race/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- proof-head:start -->
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/proof.css">
+  <!-- proof-head:end -->
+  <link rel="stylesheet" href="/race/race.css">
+  <style>
+    /* This page only: a plain hero and footer around the two mount points, so the tool can be tested on its own.
+       On the landing page, the hero CTA and the section drop in as they are (README.md, "Merging"). */
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: #F3F7FC; color: #1A2E4C; font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .top { max-width: 1080px; margin: 0 auto; padding: 18px 16px; display: flex; align-items: center; gap: 10px; }
+    .top img { width: 32px; height: 32px; }
+    .top b { font: 650 22px/1 "Outfit", system-ui, sans-serif; color: #0A1A33; letter-spacing: -.01em; }
+    .hero { max-width: 1080px; margin: 0 auto; padding: 28px 16px 56px; display: grid; gap: 22px; }
+    .hero .eyebrow { font: 600 13px/1.3 "Geist", system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #0057B3; margin: 0; }
+    .hero h1 { font: 650 clamp(34px, 8vw, 58px)/1.05 "Outfit", system-ui, sans-serif; letter-spacing: -.025em; color: #0A1A33; margin: 0; max-width: 14ch; }
+    .hero p.lead { font-size: clamp(17px, 2.6vw, 20px); line-height: 1.5; color: #465C7E; margin: 0; max-width: 34em; }
+    .hero .note { font-size: 14px; color: #5F7699; margin: 0; }
+    .race-section { padding: 48px 0 64px; background: #fff; border-top: 1px solid #E8EFF9; }
+    footer { max-width: 1080px; margin: 0 auto; padding: 22px 16px 40px; font-size: 14px; color: #5F7699; display: flex; flex-wrap: wrap; gap: 8px 18px; }
+    footer a { color: #0057B3; }
+  </style>
+</head>
+<body>
+  <header class="top"><img src="/race/favicon.svg" alt="" width="32" height="32"><b>Rempo</b></header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-h1">
+      <p class="eyebrow">For HVAC and plumbing shop owners</p>
+      <h1 id="hero-h1">Your work is better. Do your reviews show it?</h1>
+      <p class="lead">See how your Google reviews compare with the three shops homeowners see first near you. Free, in about a minute.</p>
+      <!-- Mount point 1: the hero CTA. Picking a business scrolls to the section below and starts the race there. -->
+      <div data-review-race-cta data-target="#review-race" id="hero-race"></div>
+      <p class="note">Free. No card, no call needed.</p>
+    </section>
+
+    <!-- Mount point 2: the section, the whole tool. Results links (?r=...) open here. -->
+    <section class="race-section" id="review-race" data-review-race aria-label="Review race"></section>
+
+    <!-- The landing page's case studies and video testimonials, as they are there -->
+    <!-- proof:start. Copied from the landing page's index.html by tools/proof.mjs. Don't edit here: run node tools/proof.mjs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+<symbol id="i-starf" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M6 3 20 12 6 21Z"/></symbol>
+<symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="m22 9-6 6M16 9l6 6"/></symbol>
+<symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></symbol>
+</defs></svg>
+<section id="results" class="proof sec" aria-labelledby="results-h">
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="label eyebrow">Case studies</p>
+      <h2 id="results-h" class="h2">What happens when someone runs it.</h2>
+      <p class="lead">Two home-service businesses on the San Francisco Peninsula. Their own Google reviews, before and after Rempo.</p>
+    </header>
+    <div class="cs-grid">
+      <a class="cs-card" href="https://rempo.io/case-studies/junkaway-movers/">
+        <div class="cs-vis" data-tilt data-vtn="vis" style="--vtn:cs-junkaway-movers">
+          <span class="cs-tag"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Six months</span>
+          <div class="s3d" aria-hidden="true" data-s3d='{"unit":2.1,"cols":[{"num":"32","cap":"Two years before Rempo","segs":[{"n":32,"k":"old"}]},{"num":"102","cap":"Six months with Rempo","rq":true,"segs":[{"n":32,"k":"old"},{"n":70,"k":"new","pill":"+70"}]}]}'></div>
+          <div class="gbp" aria-hidden="true"><img class="gbp-ph" src="/media/case-studies/junkaway-truck.webp" alt="" width="52" height="52" decoding="async"><span class="gbp-b"><b class="gbp-n">Junkaway &amp; Movers LLC</b><span class="gbp-r"><b>5.0</b><span class="stars" aria-hidden="true"><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg></span><span class="gbp-c">102 Google reviews</span></span><span class="gbp-t">Junk removal service</span></span></div>
+        </div>
+        <div class="cs-body">
+          <p class="cs-meta">Junk removal and moving · San Mateo, CA</p>
+          <h3 data-vtn="title" style="--vtn:cs-junkaway-movers-t">From 32 to 102 Google reviews in six months.</h3>
+          <p>The team already asked after each job. Rempo took over the follow-up.</p>
+          <ul class="cs-stats"><li><b>+70</b><span>new five-star reviews</span></li><li><b>6</b><span>months with Rempo</span></li></ul>
+          <span class="cs-more">Read the case study<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+        </div>
+      </a>
+      <a class="cs-card" href="https://rempo.io/case-studies/ranchero-plumbing/">
+        <div class="cs-vis" data-tilt data-vtn="vis" style="--vtn:cs-ranchero-plumbing">
+          <span class="cs-tag"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>First week</span><span class="cs-av"><img src="/media/testimonials/german-aquino-avatar.webp" alt="" width="28" height="28" decoding="async"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Owner's video</span>
+          <div class="s3d" aria-hidden="true" data-s3d='{"unit":6,"cols":[{"num":"5","cap":"Before Rempo","segs":[{"n":5,"k":"old"}]},{"num":"32","cap":"Under nine months open","rq":true,"segs":[{"n":5,"k":"old"},{"n":10,"k":"new","pill":"+10 in week one"},{"n":17,"k":"later"}]}]}'></div>
+          <div class="gbp" aria-hidden="true"><img class="gbp-ph" src="/media/case-studies/ranchero-van.webp" alt="" width="52" height="52" decoding="async"><span class="gbp-b"><b class="gbp-n">Ranchero Plumbing</b><span class="gbp-r"><b>5.0</b><span class="stars" aria-hidden="true"><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg><svg class="ic"><use href="#i-starf"/></svg></span><span class="gbp-c">32 Google reviews</span></span></span></div>
+        </div>
+        <div class="cs-body">
+          <p class="cs-meta">Plumbing · Half Moon Bay, CA</p>
+          <h3 data-vtn="title" style="--vtn:cs-ranchero-plumbing-t">10 five-star reviews in the first week.</h3>
+          <p>Two months after opening, Rempo reached back out to the customers Ranchero had already served.</p>
+          <ul class="cs-stats"><li><b>+10</b><span>five-star reviews in week one</span></li><li><b>32</b><span>reviews, under nine months open</span></li></ul>
+          <span class="cs-more">Read the case study<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+        </div>
+      </a>
+    </div>
+    <p class="cs-note">Review counts from each business's Google Business Profile. Every business is different, and we never promise a number of reviews.</p>
+  </div>
+</section>
+
+<section id="testimonials" class="vt-sec" aria-labelledby="vt-h">
+  <div class="wrap vt-sec-grid">
+    <div class="vt-sec-copy">
+      <header class="sec-head">
+        <p class="label eyebrow">Video testimonials</p>
+        <h2 id="vt-h" class="h2">Hear it from the owner.</h2>
+        <p class="lead">German Aquino owns Ranchero Plumbing in Half Moon Bay. Two months after opening, Rempo set up their review system. Here is the first week, in German's words.</p>
+      </header>
+      <blockquote class="vt-section-quote">
+        <q>We went from getting little to no reviews to having 10 in the first week.</q>
+        <cite><img src="/media/testimonials/german-aquino-avatar.webp" alt="" width="44" height="44" loading="lazy" decoding="async"><span><b>German Aquino</b>Owner, Ranchero Plumbing</span></cite>
+      </blockquote>
+      <p class="vt-links"><a href="https://rempo.io/case-studies/ranchero-plumbing/">Read Ranchero's case study<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+    </div>
+    <div class="vt-list">
+      <figure class="vt-card" data-vt data-name="German Aquino" data-role="Owner, Ranchero Plumbing" data-avatar="/media/testimonials/german-aquino-avatar.webp">
+        <button class="vt-frame" type="button" aria-label="Play German Aquino's video testimonial, full screen with sound" style="background-image:url(/media/testimonials/german-aquino-poster.webp)">
+          <video muted playsinline loop preload="none" poster="/media/testimonials/german-aquino-poster.webp" disablepictureinpicture>
+            <source src="/media/testimonials/german-aquino.mp4" type='video/mp4; codecs="avc1.640028, mp4a.40.2"'>
+            <source src="/media/testimonials/german-aquino.webm" type='video/webm; codecs="vp9, opus"'>
+            <track kind="captions" srclang="en" label="English" src="/media/testimonials/german-aquino.en.vtt" default>
+          </video>
+          <span class="vt-ui" aria-hidden="true">
+            <span class="vt-name"><img src="/media/testimonials/german-aquino-avatar.webp" alt="" width="34" height="34" decoding="async"><span><b>German Aquino</b><small>Owner, Ranchero Plumbing</small></span></span>
+            <span class="vt-grow"><svg class="ic" aria-hidden="true"><use href="#i-expand"/></svg></span>
+            <span class="vt-cap"><span></span></span>
+            <span class="vt-hint"><i><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></i><span class="t-hover">Hover to play · click for sound</span><span class="t-touch">Tap to play with sound</span></span>
+            <span class="vt-mute"><svg class="ic" aria-hidden="true"><use href="#i-volume-x"/></svg>Muted preview</span>
+            <span class="vt-bar"><i></i></span>
+          </span>
+        </button>
+        <figcaption class="vt-who"><b>German Aquino</b><span>Owner, Ranchero Plumbing · Half Moon Bay, CA · 0:34</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+<script src="/assets/proof.js" defer></script>
+<!-- proof:end -->
+  </main>
+
+  <footer>
+    <span>Rempo · rempo.io</span>
+    <a href="https://rempo.io/legal/privacy" target="_blank" rel="noopener">Privacy Policy</a>
+    <a href="https://rempo.io/legal/terms" target="_blank" rel="noopener">Terms of Service</a>
+  </footer>
+
+  <script type="module" src="/race/race.js"></script>
+</body>
+</html>
