@@ -39,7 +39,7 @@ Plumbing". The job software is never named.
 | `src/` | The film itself: a page that draws any moment of it. `kit.js` (the 3D pieces in the style of the page's art), `town.js` (the town, the basement, the crew photo), `stage.js` (renderer, light, day and night), `story.js` (the shots), `ui.css` (the cards, the phone, the statistics, in the page's fonts and colours) |
 | `tools/voice.py` | Makes the voiceover with Kokoro |
 | `tools/mix.py` | Makes the music bed and the effects (synthesised, so nothing to license) and mixes them under the voice |
-| `tools/render.mjs` | Renders every frame in headless Chromium, then encodes `../media/hero-video/` |
+| `tools/render.mjs` | Renders every frame in headless Chromium, checks that a fresh browser draws a sample of them the same, then encodes `../media/hero-video/` |
 | `rendered-from.json`, `tools/sources.mjs` | What the film in `../media/hero-video/` was rendered from (a hash of `src/`, `audio/timings.json` and `package-lock.json`). `npm test` fails while they differ, because the site would still be playing the film made before the change |
 | `tools/preview.mjs` | Single frames at chosen moments, for checking a change without rendering it all |
 | `tools/captions.mjs` | The WebVTT captions, from the voiceover's timing |
@@ -71,11 +71,21 @@ For a change to the picture only (the scenes, not the words or the voice), `node
 each film's sound and length: the sound is copied, packet for packet, from the films already in `../media/hero-video/`,
 and the picture ends on the frame theirs did. No Python and no `audio/mix.wav` needed.
 
-Every frame depends on its time only, whichever of the browsers draws it. Before each screenshot the renderer takes the
-2D layer out for one frame, so the browser draws the cards anew. Chromium otherwise keeps a card as it drew it in an
-earlier frame, up to half a pixel off, and frames from different browsers made still text shimmer.
+Every frame depends on its time only, whichever of the browsers draws it and whatever that browser drew before:
+
+- **The scene and the cards.** A frame starts from the 3D world and the 2D layer as they were built (`asBuilt` in
+  `src/story.js`), then the shot sets what that moment shows, so nothing one frame changes lasts into the next. A shot
+  sets everything it shows: what it leaves alone is as built. (A parked van once kept the wheel angle of the last drive
+  its browser had drawn, and the drops behind the search hung wherever that browser's last basement frame left them.)
+- **The drawing.** Before each screenshot the renderer takes the 2D layer out for one frame, so the browser draws the
+  cards anew. Chromium otherwise keeps a card as it drew it in an earlier frame, up to half a pixel off, and frames from
+  different browsers made still text shimmer.
+- **The check.** Before it encodes, the render has one fresh browser draw a sample of frames again in a shuffled order
+  (one in the middle of every shot and 16 more), and each must match the frame on disk byte for byte, or nothing is
+  encoded. `--no-check` skips it, for frames rendered on another machine.
 
 `node tools/preview.mjs 12 34.5 80` saves the frames at those seconds to `out/` (a few seconds each), and
 `node tools/serve.mjs` serves `http://127.0.0.1:8790/src/?t=34.5` (any moment) or `?play` to watch it run.
 The render skips frames already in `out/frames/`: after a change, delete the frames of the seconds it touches
-(frame number = seconds x 30) and run it again.
+(frame number = seconds x 30) and run it again. The frames drawn again match the ones kept, since no frame depends on
+the frames drawn before it, and the check also catches a kept frame from before the change if it lands on one.

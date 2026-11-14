@@ -79,20 +79,19 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     return proj(v3.x + dx, v3.y + dy, v3.z + dz);
   }
 
+  // The beams, the glows and the rings are pooled: a frame takes them in order. The pools are filled once, with the
+  // cards ("the frame", below), with as many as one frame draws. A pool that grew as frames needed it put its pieces
+  // in a different order in each browser.
+  const beamPool = [], glowPool = [], ringPool = [];
+  let beamN = 0, glowN = 0, ringN = 0;
+  function spare(pool, n, what) {
+    if (n >= pool.length) throw new Error(`story.js: a frame draws more ${what} than the ${pool.length} made for it`);
+    return pool[n];
+  }
   // beams: arcs between two screen points, drawn from a to b as k goes 0..1
-  const beamPool = [];
-  let beamN = 0;
   function beam(a, b, k, { o = 1, lift = 0.32, cls = '' } = {}) {
     if (k <= 0 || o <= 0) return;
-    let p = beamPool[beamN];
-    if (!p) {
-      p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      p.setAttribute('pathLength', '1');
-      p.setAttribute('stroke-dasharray', '1');
-      beamsSvg.appendChild(p);
-      beamPool.push(p);
-    }
-    beamN++;
+    const p = spare(beamPool, beamN++, 'beams');
     const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 - Math.hypot(b[0] - a[0], b[1] - a[1]) * lift;
     p.setAttribute('d', `M${a[0].toFixed(1)} ${a[1].toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`);
     p.setAttribute('stroke-dashoffset', (1 - clamp(k)).toFixed(4));
@@ -100,13 +99,9 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     p.style.opacity = o;
     p.style.display = '';
   }
-  const glowPool = [], ringPool = [];
-  let glowN = 0, ringN = 0;
   function glow(x, y, k) {
     if (k <= 0) return;
-    const g = glowPool[glowN] || (glowPool[glowN] = mk('', 'glow'));
-    glowN++;
-    show(g, { x: x + 46, y: y + 46, o: clamp(k), s: 0.4 + 0.6 * ease.outBack(clamp(k)) });
+    show(spare(glowPool, glowN++, 'glows'), { x: x + 46, y: y + 46, o: clamp(k), s: 0.4 + 0.6 * ease.outBack(clamp(k)) });
   }
   // rings spreading from a point: a phone ringing, a request landing
   function rings(x, y, t, a, b, color = '#1f86ff', every = 0.55) {
@@ -115,8 +110,7 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
       const ph = ((t - a) / every - i / 3);
       if (ph < 0) continue;
       const k = ph % 1;
-      const r = ringPool[ringN] || (ringPool[ringN] = mk('', 'ring'));
-      ringN++;
+      const r = spare(ringPool, ringN++, 'rings');
       r.style.color = color;
       show(r, { x: x + 120, y: y + 120, s: 0.2 + k * 0.85, o: (1 - k) * 0.9 * fade(t, a, 0.2) * gone(t, b - 0.25, 0.25) });
     }
@@ -218,11 +212,6 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
   };
   ph.photo = phone.querySelector('.ph');
   const viewOf = (v, o) => { v.style.opacity = o; };
-  function phoneReset() {
-    for (const v of [ph.search, ph.callRival, ph.callYou, ph.msgs]) viewOf(v, 0);
-    ph.tap.style.opacity = 0;
-    for (const el of phone.querySelectorAll('.hl,.hl-old,.hl-new')) el.classList.remove('hl', 'hl-old', 'hl-new');
-  }
   const ringEls = phone.querySelectorAll('.calling .who i');
   function tapAt(btn) {
     const r = btn.getBoundingClientRect(), v = ph.search.getBoundingClientRect(), k = v.width / ph.search.offsetWidth;
@@ -244,21 +233,19 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
   const nextDoor = doorOf(nextHouse);
   const roofTop = (h) => h.localToWorld(new THREE.Vector3(0, 3.55, 0));
 
-  function rest(t) {
-    for (const k of Object.keys(ppl)) { ppl[k].visible = false; pose(ppl[k], {}); ppl[k].rotation.set(0, 0, 0); }
-    for (const h of T.houses) { h.door.rotation.y = 0; h.inside.emissiveIntensity = 0; }
-    const vy = T.vans.yours; vy.visible = true; vy.position.set(-30, 0, LANE_NEAR); vy.rotation.y = Math.PI / 2; vy.userData.lightsOn = undefined;
-    const vr = T.vans.rival; vr.visible = true; vr.position.set(20.2, 0, 3.15); vr.rotation.y = -Math.PI / 2; vr.userData.lightsOn = undefined;
+  // Your van drives off to the next call in the quiet shot and stops at x = VAN_OFF. Wherever it is parked after that,
+  // its wheels stand as that drive left them.
+  const VAN_OFF = 9;
+  // Every frame starts here, once the world and the 2D layer are as built again (asBuilt, in "the frame" below):
+  // everyone off stage, the vans parked, day light and the opening view. Each shot then sets what it shows.
+  function rest() {
+    for (const k of Object.keys(ppl)) ppl[k].visible = false;
+    const vy = T.vans.yours; vy.position.set(-30, 0, LANE_NEAR); vy.rotation.y = Math.PI / 2; spin(vy, VAN_OFF);
+    const vr = T.vans.rival; vr.position.set(20.2, 0, 3.15); vr.rotation.y = -Math.PI / 2;
     T.vans.rival2.visible = false;
-    T.mark.visible = false;
-    T.yours.userData.on = 1; T.rival.userData.on = 1;
-    for (const m of T.windows) m.userData.on = 1;
     B.group.visible = false;
-    crewPhoto.group.visible = false;
-    canvas.style.filter = '';
-    veil.style.opacity = 0;
-    veil.style.background = '#fff';
-    bgn.style.opacity = 0;
+    night(0);
+    setCam([-2, 26, 40], [-6, 0, 1], 24);
   }
   function spin(v, dist) { v.wheels.forEach((wh) => { wh.rotation.x = dist / 0.29; }); }
   function setCam(pos, tgt, fov = 26) {
@@ -325,7 +312,7 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     setCam(keys(t, [[11.6, [-6.7, 5.0, 11.6]], [13.4, [-5.4, 6.9, 14.6], 'inOut'], [t2 - 0.4, [-5.0, 7.1, 15.2], 'inOutSine'], [t2 + 2.4, [-6.0, 13.2, 29.0], 'inOut'], [24.7, [-6.4, 13.4, 29.4]]]),
       keys(t, [[11.6, [-10.2, 1.95, 2.2]], [13.4, [-10.1, 3.1, 1.6], 'inOut'], [t2 - 0.4, [-10.0, 3.2, 1.6], 'inOutSine'], [t2 + 2.4, [-11.6, 2.9, 1.0], 'inOut'], [24.7, [-11.8, 2.9, 1.0]]]), 24);
     const vy = T.vans.yours;
-    const vx = keys(t, [[t2 + 0.3, -10.0], [24.4, 9, 'in']]);
+    const vx = keys(t, [[t2 + 0.3, -10.0], [24.4, VAN_OFF, 'in']]);
     vy.position.set(vx, 0, LANE_NEAR); spin(vy, vx);
     // Dana goes back in and the door closes; tech A goes back to the van
     const D = ppl.dana; D.visible = t < 12.75;
@@ -365,6 +352,12 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     veil.style.opacity = (ease.in(prog(t, 24.25, 24.7))).toFixed(3);
   });
 
+  // the leak: three drops falling from the tank, over and over (in the basement and behind the phone in the search)
+  const drip = (t) => B.drops.forEach((d, i) => {
+    const k = ((t * 1.6 + i / 3) % 1);
+    d.position.set(2.4, 0.62 - k * 0.6, -1.72 + k * 0.05);
+  });
+
   // 3. Tonight, across town: water on the basement floor. She grabs her phone.
   shot(24.7, 'basement', (t) => {
     B.group.visible = true;
@@ -379,11 +372,7 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     // the leak
     const pk = ease.out(prog(t, 24.9, 31.5));
     B.puddle.scale.set(0.35 + 2.15 * pk, 0.3 + 1.55 * pk, 1);
-    B.drops.forEach((d, i) => {
-      const k = ((t * 1.6 + i / 3) % 1);
-      d.position.set(2.4, 0.62 - k * 0.6, -1.72 + k * 0.05);
-      d.visible = true;
-    });
+    drip(t);
     // she comes down the stairs, sees the water, takes out her phone
     const Wm = B.woman; Wm.visible = true;
     const z = keys(t, [[25.0, -2.7], [27.2, 0.95, 'linear']]);
@@ -407,10 +396,10 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     setCam([bx + 5.6, 4.6, 9.6], [bx - 1.1, 1.3, 0.0], 26);
     B.light.intensity = 9;
     B.puddle.scale.set(2.5, 1.85, 1);
+    drip(t);
     const Wm = B.woman; Wm.visible = true; Wm.position.set(-1.2, 0, 0.55); Wm.rotation.y = 1.05; pose(Wm, { phone: 1, worried: 1 });
     Wm.parts.screenMat.emissiveIntensity = 1.3;
     canvas.style.filter = `blur(${(9 * fade(t, 31.2, 0.5)).toFixed(1)}px) brightness(${(1 - 0.45 * fade(t, 31.2, 0.5)).toFixed(3)})`;
-    phoneReset();
     const callAt = w('C5', 'calls');
     viewOf(ph.search, t < callAt + 0.45 ? 1 : 0);
     viewOf(ph.callRival, t >= callAt + 0.45 ? 1 : 0);
@@ -423,10 +412,7 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     ph.map.style.opacity = rk; ph.you.style.opacity = rk; ph.rival.style.opacity = fade(t, 33.0, 0.5);
     ph.you.style.transform = `translateY(${(1 - rk) * 40}px)`;
     ph.rival.style.transform = `translateY(${(1 - fade(t, 33.0, 0.5)) * 40}px)`;
-    ph.snip.style.display = 'none';
-    ph.you.querySelector('.l-recent .lt').textContent = 'Newest review: 5 months ago';
-    ph.you.querySelector('.l-reply .lt').textContent = 'No replies to reviews';
-    ph.you.querySelectorAll('.ln').forEach((x) => { x.classList.add('old'); x.classList.remove('new'); });
+    // your listing as built: the newest review five months old, no replies, no snippet
     // the highlights follow the narration
     const youRt = ph.you.querySelector('.rt'), youRecent = ph.you.querySelector('.l-recent'), youReply = ph.you.querySelector('.l-reply');
     const rvRecent = ph.rival.querySelector('.l-recent'), rvReply = ph.rival.querySelector('.l-reply');
@@ -566,7 +552,6 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     // the job software, connected
     const jin = ease.outQuint(prog(t, s('E2') + 0.1, s('E2') + 0.8));
     show(jobs, { x: 110 + (jin - 1) * 900, y: 600, ax: 0, ay: 0.5, o: jin });
-    j0.classList.remove('hl'); j0s.classList.remove('done'); j0s.innerHTML = `${ICON('clock')}In progress`;
     const con = w('E2', 'connect');
     const a = [110 + 760 * jin, 470], b = [mx - 50, my + 40];
     beam(a, b, ease.inOut(prog(t, con, con + 0.8)), { lift: 0.18 });
@@ -602,7 +587,6 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     glow(hx, hy, fade(t, sendAt + 0.45) * gone(t, 85.9, 0.4));
     show(P.sent, { x: hx + 40, y: hy + 90, ax: 0, ay: 0.5, o: fade(t, sendAt + 0.5) * gone(t, 85.9, 0.4), s: 0.85 * pop(t, sendAt + 0.5) });
     // her phone
-    phoneReset();
     viewOf(ph.msgs, 1);
     ph.clock.textContent = '2:40';
     const pin = ease.outQuint(prog(t, sendAt + 0.6, sendAt + 1.3));
@@ -682,7 +666,6 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     nextHouse.inside.emissiveIntensity = 1.2;
     const srch = w('F2', 'searches');
     canvas.style.filter = `blur(${(7 * fade(t, srch, 0.5)).toFixed(1)}px) brightness(${(1 - 0.35 * fade(t, srch, 0.5)).toFixed(3)})`;
-    phoneReset();
     const callAt = 104.35;
     viewOf(ph.search, t < callAt + 0.45 ? 1 : 0);
     viewOf(ph.callYou, t >= callAt + 0.45 ? 1 : 0);
@@ -751,6 +734,20 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
   });
 
   // ------------------------------------------------------------------ the frame
+  // The pools: as many beams, rings and glows as one frame draws (the asked shot's five beams and five glows, three
+  // rings), made after every card so they draw over the cards
+  const BEAMS = 5, RINGS = 3, GLOWS = 5;
+  for (let i = 0; i < BEAMS; i++) {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('pathLength', '1');
+    p.setAttribute('stroke-dasharray', '1');
+    p.style.display = 'none';
+    beamsSvg.appendChild(p);
+    beamPool.push(p);
+  }
+  for (let i = 0; i < RINGS; i++) ringPool.push(mk('', 'ring'));
+  for (let i = 0; i < GLOWS; i++) glowPool.push(mk('', 'glow'));
+
   // the crew photo for the thank-you, rendered once from the 3D set into the message
   function snapCrew() {
     crewPhoto.group.visible = true;
@@ -769,21 +766,67 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
   }
   snapCrew();
 
+  // Each card's size, measured once, with the final fonts: where a card stands does not depend on when it was first
+  // shown, or on what it held then.
+  for (const el of all) { el._w = el.offsetWidth; el._h = el.offsetHeight; }
+
+  // Every frame from its time alone. A frame starts from the world and the 2D layer as they are now, built, then
+  // rest() and the shot set what it shows. So nothing one frame changes lasts into the next, and a frame is the same
+  // whichever frames the browser drew before it: the render shares the frames among browsers, and a frame drawn again
+  // later in a fresh browser matches its neighbours. (Before, a parked van kept the wheel angle of the last drive its
+  // browser had drawn, and the search shot's drops hung wherever that browser's last basement frame left them.)
+  // Kept as built: every object's place, turn, size, visibility and userData; each light's strength and colours; each
+  // material's colour, glow, opacity and userData; and every node of the 2D layer, its attributes, text and children.
+  const asBuilt = (() => {
+    const objects = [], lights = [], looks = new Map(), nodes = [];
+    S.scene.traverse((o) => {
+      objects.push([o, o.position.clone(), o.rotation.clone(), o.scale.clone(), o.visible, { ...o.userData }]);
+      if (o.isLight) lights.push([o, o.intensity, o.color.clone(), o.groundColor ? o.groundColor.clone() : null]);
+      for (const m of [].concat(o.material || [])) {
+        if (!looks.has(m)) looks.set(m, [m.color ? m.color.clone() : null, m.emissive ? m.emissive.clone() : null, m.emissiveIntensity, m.opacity, { ...m.userData }]);
+      }
+    });
+    (function walk(n) {
+      if (n.nodeType !== Node.ELEMENT_NODE) { nodes.push([n, n.nodeValue]); return; }
+      nodes.push([n, [...n.attributes].map((a) => [a.name, a.value]), [...n.childNodes]]);
+      n.childNodes.forEach(walk);
+    })(ov);
+    const same = (data, was) => { for (const k in data) if (!(k in was)) delete data[k]; Object.assign(data, was); };
+    return () => {
+      for (const [o, p, r, s, v, ud] of objects) { o.position.copy(p); o.rotation.copy(r); o.scale.copy(s); o.visible = v; same(o.userData, ud); }
+      for (const [l, i, c, g] of lights) { l.intensity = i; l.color.copy(c); if (g) l.groundColor.copy(g); }
+      for (const [m, [c, e, ei, op, ud]] of looks) {
+        if (c) m.color.copy(c);
+        if (e) m.emissive.copy(e);
+        if (ei !== undefined) m.emissiveIntensity = ei;
+        m.opacity = op;
+        same(m.userData, ud);
+      }
+      for (const [n, was, kids] of nodes) {
+        if (!kids) { if (n.nodeValue !== was) n.nodeValue = was; continue; }
+        if (n.attributes.length !== was.length || was.some(([k, v]) => n.getAttribute(k) !== v)) {
+          for (const { name } of [...n.attributes]) if (!was.some(([k]) => k === name)) n.removeAttribute(name);
+          for (const [k, v] of was) if (n.getAttribute(k) !== v) n.setAttribute(k, v);
+        }
+        const now = n.childNodes;
+        if (now.length !== kids.length || kids.some((c, i) => now[i] !== c)) n.replaceChildren(...kids);
+      }
+      // the veil, the night sky and the canvas, which the shots dim, darken and blur: no style of their own
+      for (const el of [veil, bgn, canvas]) el.removeAttribute('style');
+    };
+  })();
+
   function update(t) {
     frame++;
     beamN = 0; glowN = 0; ringN = 0;
-    T.group.visible = true;
+    asBuilt();
     S.state.split = null;
-    rest(t);
+    rest();
     let cur = shots[0];
     for (const sh of shots) if (t >= sh.t0) cur = sh;
     cur.fn(t);
-    for (const el of all) if (el._f !== frame) el.style.opacity = '0';
-    for (let i = beamN; i < beamPool.length; i++) beamPool[i].style.display = 'none';
     S.render();
     return cur.name;
   }
-  // tell the layout cache about the final fonts
-  for (const el of all) { el._w = null; }
   return { update, duration: timings.duration, shots: shots.map((x) => [x.t0, x.name]) };
 }

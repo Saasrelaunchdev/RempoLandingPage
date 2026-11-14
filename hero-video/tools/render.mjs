@@ -7,6 +7,8 @@
 //            --keep-sound   for a change to the picture only: each film keeps its sound and its length (the films
 //                           already in ../media/hero-video/), so audio/mix.wav (and the Python tools that make it) are
 //                           not needed
+//            --no-check     skip the check that frames drawn again in a fresh browser match the frames on disk (see
+//                           check(): only for frames rendered on another machine)
 //
 // Writes ../media/hero-video/: rempo-story.mp4 (H.264 High, AAC), rempo-story.webm (VP9, Opus),
 // rempo-story.en.vtt (the captions, from audio/timings.json) and rempo-story-poster.webp.
@@ -23,6 +25,7 @@ import { sourcesHash } from './sources.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const HERE = new URL('..', import.meta.url).pathname;
 const FRAMES = HERE + 'out/frames/';
+const CHECK = HERE + 'out/check/';
 const MEDIA = HERE + '../media/hero-video/';
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i >= 0 ? process.argv[i + 1] : d; };
 const flag = (k) => process.argv.includes('--' + k);
@@ -78,6 +81,47 @@ async function frames() {
   console.log(`frames done in ${((Date.now() - t0) / 60000).toFixed(1)} min`);
 }
 
+// Every frame depends on its time alone, whichever browser draws it and whatever that browser drew before (owner
+// decision 2026-11-14). So before the film is encoded, one fresh browser draws a sample of the frames again, in a
+// shuffled order (a frame in the middle of every shot and 16 spread over the film), and each must come out byte for
+// byte as the frame on disk. Any that differ are saved to out/check/ and nothing is encoded. It can also catch a frame
+// left in out/frames/ from before a change, when the sample lands on one. --no-check skips it, for frames rendered on
+// another machine.
+async function check() {
+  const server = await serve(0);
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  page.on('pageerror', (e) => console.log('pageerror:', e.message));
+  await page.goto(`http://127.0.0.1:${server.address().port}/src/`);
+  await page.waitForFunction(() => window.ready, null, { timeout: 180000 });
+  const shots = await page.evaluate(() => window.shots);
+  const pick = new Set(shots.map(([t0], k) => Math.round(((t0 + (shots[k + 1] ? shots[k + 1][0] : timings.duration)) / 2) * FPS)));
+  for (let k = 0; k < 16; k++) pick.add(Math.floor(((k + 0.5) / 16) * N));
+  const sample = [...pick].filter((i) => i < N);
+  let seed = 7;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let k = sample.length - 1; k > 0; k--) { const j = Math.floor(rand() * (k + 1)); [sample[k], sample[j]] = [sample[j], sample[k]]; }
+  const differ = [];
+  for (const i of sample) {
+    await page.evaluate((t) => window.seek(t), i / FPS);
+    await page.evaluate(redraw);
+    const shot = await page.screenshot({ type: 'jpeg', quality: Q });
+    if (!shot.equals(await readFile(FRAMES + name(i)))) {
+      differ.push(i);
+      await mkdir(CHECK, { recursive: true });
+      await writeFile(CHECK + name(i), shot);
+    }
+  }
+  await browser.close();
+  server.close();
+  if (differ.length) {
+    throw new Error(`${differ.length} of ${sample.length} frames drawn again in a fresh browser differ from out/frames/ (saved to out/check/): `
+      + differ.map((i) => `${name(i)} (${(i / FPS).toFixed(2)} s)`).join(', ')
+      + '. Either a frame depends on state an earlier frame left behind, or out/frames/ holds frames from before a change.');
+  }
+  console.log(`checked: ${sample.length} frames drawn again in a fresh browser, in a shuffled order, match out/frames/ byte for byte`);
+}
+
 // the number of pictures (frames) in a film
 const pictures = (film) => new Promise((ok, no) => execFile('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-count_packets',
   '-show_entries', 'stream=nb_read_packets', '-of', 'csv=p=0', film], (e, out) => (e ? no(e) : ok(+out.trim()))));
@@ -129,4 +173,5 @@ async function encode() {
 }
 
 if (!flag('encode-only')) await frames();
+if (!flag('no-check')) await check();
 if (!flag('frames-only')) await encode();

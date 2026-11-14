@@ -101,6 +101,24 @@ test("every frame is drawn anew, whichever browser draws it, so still cards do n
     "hero-video/tools/render.mjs: redraw no longer takes the 2D layer (#ov) out for a frame");
 });
 
+test("every frame depends on its time alone, whatever frames the browser drew before", () => {
+  // A parked van kept the wheel angle of the last drive its browser had drawn, and the drops behind the search hung
+  // wherever that browser's last basement frame left them: a frame drawn again in a fresh browser could differ from
+  // its neighbours (Nov 14, 2026). Every frame now starts from the 3D world and the 2D layer as built.
+  const story = read("hero-video/src/story.js");
+  assert.match(story, /function update\(t\) \{[^}]*?asBuilt\(\);[^}]*?rest\(\);[^}]*?cur\.fn\(t\);/,
+    "hero-video/src/story.js: update(t) no longer starts the frame from the world and the 2D layer as built (asBuilt, then rest, then the shot)");
+  assert.match(story, /const asBuilt = \(\(\) => \{[\s\S]*?S\.scene\.traverse\([\s\S]*?\}\)\(ov\);/,
+    "hero-video/src/story.js: asBuilt no longer keeps both the 3D world and the 2D layer as built");
+  // the pools of beams, glows and rings are made once, so their pieces stand in one order in every browser
+  assert.doesNotMatch(story, /Pool\[\w+\] \|\| \(/, "hero-video/src/story.js: a pool grows as frames need it again, so its order depends on the frames drawn before");
+  const render = read("hero-video/tools/render.mjs");
+  assert.match(render, /async function check\(\)[\s\S]*?window\.seek\(t\), i \/ FPS\);\s*await page\.evaluate\(redraw\);[\s\S]*?shot\.equals\(await readFile\(FRAMES \+ name\(i\)\)\)/,
+    "hero-video/tools/render.mjs: check() no longer compares frames drawn again in a fresh browser with the frames on disk");
+  assert.match(render, /if \(!flag\('no-check'\)\) await check\(\);\s*if \(!flag\('frames-only'\)\) await encode\(\);/,
+    "hero-video/tools/render.mjs: the film is encoded without first checking that a fresh browser draws its frames the same");
+});
+
 test("the film the site plays was rendered from the scenes, timing and three.js as they are", async () => {
   const { sourcesHash } = await import("../../hero-video/tools/sources.mjs");
   assert.ok(existsSync(ROOT + "hero-video/rendered-from.json"), "hero-video/rendered-from.json is missing: run node hero-video/tools/render.mjs");
