@@ -6,6 +6,8 @@ It shares the master page's look (the same tokens, fonts, illustrations and comp
 
 Sources: the three methodologies the founder supplied (summarized in section 1), the go-to-market build repo (`rempogtmbuild`: GTM brief, dashboards 03, 04, 06, 07, 08, 10, 12 to 15, the lead magnet spec, the landing page's copy rules), and the master page in this repository.
 
+**2026-11-14: the Review Race replaced the Gap Check** (the owner's decision; see `../CLAUDE.md`). The hero's card is now the race's business search, and the race runs in its own section under the hero: the owner's Google reviews next to the three shops a homeowner sees first near them, a free preview, the full race for a first name and an email, then the call, booked on the founder's GoHighLevel calendar. The Gap Report is retired. The race is `../review-race/` (its widget, its server at `/api/race`, its emails); `tools/build.mjs` places it on every page. What stays from this plan: the visitor, the funnel's order (value first, contact details last, then the call), message match per ad angle, the section order around the hero, the copy rules, the consent and the phone pass. What changed: sections 5 (the Gap Check) and 8 (data and email) describe the first build and are kept as its record. Pixel conditioning now reads the business's Google category (`../review-race/api/_lib/race/fit.mjs`: a trade Rempo serves) instead of the survey's answers; leads are `review-race` and `review-race-later`; the visitor's emails are the race's.
+
 ---
 
 ## 1. What the methodologies say, and what each changes here
@@ -149,22 +151,22 @@ Everything below the hero is shared, so a test compares one variable: the angle 
 ```
 meta/
   PLAN.md, README.md           this plan; setup, deploy, operations
-  content/                     every word, the survey and the scoring, the variants, the site settings
-  src/                         template, styles, browser script
-  lib/gapcheck.mjs             scoring, tiers, gaps, fit and routing: one file for the browser and the server
-  api/lead.mjs                 the Meta lead endpoint (store, notify, Conversions API, prospect email)
-  api/_lib/                    shared copies from ../api/_lib, plus capi.mjs and prospect-email.mjs
-  tools/                       build, dev server, image processing, copy lint, sync
-  tests/                       scoring, endpoint, copy rules, build, the page in a real browser
-../customers/                  the built pages, served at /customers (committed)
-../api/meta-lead.mjs           the function Vercel runs at /api/meta-lead (runs api/lead.mjs)
+  content/                     every word on the page, the variants, the site settings
+  src/                         template, styles, browser script (consent, pixel, the race's events)
+  sql/meta-leads-view.sql      an optional flat view of the page's leads, for the Supabase dashboard
+  tools/                       build, dev server, image processing, copy lint
+  tests/                       copy rules, build, the SQL view, the page and the cookie notice in a real browser
+../review-race/                the Review Race: widget (public/race/), server (api/), its tables (sql/race.sql)
+../customers/                  the built pages, served at /customers (committed), with the race's widget in assets/race/
+../api/race.mjs                the function Vercel runs at /api/race (runs review-race/api/race.mjs)
+../api/race-cron.mjs           the race's daily job at /api/race-cron (follow-ups, updates, clearing review text)
 ```
 
-Vercel: the master page's project, with nothing to set up. `node tools/build.mjs` writes the pages to the repository's `customers/` folder (committed; Vercel runs no build and serves it at `/customers`), and the root `api/meta-lead.mjs` runs `api/lead.mjs` at `/api/meta-lead`, with the master page's environment variables. The root `vercel.json` adds the function's time limit, the `/customers` headers and a redirect that keeps `meta/` from being served; the root `.vercelignore` leaves out what the function does not import.
+Vercel: the master page's project. `node tools/build.mjs` writes the pages to the repository's `customers/` folder (committed; Vercel runs no build and serves it at `/customers`), and the root `api/race.mjs` runs the Review Race at `/api/race`, with the master page's environment variables plus the race's own (`../review-race/README.md`). The root `vercel.json` adds the race's two functions and its daily cron, the `/customers` headers and the `/meta/*` redirect.
 
 ## 10. Quality bar
 
-- The first question is visible without scrolling on a 390 x 844 phone.
+- The hero's business search is visible without scrolling on a 390 x 844 phone (before 2026-11-14: the Gap Check's first question).
 - Every claim passes the GTM's copy rules (`content` is linted on every build): no promised reviews or rankings, no price or terms until the offer is decided, no "instant" or "automatic", no named job software, no em dashes.
 - No caption under the illustrations (removed at the owner's request, 2026-11-07): they read as internal notes. So no sample may pass for real proof: a sample review stays inside its illustration, never alone as a testimonial, and the sample report is shown as the product's example. No invented testimonial, count or logo.
 - Keyboard and screen reader work through the whole Gap Check; contrast from the master page's tokens; reduced motion respected.

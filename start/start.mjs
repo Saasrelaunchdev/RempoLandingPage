@@ -6,7 +6,7 @@ import { routeFor, priceSummary, renewalText, formatMoney } from "/assets/checko
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const params = new URLSearchParams(location.search);
-const NOTICE_VERSION = "2026-11-08";   // the consent and policy wording on this page (legal-src/settings.mjs, noticeVersion)
+const NOTICE_VERSION = "2026-11-14";   // the consent and policy wording on this page (legal-src/settings.mjs, noticeVersion)
 const UTM = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid"];
 const bornAt = Date.now();
 const store = { get(k) { try { return JSON.parse(sessionStorage.getItem(k) || "null"); } catch { return null; } },

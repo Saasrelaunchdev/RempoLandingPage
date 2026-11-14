@@ -1,0 +1,6 @@
+# Only public/ (the page) and api/ (the functions) are needed in the deployment.
+tests/
+tools/
+sql/
+README.md
+.env.example

@@ -1,0 +1,299 @@
+/* ============================================================
+   Proof: case studies and video testimonials. Shared by the landing page (index.html) and the case study
+   pages. Every colour is a token from the page (index.html inline, or /assets/site.css), white, or a mix.
+   Motion follows the brand: ease-out for things arriving, transform and opacity only, numbers never count
+   up. Tier C (reduced motion, Save-Data, ?tier=c) shows every scene at its end state.
+   ============================================================ */
+
+/* Page to page: the case study card grows into the case study's hero, and back (cross-document View
+   Transitions; browsers without them simply load the page) */
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+/* Named on the landing page's cards and on each case study's hero only, from the case study's slug (--vtn, set by
+   the renderer). The theme switch (html.vt-reveal) reveals the whole page in one circle, so the names step aside */
+[data-vtn]{view-transition-name:var(--vtn)}
+[data-vtn="vis"]{view-transition-class:cs-vis}
+[data-vtn="title"]{view-transition-class:cs-title}
+.vt-reveal [data-vtn]{view-transition-name:none}
+::view-transition-group(*.cs-vis){animation-duration:.55s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+::view-transition-group(*.cs-title){animation-duration:.5s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+::view-transition-old(*.cs-vis),::view-transition-new(*.cs-vis){height:100%;object-fit:cover}
+::view-transition-old(*.cs-title),::view-transition-new(*.cs-title){height:100%;object-fit:none;object-position:left top}
+
+/* ============================================================
+   The business's Google profile, as a card: the same paper card as the reviews on the landing page
+   ============================================================ */
+.gbp{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 12px;align-items:center;width:min(100%,300px);padding:12px 14px 12px 12px;border-radius:16px;background:#fff;color:var(--c-ink-950);box-shadow:0 0 0 1px color-mix(in srgb,var(--c-ink-300) 55%,transparent),0 22px 44px -20px color-mix(in srgb,var(--c-ink-975) 60%,transparent)}
+.gbp-ph{width:52px;height:52px;border-radius:12px;object-fit:cover;background:var(--c-ink-100)}
+.gbp-ini{display:grid;place-items:center;background:var(--c-grad-forward);color:var(--c-ink-975);font:800 22px/1 var(--f-display)}
+.gbp-b{display:grid;gap:3px;min-width:0}
+.gbp-n{font:700 14.5px/1.2 var(--f-text);color:var(--c-ink-950);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gbp-r{display:flex;flex-wrap:wrap;align-items:center;gap:4px 7px;font:600 13px/1.2 var(--f-text);color:var(--c-neutral-800)}
+.gbp-r .stars .ic{width:13px;height:13px}
+.gbp-c{color:var(--c-primary-700);white-space:nowrap}
+.gbp-t{font:500 12px/1.2 var(--f-text);color:var(--c-neutral-600)}
+.gbp-was{grid-column:1 / -1;justify-self:start;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--c-primary-50);color:var(--c-primary-700);font:600 12px/1.2 var(--f-text)}
+.gbp-was .ic{width:14px;height:14px;stroke-width:2.2}
+.gbp-was s{color:var(--c-neutral-700);text-decoration-thickness:1.5px}
+.stars{display:flex;gap:2px;color:var(--c-primary-500)}
+
+/* ============================================================
+   The 3D stack: CSS 3D only. A plate tilted toward the camera, one column of reviews per moment
+   (built by /assets/proof.js from data-s3d). Faces are real planes; labels face the camera
+   ============================================================ */
+.s3d{position:relative;overflow:visible;pointer-events:none;--old:var(--c-ink-200);--new:var(--c-primary-500);--later:var(--c-primary-300);--plate:color-mix(in srgb,var(--c-primary-100) 55%,var(--c-bg));--plate-line:color-mix(in srgb,var(--c-primary-400) 22%,transparent)}
+[data-theme="dark"] .s3d{--old:var(--c-ink-700);--later:color-mix(in srgb,var(--c-primary-400) 60%,var(--c-ink-800));--plate:color-mix(in srgb,var(--c-primary-500) 14%,var(--c-ink-900));--plate-line:color-mix(in srgb,var(--c-primary-300) 16%,transparent)}
+.s3d-cam{position:absolute;left:50%;top:50%;width:0;height:0;perspective:1700px;perspective-origin:0 0}
+.s3d-rig,.s3d-rig *{transform-style:preserve-3d}
+.s3d-rig{position:absolute;left:0;top:0;width:0;height:0}
+.s3d-world{position:absolute}
+.s3d-turn{position:absolute;inset:0}
+.s3d-plate{position:absolute;inset:0;border-radius:30px;background:radial-gradient(70% 80% at 60% 45%,color-mix(in srgb,var(--c-primary-300) 22%,var(--plate)),var(--plate));box-shadow:0 0 0 1.5px var(--plate-line) inset;transform-style:flat}
+.s3d-plate::before{content:"";position:absolute;inset:14px;border-radius:20px;background:repeating-linear-gradient(0deg,var(--plate-line) 0 1px,transparent 1px 28px),repeating-linear-gradient(90deg,var(--plate-line) 0 1px,transparent 1px 28px);opacity:.7;-webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent);mask-image:radial-gradient(closest-side,#000 55%,transparent)}
+.s3d-shadow{position:absolute;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--c-shadow) 26%,transparent),transparent);filter:blur(6px)}
+[data-theme="dark"] .s3d-shadow{background:radial-gradient(closest-side,color-mix(in srgb,#000 55%,transparent),transparent)}
+.s3d-shadow.s3d-glow{background:radial-gradient(closest-side,color-mix(in srgb,var(--c-accent) 38%,transparent),transparent);filter:blur(10px)}
+.s3d-col{position:absolute}
+.s3d-seg{position:absolute;inset:0}
+.s3d-bx{position:absolute;inset:0;--c:var(--old)}
+.s3d-bx.k-new{--c:var(--new)}
+.s3d-bx.k-later{--c:var(--later)}
+.s3d-f{position:absolute;left:50%;top:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+/* light from the front left: the top is lightest, the front plain, the left side in shade. Lines mark every ten reviews */
+.s3d-f.s3d-top{background:color-mix(in srgb,var(--c),#fff 22%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c),#fff 40%)}
+.s3d-f.s3d-fr{background:linear-gradient(180deg,color-mix(in srgb,var(--c),#fff 6%),var(--c))}
+/* a side face is laid out on its side: its width runs up the column, so its gradients run left to right */
+.s3d-f.s3d-lf{background:linear-gradient(270deg,color-mix(in srgb,var(--c),#000 10%),color-mix(in srgb,var(--c),#000 20%))}
+.s3d-f.s3d-fr::after,.s3d-f.s3d-lf::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 calc(var(--ten) - 1px),color-mix(in srgb,#fff 42%,transparent) calc(var(--ten) - 1px) var(--ten));opacity:.75}
+.s3d-f.s3d-lf::after{background:repeating-linear-gradient(90deg,transparent 0 calc(var(--ten) - 1px),color-mix(in srgb,#fff 30%,transparent) calc(var(--ten) - 1px) var(--ten))}
+.k-new .s3d-f.s3d-top{background:color-mix(in srgb,var(--c),#fff 38%)}
+.k-new .s3d-f.s3d-fr{background:linear-gradient(180deg,color-mix(in srgb,var(--c),#fff 18%),var(--c))}
+.s3d-lb{position:absolute;width:0;height:0}
+.s3d-lb > span{position:absolute;left:0;bottom:0;translate:-50% 0;transform-origin:50% 100%;scale:var(--k,1);display:grid;justify-items:center;gap:2px;white-space:nowrap;text-align:center}
+.s3d-num{font:800 30px/1 var(--f-display);letter-spacing:-.02em;color:var(--c-heading);font-variant-numeric:tabular-nums}
+.s3d-cap{font:600 12.5px/1.25 var(--f-text);color:var(--c-text-2)}
+.s3d-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--c-accent-fill);color:var(--c-on-accent);font:700 13px/1 var(--f-text);box-shadow:0 12px 26px -12px color-mix(in srgb,var(--c-primary-700) 70%,transparent)}
+.s3d-pill.s3d-soft{background:#fff;color:var(--c-ink-950);box-shadow:0 0 0 1.5px var(--c-primary-300),0 12px 26px -14px color-mix(in srgb,var(--c-ink-975) 50%,transparent)}
+.s3d-lb.s3d-side > span{left:16px;bottom:auto;top:0;translate:0 -50%;transform-origin:0 0}
+
+/* The request card, the brand's motif: one request after one job, white, the team photo, five stars */
+.s3d-rq{position:absolute;width:0;height:0}
+.s3d-rq > i{position:absolute;left:-12px;top:-34px;width:24px;height:33px;border-radius:5px;background:#fff;box-shadow:0 0 0 1px color-mix(in srgb,var(--c-ink-300) 70%,transparent),0 8px 16px -8px color-mix(in srgb,var(--c-ink-975) 70%,transparent)}
+.s3d-rq > i::before{content:"";position:absolute;left:4px;top:4px;width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#2BD0FF,#1A5CF0)}
+.s3d-rq > i::after{content:"";position:absolute;left:4px;right:4px;bottom:5px;height:3px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--c-primary-500) 0 3px,transparent 3px 4.5px)}
+
+/* Motion (tier A): the plate settles, each column rises from its base, the labels arrive, then the requests
+   keep travelling up into the newest column. The scene turns a little, and leans toward the pointer */
+.js:not(.tier-c) .s3d-bx{scale:1 1 .001}
+.js:not(.tier-c) .s3d-lb > span{opacity:0;translate:-50% 8px}
+.js:not(.tier-c) .s3d-lb.s3d-side > span{translate:-6px -50%}
+.js:not(.tier-c) .s3d-rq > i{opacity:0}
+.js:not(.tier-c) .s3d.s3d-in .s3d-bx{animation:s3d-rise .95s cubic-bezier(.22,1,.36,1) var(--d,0ms) both}
+.js:not(.tier-c) .s3d.s3d-in .s3d-lb > span{animation:s3d-label .5s cubic-bezier(.22,1,.36,1) var(--d,0ms) both}
+.js:not(.tier-c) .s3d.s3d-in .s3d-lb.s3d-side > span{animation-name:s3d-label-side}
+.js:not(.tier-c) .s3d.s3d-in .s3d-rq > i{animation:s3d-rq 5.6s cubic-bezier(.45,0,.2,1) var(--d,0ms) infinite}
+.js:not(.tier-c) .s3d.s3d-in .s3d-turn{animation:s3d-turn 14s ease-in-out 1.2s infinite alternate}
+.s3d:not(.s3d-vis) *{animation-play-state:paused!important}
+@keyframes s3d-rise{from{scale:1 1 .001}to{scale:1 1 1}}
+@keyframes s3d-label{from{opacity:0;translate:-50% 8px}to{opacity:1;translate:-50% 0}}
+@keyframes s3d-label-side{from{opacity:0;translate:-6px -50%}to{opacity:1;translate:0 -50%}}
+@keyframes s3d-rq{0%{opacity:0;translate:0 10px;scale:.8}12%{opacity:1;translate:0 0;scale:1}70%{opacity:1;translate:0 var(--rise);scale:1}86%,100%{opacity:0;translate:0 var(--rise);scale:.6}}
+@keyframes s3d-turn{from{rotate:z -2.4deg}to{rotate:z 2.4deg}}
+.tier-c .s3d-rq{display:none}
+
+/* ============================================================
+   Case study cards (the landing page, and "next case study" on each case study page)
+   ============================================================ */
+.cs-grid{display:grid;gap:20px}
+.cs-card{position:relative;display:grid;grid-template-rows:auto 1fr;border-radius:var(--r-card);background:var(--c-surface);border:1px solid var(--c-line);overflow:hidden;text-decoration:none;color:inherit;isolation:isolate;transition:transform var(--t-ui) var(--ease-out),box-shadow var(--t-ui) var(--ease-out),border-color var(--t-ui) ease}
+.cs-card:focus-visible{outline-offset:4px;border-radius:var(--r-card)}
+.cs-vis{position:relative;aspect-ratio:4 / 3;overflow:hidden;background:radial-gradient(70% 80% at 62% 30%,color-mix(in srgb,var(--c-accent) 16%,var(--c-bg)),var(--c-bg) 75%);border-bottom:1px solid var(--c-line)}
+[data-theme="dark"] .cs-vis{background:radial-gradient(70% 80% at 62% 30%,color-mix(in srgb,var(--c-accent) 22%,var(--c-ink-975)),var(--c-ink-975) 75%)}
+.cs-vis .s3d{position:absolute;inset:4% 3% 36% 3%}
+.cs-vis .gbp{position:absolute;left:14px;bottom:14px;z-index:2;width:min(calc(100% - 28px),292px);transition:transform .5s var(--ease-out)}
+.cs-tag{position:absolute;z-index:2;top:14px;left:14px;display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 9px;border-radius:999px;background:color-mix(in srgb,var(--c-bg) 82%,transparent);box-shadow:0 0 0 1px var(--c-line-strong);color:var(--c-heading);font:600 12.5px/1 var(--f-text);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.cs-tag .ic{width:15px;height:15px;color:var(--c-accent-text);stroke-width:2}
+.cs-av{position:absolute;z-index:2;top:12px;right:12px;display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:var(--c-ink-950);color:#fff;font:600 12.5px/1 var(--f-text);box-shadow:0 10px 24px -12px color-mix(in srgb,var(--c-ink-975) 80%,transparent)}
+.cs-av img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.cs-av .ic{width:13px;height:13px;fill:currentColor;stroke:none}
+.cs-body{display:grid;gap:12px;align-content:start;padding:22px 22px 24px}
+.cs-meta{font:600 13.5px/1.35 var(--f-text);color:var(--c-text-2)}
+.cs-body h3{font-size:clamp(22px,2.2vw,28px);line-height:1.12;font-weight:800}
+.cs-body > p{color:var(--c-text-2)}
+.cs-stats{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:4px;padding-top:14px;border-top:1px solid var(--c-line)}
+.cs-stats li{display:grid;gap:2px}
+.cs-stats b{font:800 26px/1 var(--f-display);letter-spacing:-.01em;color:var(--c-heading);font-variant-numeric:tabular-nums}
+.cs-stats span{font:500 13.5px/1.3 var(--f-text);color:var(--c-text-2)}
+.cs-more{display:inline-flex;align-items:center;gap:8px;margin-top:6px;font-weight:600;color:var(--c-accent-text)}
+.cs-more .ic{width:18px;height:18px;transition:transform var(--t-ui) var(--ease-out)}
+.cs-note{margin-top:22px;font-size:14.5px;color:var(--c-text-2);max-width:760px}
+@media (hover:hover) and (pointer:fine){
+  .cs-card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--c-accent) 45%,var(--c-line));box-shadow:0 34px 70px -40px color-mix(in srgb,var(--c-accent) 60%,transparent)}
+  .cs-card:hover .cs-more .ic{transform:translateX(4px)}
+  .cs-card:hover .gbp{transform:translateY(-4px)}
+}
+.cs-card:active{transform:scale(.99)}
+@media (min-width:600px){.cs-vis{aspect-ratio:16 / 10}.cs-vis .s3d{inset:6% 3% 8% 40%}}
+@media (min-width:900px){.cs-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}.cs-body{padding:26px 28px 28px}}
+@media (min-width:900px) and (max-width:1100px){.cs-vis .s3d{inset:6% 2% 30% 30%}}
+@media (max-width:599px){.cs-vis .gbp{left:10px;bottom:10px;padding:10px 12px 10px 10px;gap:8px 10px}.gbp-ph{width:42px;height:42px;border-radius:10px}.gbp-n{font-size:13.5px}.cs-stats b{font-size:23px}}
+
+/* ============================================================
+   Before and after: the business's own Google profile, the same frame, switched
+   ============================================================ */
+.pf{display:grid;gap:14px}
+.pf-tabs{display:inline-flex;justify-self:start;padding:4px;border-radius:999px;background:var(--c-surface-2);box-shadow:inset 0 0 0 1px var(--c-line-strong)}
+.pf-tabs button{min-height:40px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--c-text-2);font:600 14px/1 var(--f-text);cursor:pointer;transition:background-color var(--t-ui) ease,color var(--t-ui) ease,transform var(--t-press) var(--ease-out)}
+.pf-tabs button:active{transform:scale(.97)}
+.pf-tabs button[aria-pressed="true"]{background:var(--c-heading);color:var(--c-bg)}
+.pf-frame{position:relative;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--c-line-strong),var(--shadow-soft)}
+.pf-frame img{display:block;width:100%;height:auto;aspect-ratio:var(--ar)}
+.pf-frame img + img{position:absolute;inset:0;height:100%}
+.pf-frame img{transition:opacity .5s var(--ease-out)}
+.pf-frame[data-show="0"] img[data-k="1"],.pf-frame[data-show="1"] img[data-k="0"]{opacity:0}
+.pf-frame[data-show="1"] img[data-k="1"]{opacity:1}
+/* the ring sits on the review count in both pictures */
+.pf-ring{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);border-radius:12px;box-shadow:0 0 0 3px var(--c-accent),0 0 22px color-mix(in srgb,var(--c-accent) 55%,transparent);pointer-events:none}
+.js:not(.tier-c) .pf-frame.pf-ping .pf-ring{animation:pf-ping .9s var(--ease-out)}
+@keyframes pf-ping{0%{scale:1.12;opacity:0}40%{opacity:1}100%{scale:1;opacity:1}}
+.pf-cap{font:500 14px/1.45 var(--f-text);color:var(--c-text-2)}
+.pf-cap b{color:var(--c-heading)}
+
+/* ============================================================
+   Video testimonials. The card plays on hover, muted, with the words on screen; a click (or a tap) opens
+   the film full screen with sound
+   ============================================================ */
+.vt-card{display:grid;gap:14px;justify-items:start;width:min(100%,360px)}
+.vt-frame{all:unset;box-sizing:border-box;position:relative;display:block;width:100%;aspect-ratio:9 / 16;border-radius:24px;overflow:hidden;cursor:pointer;background:var(--c-ink-975) center / cover no-repeat;box-shadow:0 0 0 1px color-mix(in srgb,#fff 12%,transparent),0 40px 80px -40px color-mix(in srgb,var(--c-ink-975) 90%,transparent),0 30px 70px -50px color-mix(in srgb,var(--c-accent) 70%,transparent);isolation:isolate;-webkit-tap-highlight-color:transparent;transition:transform var(--t-open) var(--ease-out),box-shadow var(--t-open) var(--ease-out)}
+.vt-frame:focus-visible{outline:2px solid var(--focus);outline-offset:4px;border-radius:24px}
+.vt-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent}
+.vt-frame::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,color-mix(in srgb,var(--c-ink-975) 45%,transparent) 0%,transparent 22%,transparent 58%,color-mix(in srgb,var(--c-ink-975) 78%,transparent) 100%);pointer-events:none;transition:opacity var(--t-open) ease}
+.vt-ui{position:absolute;inset:0;z-index:2;pointer-events:none}
+.vt-name{position:absolute;left:14px;top:14px;right:64px;display:flex;align-items:center;gap:9px;color:#fff}
+.vt-name img{width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px color-mix(in srgb,#fff 70%,transparent)}
+.vt-name b{display:block;font:700 14px/1.15 var(--f-text)}
+.vt-name small{display:block;font:500 12px/1.2 var(--f-text);color:color-mix(in srgb,#fff 78%,transparent)}
+.vt-grow{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:color-mix(in srgb,var(--c-ink-975) 55%,transparent);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px color-mix(in srgb,#fff 22%,transparent);transition:scale var(--t-ui) var(--ease-out)}
+.vt-grow .ic{width:19px;height:19px;stroke-width:2}
+.vt-hint{position:absolute;left:50%;bottom:22px;translate:-50% 0;display:inline-flex;align-items:center;gap:9px;padding:9px 16px 9px 10px;border-radius:999px;background:color-mix(in srgb,#fff 94%,transparent);color:var(--c-ink-950);font:600 13.5px/1 var(--f-text);white-space:nowrap;box-shadow:0 14px 30px -14px color-mix(in srgb,var(--c-ink-975) 80%,transparent);transition:opacity var(--t-ui) var(--ease-out),translate var(--t-ui) var(--ease-out)}
+.vt-hint i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--c-grad-forward);color:var(--c-on-accent)}
+.vt-hint .ic{width:12px;height:12px;fill:currentColor;stroke:none;margin-left:2px}
+.vt-hint .t-touch{display:none}
+@media (hover:none){.vt-hint .t-hover{display:none}.vt-hint .t-touch{display:inline}}
+.vt-mute{position:absolute;left:14px;bottom:20px;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb,var(--c-ink-975) 60%,transparent);color:#fff;font:600 12px/1 var(--f-text);opacity:0;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:opacity var(--t-ui) ease}
+.vt-mute .ic{width:14px;height:14px;stroke-width:2}
+.vt-bar{position:absolute;left:14px;right:14px;bottom:10px;height:3px;border-radius:3px;background:color-mix(in srgb,#fff 26%,transparent);overflow:hidden;opacity:0;transition:opacity var(--t-ui) ease}
+.vt-bar i{display:block;height:100%;width:100%;background:#fff;transform-origin:left;transform:scaleX(var(--p,0))}
+/* Captions: the words, a phrase at a time, on a dark strip that follows the lines */
+.vt-cap{position:absolute;left:12px;right:12px;bottom:58px;display:flex;justify-content:center;text-align:center;text-wrap:balance;opacity:0;transition:opacity .15s ease}
+.vt-cap span{padding:3px 8px;border-radius:7px;background:color-mix(in srgb,var(--c-ink-975) 80%,transparent);color:#fff;font:600 15px/1.55 var(--f-text);-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.vt-cap.vt-on{opacity:1}
+.vt-card.vt-live .vt-hint{opacity:0;translate:-50% 8px}
+.vt-card.vt-live .vt-mute,.vt-card.vt-live .vt-bar{opacity:1}
+.vt-card.vt-live .vt-frame::after{opacity:.85}
+.vt-who{display:grid;gap:2px}
+.vt-who b{font:700 16px/1.3 var(--f-text);color:var(--c-heading)}
+.vt-who span{font-size:14.5px;color:var(--c-text-2)}
+@media (hover:hover) and (pointer:fine){
+  .vt-frame:hover{transform:translateY(-4px) scale(1.012)}
+  .vt-frame:hover .vt-grow{scale:1.08}
+}
+.vt-frame:active{transform:scale(.985)}
+
+/* The film, full screen: the card grows into it (FLIP), the words stay on, sound on */
+html.vt-open{overflow:hidden}
+html.vt-open .sticky-bar{transform:translateY(110%)}
+.vt-dlg{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:#fff;overflow:hidden}
+.vt-dlg::backdrop{background:color-mix(in srgb,var(--c-ink-975) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.vt-dlg[open]{display:grid;place-items:center}
+.vt-dlg:focus{outline:none}
+.vt-stage{position:relative;height:min(calc(100svh - 48px),calc((100vw - 32px) * 16 / 9));aspect-ratio:9 / 16;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 0 0 1px color-mix(in srgb,#fff 14%,transparent),0 50px 120px -40px #000;transform-origin:0 0}
+.vt-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+/* a wide film (the hero's story): 16:9, as large as the window allows */
+.vt-stage.vt-wide{height:auto;width:min(calc(100vw - 48px),calc((100svh - 48px) * 16 / 9));aspect-ratio:16 / 9}
+.vt-stage:fullscreen{width:100%;height:100%;border-radius:0;aspect-ratio:auto}
+.vt-stage:-webkit-full-screen{width:100%;height:100%;border-radius:0}
+.vt-stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,color-mix(in srgb,#000 55%,transparent) 0%,transparent 18%,transparent 62%,color-mix(in srgb,#000 82%,transparent) 100%);pointer-events:none;transition:opacity .3s ease}
+.vt-stage .vt-name{z-index:2;left:18px;top:18px}
+.vt-stage .vt-name,.vt-stage .vt-cap{pointer-events:none}
+.vt-stage .vt-name[hidden],.vt-name img[hidden]{display:none}
+.vt-stage .vt-cap{z-index:2;bottom:96px;left:16px;right:16px}
+.vt-stage .vt-cap span{font-size:clamp(16px,2.2vh,20px);padding:4px 10px}
+.vt-ctl{position:absolute;z-index:3;left:12px;right:12px;bottom:12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;align-items:center;gap:6px;padding:6px;border-radius:16px;background:color-mix(in srgb,var(--c-ink-975) 66%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px color-mix(in srgb,#fff 14%,transparent);transition:opacity .3s ease,translate .3s var(--ease-out)}
+.vt-ctl button{all:unset;box-sizing:border-box;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;color:#fff;cursor:pointer;transition:background-color var(--t-ui) ease,transform var(--t-press) var(--ease-out)}
+.vt-ctl button:focus-visible{outline:2px solid var(--c-primary-300);outline-offset:1px}
+.vt-ctl button:active{transform:scale(.94)}
+@media (hover:hover) and (pointer:fine){.vt-ctl button:hover{background:color-mix(in srgb,#fff 14%,transparent)}}
+.vt-ctl .ic{width:20px;height:20px;stroke-width:2}
+.vt-ctl .ic.vt-fill{fill:currentColor;stroke:none}
+.vt-ctl [aria-pressed="false"] .ic{opacity:.55}
+.vt-ctl .vt-off{display:none}
+.vt-seekwrap{display:grid;gap:3px;min-width:0;padding:0 6px}
+.vt-seek{-webkit-appearance:none;appearance:none;width:100%;height:24px;margin:0;background:transparent;cursor:pointer;--p:0%}
+.vt-seek:focus-visible{outline:2px solid var(--c-primary-300);outline-offset:2px;border-radius:6px}
+.vt-seek::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(90deg,#fff var(--p),color-mix(in srgb,#fff 28%,transparent) var(--p))}
+.vt-seek::-moz-range-track{height:4px;border-radius:4px;background:linear-gradient(90deg,#fff var(--p),color-mix(in srgb,#fff 28%,transparent) var(--p))}
+.vt-seek::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px color-mix(in srgb,var(--c-primary-400) 45%,transparent)}
+.vt-seek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px color-mix(in srgb,var(--c-primary-400) 45%,transparent)}
+.vt-time{font:600 11.5px/1 var(--f-text);color:color-mix(in srgb,#fff 75%,transparent);font-variant-numeric:tabular-nums}
+.vt-x{position:fixed;z-index:4;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));display:grid;place-items:center;width:48px;height:48px;border:0;border-radius:50%;background:color-mix(in srgb,#fff 12%,transparent);color:#fff;cursor:pointer;box-shadow:inset 0 0 0 1px color-mix(in srgb,#fff 24%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:background-color var(--t-ui) ease,transform var(--t-press) var(--ease-out)}
+.vt-x:active{transform:scale(.94)}
+.vt-x .ic{width:22px;height:22px;stroke-width:2}
+.vt-x:focus-visible{outline:2px solid var(--c-primary-300);outline-offset:3px}
+@media (hover:hover) and (pointer:fine){.vt-x:hover{background:color-mix(in srgb,#fff 20%,transparent)}}
+.vt-stage.vt-idle .vt-ctl{opacity:0;translate:0 8px;pointer-events:none}
+.vt-stage.vt-idle{cursor:none}
+.vt-stage.vt-idle::after{opacity:.55}
+.vt-big-play{position:absolute;z-index:2;left:50%;top:50%;translate:-50% -50%;display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:color-mix(in srgb,#fff 92%,transparent);color:var(--c-ink-950);opacity:0;scale:.9;pointer-events:none;transition:opacity var(--t-ui) ease,scale var(--t-ui) var(--ease-out)}
+.vt-big-play .ic{width:28px;height:28px;fill:currentColor;stroke:none;margin-left:4px}
+.vt-stage.vt-paused .vt-big-play{opacity:1;scale:1}
+/* Phones in portrait: the film takes the whole screen */
+@media (max-width:599px) and (orientation:portrait){
+  .vt-stage,.vt-stage.vt-wide{width:100vw;height:100svh;aspect-ratio:auto;border-radius:0;box-shadow:none}
+  .vt-x{top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px}
+  .vt-stage .vt-name{top:max(16px,env(safe-area-inset-top))}
+  .vt-ctl{bottom:max(12px,env(safe-area-inset-bottom))}
+}
+.vt-section-quote{margin:0;display:grid;gap:14px}
+.vt-section-quote q{font:700 clamp(24px,2.8vw,38px)/1.18 var(--f-display);font-stretch:var(--f-stretch-sm);color:var(--c-heading);text-wrap:balance}
+.vt-section-quote cite{font-style:normal;display:flex;align-items:center;gap:12px;color:var(--c-text-2)}
+.vt-section-quote cite img{width:44px;height:44px;border-radius:50%;object-fit:cover}
+.vt-section-quote cite b{display:block;color:var(--c-heading)}
+
+/* Reveal on scroll (case study pages): a short rise, once */
+.js:not(.tier-c) [data-reveal]{opacity:0;translate:0 18px;transition:opacity .7s var(--ease-out),translate .7s var(--ease-out)}
+.js:not(.tier-c) [data-reveal].is-in{opacity:1;translate:0 0}
+
+/* ============================================================
+   The landing page's video testimonials band: the brand's ink in both themes, the film lit from behind
+   ============================================================ */
+.vt-sec{position:relative;overflow:hidden;padding:88px 0;background:radial-gradient(50% 60% at 78% 45%,color-mix(in srgb,var(--c-primary-500) 26%,transparent),transparent 70%),var(--c-grad-ink);color:var(--c-neutral-200);--c-heading:#fff;--c-text-2:var(--c-neutral-300);--lead:var(--c-neutral-300);--c-line:color-mix(in srgb,var(--c-neutral-400) 24%,transparent);--c-accent-text:var(--c-primary-300);--focus:var(--c-primary-300)}
+.vt-sec-grid{display:grid;gap:36px;align-items:center}
+.vt-sec-copy{display:grid;gap:26px;align-content:start}
+.vt-sec .sec-head{margin-bottom:0}
+.vt-sec .vt-section-quote{padding-top:24px;border-top:1px solid var(--c-line)}
+.vt-sec .vt-section-quote cite span{color:var(--c-neutral-300)}
+.vt-list{display:flex;flex-wrap:wrap;justify-content:center;gap:24px}
+.vt-sec .vt-who span{color:var(--c-neutral-400)}
+.vt-links{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center}
+.vt-links a{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-weight:600;color:var(--c-primary-300);text-decoration:underline 1px color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:5px;transition:text-decoration-color var(--t-ui) var(--ease-out)}
+.vt-links a .ic{width:18px;height:18px}
+@media (hover:hover) and (pointer:fine){.vt-links a:hover{text-decoration-color:currentColor}}
+@media (min-width:900px){
+  .vt-sec{padding:128px 0}
+  .vt-sec-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:64px}
+  .vt-list{justify-content:flex-end}
+}
+@media (max-width:599px){.vt-sec{padding:64px 0}.vt-list .vt-card{width:min(100%,340px)}}
+
+/* More than one video: the words on top, the films side by side below */
+.vt-sec.vt-many .vt-sec-grid{grid-template-columns:minmax(0,1fr)}
+.vt-sec.vt-many .vt-sec-copy{max-width:780px}
+.vt-sec.vt-many .vt-list{justify-content:flex-start}
+@media (min-width:900px){.vt-sec.vt-many .vt-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,320px));gap:28px}}
+
+/* A result told by its number alone (no screenshots on file) */
+.csx-stat{min-height:220px;align-content:center;justify-items:start;background:radial-gradient(80% 90% at 80% 20%,color-mix(in srgb,var(--c-accent) 14%,var(--c-surface)),var(--c-surface))}
+.csx-stat figcaption{display:grid;gap:8px;padding:8px}
+.csx-stat figcaption b{font-size:clamp(56px,7vw,96px)}
+.cs-preview-bar{position:sticky;top:0;z-index:60;margin:0;padding:8px var(--pad-r) 8px var(--pad-l);background:var(--c-signal);color:var(--c-ink-975);font:700 13.5px/1.3 var(--f-text);text-align:center}
