@@ -8,7 +8,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -147,24 +146,17 @@ test("2026-11-14: every frame of the story film depends on its time alone, and t
     "hero-video/tools/render.mjs: the film is encoded without the check that a fresh browser draws its frames the same");
 });
 
-test("2026-11-14: the Review Race is tested in its own Vercel project, off main, and /customers keeps the Gap Check until the owner confirms the merge", () => {
-  for (const p of ["api/race.mjs", "api/race-cron.mjs", "customers/assets/race", "review-race/api", "review-race/public"]) {
-    assert.ok(!existsSync(ROOT + p), `${p} is on main, but the owner keeps the Review Race in its own Vercel project until they confirm the merge`);
+test("2026-11-14: the Review Race lives in its own repository (Saasrelaunchdev/RempoRaceTool), none of it is here, and /customers keeps the Gap Check until the owner confirms the merge", () => {
+  for (const p of ["review-race", "api/race.mjs", "api/race-cron.mjs", "customers/assets/race"]) {
+    assert.ok(!existsSync(ROOT + p), `${p} is in this repository, but the Review Race lives in Saasrelaunchdev/RempoRaceTool until the owner confirms the merge`);
   }
-  // review-race/ on main is only the placeholder that keeps the race's Vercel project from failing on every other commit
-  // (review-race/README.md): Vercel checks that its Root Directory exists before the Ignored Build Step runs.
-  const stub = execFileSync("git", ["-C", ROOT, "ls-files", "review-race"], { encoding: "utf8" }).split("\n").filter(Boolean).sort();
-  assert.deepEqual(stub, ["review-race/README.md", "review-race/vercel.json"],
-    "review-race/ on main must hold only the placeholder (README.md, vercel.json): the race itself stays on claude/dreamy-cray-95z5j1");
-  assert.equal(JSON.parse(read("review-race/vercel.json")).git?.deploymentEnabled, false,
-    "review-race/vercel.json no longer stops the race's Vercel project from deploying commits that are not the race's");
   const fns = Object.keys(JSON.parse(read("vercel.json")).functions || {});
-  assert.ok(!fns.some((f) => /race/.test(f)), "vercel.json runs a Review Race function, but the race is not on main until the owner confirms the merge");
+  assert.ok(!fns.some((f) => /race/.test(f)), "vercel.json runs a Review Race function, but the race lives in Saasrelaunchdev/RempoRaceTool until the owner confirms the merge");
   assert.ok(existsSync(ROOT + "api/meta-lead.mjs") && existsSync(ROOT + "meta/api/lead.mjs"), "the Gap Check's function (api/meta-lead.mjs, meta/api/lead.mjs) is gone");
   for (const p of LANDING.filter((x) => x.startsWith("customers/"))) {
     const html = read(p);
     has(html, /id="gap-check"/, `${p}: the Gap Check is gone`);
     has(html, /"endpoint":"\/api\/meta-lead"/, `${p}: the Gap Check no longer sends to /api/meta-lead`);
-    hasNot(html, /data-review-race|\/assets\/race\//, `${p}: the Review Race is on the page, but it stays in its own Vercel project until the owner confirms the merge`);
+    hasNot(html, /data-review-race|\/assets\/race\//, `${p}: the Review Race is on the page, but it lives in Saasrelaunchdev/RempoRaceTool until the owner confirms the merge`);
   }
 });
