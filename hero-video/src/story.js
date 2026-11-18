@@ -255,6 +255,8 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     cam.lookAt(tgt[0], tgt[1], tgt[2]);
     cam.updateMatrixWorld();
   }
+  // How dark the world is, and every glow with it. It reads userData.lightsOn of each van and userData.on of each shop
+  // as they are when it is called, so a shot sets those before it calls night().
   function night(n, focus = [0, 0, 0], span = 26) {
     S.setNight(n, new THREE.Vector3(...focus), span);
     bgn.style.opacity = n.toFixed(3);
@@ -437,12 +439,12 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
 
   // 5. She calls them: the phone rings at the shop down the road, and their van heads out.
   shot(47.35, 'rival', (t) => {
+    T.yours.userData.on = 0;
+    const vr = T.vans.rival; vr.userData.lightsOn = 1;
     night(1, [14, 0, 2], 16);
     setCam(keys(t, [[47.35, [27, 7.8, 17]], [49.4, [25.5, 7.2, 15.8], 'linear']]), [15.5, 1.2, 3.2], 28);
     veil.style.background = '#06112a';
     veil.style.opacity = ((1 - ease.out(prog(t, 47.35, 47.7))) * 0.9).toFixed(3);
-    T.yours.userData.on = 0;
-    const vr = T.vans.rival; vr.userData.lightsOn = 1;
     const k = ease.in(prog(t, 47.7, 49.4));
     vr.position.set(20.2 - k * 2.0, 0, 3.15 + k * 1.6);
     vr.rotation.y = -Math.PI / 2 + 0.45 * k;
@@ -692,13 +694,14 @@ export function createStory({ S, T, B, crewPhoto, timings }) {
     veil.style.opacity = Math.max(+veil.style.opacity || 0, ease.in(prog(t, 105.15, 105.45)) * 0.9).toFixed(3);
   });
 
-  // 14. The phone rings at your shop.
+  // 14. The phone rings at your shop, and the headlights of your van come on.
   shot(105.45, 'ringYours', (t) => {
+    T.vans.yours.userData.lightsOn = ease.out(prog(t, 106.1, 106.4));
     night(1, [-14, 0, 2], 12);
     setCam(keys(t, [[105.45, [-8.5, 5.8, 15.5]], [107.2, [-9.4, 5.6, 14.2], 'linear']]), [-16.4, 1.4, 2.6], 30);
     veil.style.background = '#06112a';
     veil.style.opacity = ((1 - ease.out(prog(t, 105.45, 105.8))) * 0.9).toFixed(3);
-    T.vans.yours.position.set(-19.4, 0, 3.4); T.vans.yours.rotation.y = 0; T.vans.yours.userData.lightsOn = ease.out(prog(t, 106.1, 106.4));
+    T.vans.yours.position.set(-19.4, 0, 3.4); T.vans.yours.rotation.y = 0;
     const O = ppl.owner; O.visible = true; O.position.set(shopDoor.x, 0, shopDoor.z + 0.7); O.rotation.y = 0.35;
     pose(O, { call: ease.inOut(prog(t, 105.9, 106.3)), t });
     const [ox, oy] = projOf(O, 1.7);
