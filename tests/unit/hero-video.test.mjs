@@ -119,6 +119,24 @@ test("every frame depends on its time alone, whatever frames the browser drew be
     "hero-video/tools/render.mjs: the film is encoded without first checking that a fresh browser draws its frames the same");
 });
 
+test("a shot sets what night() reads before it calls night(), so the lights it sets show", () => {
+  // S.setNight (src/stage.js) lights every window, lamp, van and shop from their userData at the moment it is called,
+  // and each frame starts from the world as built. So a light a shot sets after its night() call never shows: your
+  // van's headlights were on through the whole ringing shot instead of coming on as the phone rings (Nov 18, 2026).
+  const keys = [...new Set([...read("hero-video/src/stage.js").matchAll(/userData\.(\w+)/g)].map((m) => m[1]))];
+  assert.ok(keys.length, "hero-video/src/stage.js no longer reads any userData: update this test");
+  const sets = new RegExp(`userData\\.(?:${keys.join("|")}) =(?!=)`, "g");
+  const shots = [...read("hero-video/src/story.js").matchAll(/\n  shot\(([\d.]+), '(\w+)', \(t\) => \{([\s\S]*?)\n  \}\);/g)];
+  assert.ok(shots.length >= 10, "hero-video/src/story.js: the shots were not found (shot(t0, 'name', (t) => { ... }))");
+  for (const [, t0, name, body] of shots) {
+    const at = [...body.matchAll(sets)].map((m) => m.index);
+    if (!at.length) continue;
+    const n = body.search(/\bnight\(/);
+    assert.ok(n > Math.max(...at), `hero-video/src/story.js: shot '${name}' (${t0} s) sets ${keys.map((k) => "userData." + k).join(" or ")} `
+      + `${n < 0 ? "without calling night()" : "after its night() call"}, so that light never shows`);
+  }
+});
+
 test("the film the site plays was rendered from the scenes, timing and three.js as they are", async () => {
   const { sourcesHash } = await import("../../hero-video/tools/sources.mjs");
   assert.ok(existsSync(ROOT + "hero-video/rendered-from.json"), "hero-video/rendered-from.json is missing: run node hero-video/tools/render.mjs");

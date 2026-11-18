@@ -160,3 +160,11 @@ test("2026-11-14: the Review Race lives in its own repository (Saasrelaunchdev/R
     hasNot(html, /data-review-race|\/assets\/race\//, `${p}: the Review Race is on the page, but it lives in Saasrelaunchdev/RempoRaceTool until the owner confirms the merge`);
   }
 });
+
+test("2026-11-18: in the story film, the headlights of your van come on as the phone rings at your shop, not before", () => {
+  const ring = read("hero-video/src/story.js").match(/\n  shot\([\d.]+, 'ringYours', \(t\) => \{([\s\S]*?)\n  \}\);/);
+  assert.ok(ring, "hero-video/src/story.js: the shot where the phone rings at your shop (ringYours) is gone");
+  const on = ring[1].search(/T\.vans\.yours\.userData\.lightsOn = [^;\n]*\bprog\(t, /), night = ring[1].search(/\bnight\(1\b/);
+  assert.ok(on >= 0 && night > on,
+    "hero-video/src/story.js: the ringing shot no longer turns your van's headlights on as the phone rings, before its night() call, so they are on from the start of the shot");
+});
